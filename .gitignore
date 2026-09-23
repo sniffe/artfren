@@ -1,8 +1,10 @@
-/vendor/
 /data/*.sqlite
 /data/*.sqlite-journal
 /data/*.sqlite-wal
 /data/*.sqlite-shm
+/data/import_tmp/*
+!/data/import_tmp/.gitkeep
+/data/installed.lock
 /backups/*.zip
 /bilder/*
 !/bilder/.gitkeep

@@ -8,32 +8,42 @@ Der angezeigte Name der Anwendung ist frei wählbar: einfach `APP_NAME` in
 `src/config.php` anpassen (wirkt sich auf Seitentitel, Kopfzeile und
 Login-Seite aus).
 
-## Einrichtung (Shared-Hosting, kein Root-Zugriff, kein Cronjob nötig)
+## Einrichtung (Shared-Hosting, kein Shell-/SSH-Zugriff nötig)
 
-1. Dieses Verzeichnis komplett auf den Webspace hochladen (Document Root
-   zeigt direkt auf dieses Verzeichnis).
-2. Abhängigkeiten installieren:
-   ```
-   composer install --no-dev
-   ```
-3. Datenbank anlegen:
-   ```
-   php scripts/migrate.php
-   ```
-4. Ersten Admin-Benutzer anlegen (löst das Henne-Ei-Problem):
-   ```
-   php scripts/seed_admin.php <benutzername> <passwort> "<echter Name>" "<email>"
-   ```
-5. Sicherstellen, dass der Webserver `.htaccess`-Dateien auswertet
-   (Apache: `AllowOverride All` bzw. entsprechendes Preset beim Hoster).
-   Die Ordner `data/`, `backups/`, `src/`, `templates/`, `migrations/`,
-   `scripts/` und `vendor/` sind per `.htaccess` von außen gesperrt.
-6. Schreibrechte für den Webserver-Benutzer auf `data/`, `bilder/`,
-   `thumbs/`, `backups/` und `data/import_tmp/` sicherstellen.
-7. Unter `/login.php` mit dem angelegten Admin-Konto anmelden.
+Kein Composer, kein Terminal, kein Cronjob nötig – die komplette
+Installation läuft über den Browser. Der `vendor/`-Ordner mit allen
+Abhängigkeiten ist bereits Teil dieses Repositories.
+
+1. Dieses Verzeichnis komplett (inklusive `vendor/`) auf den Webspace
+   hochladen, z. B. per FTP oder Datei-Manager des Hosters. Document Root
+   zeigt direkt auf dieses Verzeichnis.
+2. Sicherstellen, dass der Webserver `.htaccess`-Dateien auswertet
+   (bei Apache-Hostern in der Regel Standard). Die Ordner `data/`,
+   `backups/`, `src/`, `templates/`, `migrations/`, `scripts/` und
+   `vendor/` sind darüber von außen gesperrt.
+3. Im Browser `https://deine-domain.tld/install.php` aufrufen und den
+   zwei Schritten folgen:
+   - **Datenbank einrichten** (legt die SQLite-Datei und alle Tabellen an),
+   - **Administrator anlegen** (Benutzername, Name, E-Mail, Passwort).
+   Zeigt der Installer fehlende Ordner-Schreibrechte an, müssen `data/`,
+   `bilder/`, `thumbs/`, `backups/` und `data/import_tmp/` beim Hoster auf
+   beschreibbar gestellt werden (z. B. Rechte 755).
+4. Nach erfolgreicher Einrichtung ist `install.php` automatisch gesperrt
+   (verweigert jede weitere Aktion, sobald ein Administrator existiert) –
+   kann aber zusätzlich einfach vom Server gelöscht werden.
+5. Unter `/login.php` mit dem angelegten Admin-Konto anmelden.
+
+### Alternative für lokale Entwicklung mit Shell-Zugriff
+
+Wer lokal (z. B. mit Docker/WSL) entwickelt und Composer-Abhängigkeiten
+selbst aktualisieren möchte, kann weiterhin die CLI-Skripte nutzen:
+`composer install`, dann `php scripts/migrate.php` und
+`php scripts/seed_admin.php <benutzername> <passwort>`.
 
 ## Struktur
 
+- `install.php` – einmaliger Web-Installer (Datenbank + erster Admin),
+  sperrt sich nach erfolgreicher Einrichtung selbst.
 - `*.php` im Wurzelverzeichnis – öffentliche Einstiegspunkte (Controller).
 - `src/` – PHP-Klassen (Auth, Database, Helpers, CsvImport), PSR-4 `App\`.
 - `templates/` – reine Ausgabe-Templates, keine Geschäftslogik/SQL.
