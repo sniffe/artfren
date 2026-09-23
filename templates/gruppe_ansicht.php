@@ -49,9 +49,9 @@ use App\Helpers;
 <script src="/assets/auswahl.js"></script>
 <script>
     (function () {
-        if (window.PeterAuswahl) {
-            <?php if ($geradeErstellt): ?>window.PeterAuswahl.loesche('auswahl_neu');<?php endif; ?>
-            <?php if ($geradeGespeichert): ?>window.PeterAuswahl.loesche('auswahl_gruppe_<?= (int) $gruppe['id'] ?>');<?php endif; ?>
+        if (window.WerkAuswahl) {
+            <?php if ($geradeErstellt): ?>window.WerkAuswahl.loesche('auswahl_neu');<?php endif; ?>
+            <?php if ($geradeGespeichert): ?>window.WerkAuswahl.loesche('auswahl_gruppe_<?= (int) $gruppe['id'] ?>');<?php endif; ?>
         }
     })();
 </script>

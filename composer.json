@@ -1,5 +1,5 @@
 {
-    "name": "peter/kunstverwaltung",
+    "name": "kunstverwaltung/app",
     "description": "Verwaltung von Kunstwerken mit Gruppen, Export- und Backup-Funktionen",
     "type": "project",
     "license": "proprietary",

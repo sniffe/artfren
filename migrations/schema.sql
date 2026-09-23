@@ -1,4 +1,4 @@
--- Peter Kunstverwaltung – Datenbankschema (SQLite)
+-- Kunstverwaltung – Datenbankschema (SQLite)
 -- Sieben Tabellen gemäß technischem Konzept.
 
 PRAGMA foreign_keys = ON;

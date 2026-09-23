@@ -1,8 +1,12 @@
-# Peter Kunstverwaltung
+# Kunstverwaltung
 
 Web-Anwendung (PHP 8.1+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Umsetzung gemäß `Peter_Kunstverwaltung_-_Technisches_Konzept.md`.
+Umsetzung gemäß dem übergebenen technischen Konzept-Dokument.
+
+Der angezeigte Name der Anwendung ist frei wählbar: einfach `APP_NAME` in
+`src/config.php` anpassen (wirkt sich auf Seitentitel, Kopfzeile und
+Login-Seite aus).
 
 ## Einrichtung (Shared-Hosting, kein Root-Zugriff, kein Cronjob nötig)
 

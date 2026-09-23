@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 use App\Helpers;
 
-$titel = $titel ?? 'Peter Kunstverwaltung';
+$titel = $titel ?? APP_NAME;
 $aktuelleSeite = $aktuelleSeite ?? '';
 ?>
 <!DOCTYPE html>
@@ -14,7 +14,7 @@ $aktuelleSeite = $aktuelleSeite ?? '';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= Helpers::e($titel) ?> · Peter Kunstverwaltung</title>
+<title><?= Helpers::e($titel) ?> · <?= Helpers::e(APP_NAME) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz@0,8..60;1,8..60&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/tokens.css">
@@ -33,7 +33,7 @@ $aktuelleSeite = $aktuelleSeite ?? '';
 <body>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
-    <div class="kopf__marke">Peter Kunstverwaltung</div>
+    <div class="kopf__marke"><?= Helpers::e(APP_NAME) ?></div>
     <nav class="nav">
         <?php if (\App\Auth::isAdmin($aktuellerBenutzer)): ?>
         <a href="/werke.php" class="<?= $aktuelleSeite === 'werke' ? 'aktiv' : '' ?>">Werke</a>

@@ -4,6 +4,10 @@ declare(strict_types=1);
 // Zentrale Konfiguration. Auf dem produktiven Hosting per .env oder
 // direkt hier anpassen (z. B. abweichender DB-Pfad).
 
+// Name der Anwendung – frei wählbar, wird in Titel, Kopfzeile und Login
+// angezeigt. Hier einmal anpassen, ändert sich überall.
+define('APP_NAME', 'Kunstverwaltung');
+
 define('APP_ROOT', dirname(__DIR__));
 define('DB_PATH', APP_ROOT . '/data/kunstverwaltung.sqlite');
 define('BILDER_PATH', APP_ROOT . '/bilder');

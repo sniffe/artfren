@@ -91,7 +91,7 @@
     function loescheAuswahl(schluessel) {
         try { localStorage.removeItem(schluessel); } catch (e) {}
     }
-    window.PeterAuswahl = { loesche: loescheAuswahl };
+    window.WerkAuswahl = { loesche: loescheAuswahl };
 
     document.querySelectorAll('[data-auswahl-schluessel]').forEach(init);
 })();

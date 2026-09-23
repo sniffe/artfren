@@ -16,7 +16,7 @@ session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
 ]);
-session_name('peterkunst_sid');
+session_name('kv_sid');
 session_start();
 
 header('X-Content-Type-Options: nosniff');
