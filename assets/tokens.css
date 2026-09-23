@@ -1,0 +1,61 @@
+/*
+ * Design-Tokens – einzige Quelle für Farben, Abstände und Schriftgrößen.
+ * Templates und Logik referenzieren ausschließlich diese Variablen,
+ * niemals feste Werte. Umschaltung hell/dunkel über [data-theme].
+ */
+
+:root {
+    /* Farbe – hell (Standard) */
+    --farbe-hintergrund: #F7F7F5;
+    --farbe-flaeche: #FFFFFF;
+    --farbe-text: #1C1B1A;
+    --farbe-text-sekundaer: #6B6862;
+    --farbe-linie: #E2E0DC;
+    --farbe-akzent: #7A2A38;
+    --farbe-akzent-text: #FFFFFF;
+
+    --farbe-status-rot: #A23B3B;
+    --farbe-status-gruen: #3B7A4E;
+    --farbe-status-orange: #B5762A;
+
+    /* Typografie */
+    --schrift-serif: 'Source Serif 4', 'Georgia', serif;
+    --schrift-grotesk: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+    --schrift-groesse-basis: 15px;
+    --schrift-groesse-klein: 13px;
+    --schrift-groesse-gross: 1.6rem;
+    --schrift-groesse-titel-vitrine: 2rem;
+
+    /* Abstände */
+    --abstand-xs: 4px;
+    --abstand-s: 8px;
+    --abstand-m: 16px;
+    --abstand-l: 24px;
+    --abstand-xl: 40px;
+
+    --radius: 3px;
+    --thumb-groesse: 48px;
+}
+
+:root[data-theme="dunkel"] {
+    --farbe-hintergrund: #1B1B1D;
+    --farbe-flaeche: #242426;
+    --farbe-text: #EDECEA;
+    --farbe-text-sekundaer: #9C9994;
+    --farbe-linie: #38373A;
+    --farbe-akzent: #C97C89;
+    --farbe-akzent-text: #1B1B1D;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="hell"]) {
+        --farbe-hintergrund: #1B1B1D;
+        --farbe-flaeche: #242426;
+        --farbe-text: #EDECEA;
+        --farbe-text-sekundaer: #9C9994;
+        --farbe-linie: #38373A;
+        --farbe-akzent: #C97C89;
+        --farbe-akzent-text: #1B1B1D;
+    }
+}

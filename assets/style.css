@@ -1,0 +1,207 @@
+/* Werkstatt & Vitrine – Basislayout. Werte ausschließlich aus tokens.css. */
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--farbe-hintergrund);
+    color: var(--farbe-text);
+    font-family: var(--schrift-grotesk);
+    font-size: var(--schrift-groesse-basis);
+    line-height: 1.5;
+}
+
+a { color: var(--farbe-akzent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3 {
+    font-family: var(--schrift-grotesk);
+    font-weight: 600;
+    margin: 0 0 var(--abstand-m);
+}
+
+/* ---------- Kopfzeile / Navigation ---------- */
+
+.kopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--abstand-m) var(--abstand-l);
+    border-bottom: 1px solid var(--farbe-linie);
+    background: var(--farbe-flaeche);
+}
+
+.kopf__marke {
+    font-family: var(--schrift-serif);
+    font-style: italic;
+    font-size: var(--schrift-groesse-gross);
+}
+
+.nav { display: flex; gap: var(--abstand-l); align-items: center; }
+.nav a { color: var(--farbe-text); font-size: var(--schrift-groesse-klein); text-transform: uppercase; letter-spacing: .04em; }
+.nav a.aktiv, .nav a:hover { color: var(--farbe-akzent); text-decoration: none; }
+
+.kopf__benutzer { display: flex; align-items: center; gap: var(--abstand-m); font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); }
+
+.theme-schalter {
+    background: none;
+    border: 1px solid var(--farbe-linie);
+    border-radius: var(--radius);
+    color: var(--farbe-text);
+    cursor: pointer;
+    padding: 2px 8px;
+    font-size: var(--schrift-groesse-klein);
+}
+
+/* ---------- Layout-Container ---------- */
+
+.hauptinhalt { max-width: 1200px; margin: 0 auto; padding: var(--abstand-l); }
+.hauptinhalt--breit { max-width: 1500px; }
+
+.flash { padding: var(--abstand-s) var(--abstand-m); border-radius: var(--radius); margin-bottom: var(--abstand-m); font-size: var(--schrift-groesse-klein); }
+.flash--erfolg { background: color-mix(in srgb, var(--farbe-status-gruen) 15%, var(--farbe-flaeche)); border: 1px solid var(--farbe-status-gruen); color: var(--farbe-text); }
+.flash--fehler { background: color-mix(in srgb, var(--farbe-status-rot) 15%, var(--farbe-flaeche)); border: 1px solid var(--farbe-status-rot); color: var(--farbe-text); }
+.flash--hinweis { background: color-mix(in srgb, var(--farbe-akzent) 12%, var(--farbe-flaeche)); border: 1px solid var(--farbe-akzent); color: var(--farbe-text); }
+
+/* ---------- Buttons & Formulare ---------- */
+
+.btn {
+    display: inline-block;
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--farbe-linie);
+    background: var(--farbe-flaeche);
+    color: var(--farbe-text);
+    font-size: var(--schrift-groesse-klein);
+    cursor: pointer;
+    font-family: var(--schrift-grotesk);
+}
+.btn:hover { border-color: var(--farbe-akzent); color: var(--farbe-akzent); text-decoration: none; }
+.btn--primaer { background: var(--farbe-akzent); border-color: var(--farbe-akzent); color: var(--farbe-akzent-text); }
+.btn--primaer:hover { opacity: .9; color: var(--farbe-akzent-text); }
+.btn--gefahr { border-color: var(--farbe-status-rot); color: var(--farbe-status-rot); }
+.btn--gefahr:hover { background: var(--farbe-status-rot); color: #fff; }
+.btn--klein { padding: 3px 10px; font-size: 12px; }
+
+label { display: block; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); margin-bottom: 2px; }
+input[type=text], input[type=search], input[type=password], input[type=email], input[type=number], input[type=file], select, textarea {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--farbe-linie);
+    border-radius: var(--radius);
+    background: var(--farbe-flaeche);
+    color: var(--farbe-text);
+    font-family: var(--schrift-grotesk);
+    font-size: var(--schrift-groesse-basis);
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--farbe-akzent); outline-offset: 1px; }
+.feld { margin-bottom: var(--abstand-m); }
+.feldreihe { display: flex; gap: var(--abstand-m); flex-wrap: wrap; }
+.feldreihe .feld { flex: 1; min-width: 160px; }
+
+fieldset { border: 1px solid var(--farbe-linie); border-radius: var(--radius); padding: var(--abstand-m); }
+legend { font-family: var(--schrift-serif); font-style: italic; padding: 0 var(--abstand-s); }
+
+/* ---------- Werkstatt: dichte Tabellenliste ---------- */
+
+.werkstatt-leiste { display: flex; gap: var(--abstand-m); align-items: flex-end; margin-bottom: var(--abstand-m); flex-wrap: wrap; }
+.werkstatt-leiste .feld { margin-bottom: 0; min-width: 220px; }
+
+table.werkliste { width: 100%; border-collapse: collapse; background: var(--farbe-flaeche); }
+table.werkliste th {
+    text-align: left;
+    font-size: var(--schrift-groesse-klein);
+    color: var(--farbe-text-sekundaer);
+    font-weight: 600;
+    padding: var(--abstand-s) var(--abstand-s);
+    border-bottom: 1px solid var(--farbe-linie);
+}
+table.werkliste td {
+    padding: 6px var(--abstand-s);
+    border-bottom: 1px solid var(--farbe-linie);
+    vertical-align: middle;
+}
+table.werkliste tr:hover td { background: color-mix(in srgb, var(--farbe-akzent) 5%, transparent); }
+table.werkliste .num { text-align: right; font-variant-numeric: tabular-nums; }
+table.werkliste img.thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); object-fit: cover; border: 1px solid var(--farbe-linie); }
+table.werkliste .platzhalter-thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); border: 1px dashed var(--farbe-linie); display: inline-block; }
+
+.status-punkt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
+.status-punkt--rot { background: var(--farbe-status-rot); }
+.status-punkt--gruen { background: var(--farbe-status-gruen); }
+.status-punkt--orange { background: var(--farbe-status-orange); }
+
+.seiten-nav { display: flex; gap: var(--abstand-s); margin-top: var(--abstand-m); align-items: center; font-size: var(--schrift-groesse-klein); }
+.auswahl-leiste { position: sticky; bottom: 0; background: var(--farbe-flaeche); border-top: 1px solid var(--farbe-linie); padding: var(--abstand-m); display: flex; justify-content: space-between; align-items: center; margin-top: var(--abstand-m); }
+
+/* ---------- Vitrine: großformatige Betrachtung ---------- */
+
+.vitrine-karten { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--abstand-l); }
+.vitrine-karte { background: var(--farbe-flaeche); color: inherit; text-decoration: none; display: block; }
+.vitrine-karte:hover { text-decoration: none; }
+.vitrine-karte:hover .titel { text-decoration: underline; }
+.passepartout {
+    background: var(--farbe-flaeche);
+    border: 1px solid var(--farbe-linie);
+    padding: var(--abstand-m);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+.passepartout img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.passepartout--leer { color: var(--farbe-text-sekundaer); font-size: var(--schrift-groesse-klein); }
+
+.werk-etikett { margin-top: var(--abstand-s); text-align: center; }
+.werk-etikett .maler { font-variant: small-caps; letter-spacing: .03em; font-size: var(--schrift-groesse-klein); }
+.werk-etikett .titel { font-family: var(--schrift-serif); font-style: italic; font-size: 1.15rem; margin: 2px 0; }
+.werk-etikett .meta { font-size: 12px; color: var(--farbe-text-sekundaer); }
+
+.vitrine-detail { display: flex; gap: var(--abstand-xl); align-items: flex-start; flex-wrap: wrap; }
+.vitrine-detail .passepartout { flex: 1 1 420px; aspect-ratio: auto; min-height: 340px; }
+.vitrine-detail .werk-etikett { flex: 1 1 280px; text-align: left; margin-top: 0; }
+.vitrine-detail .werk-etikett .titel { font-size: var(--schrift-groesse-titel-vitrine); }
+.vitrine-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--abstand-m); margin-top: var(--abstand-l); }
+.vitrine-detail dt { color: var(--farbe-text-sekundaer); font-size: var(--schrift-groesse-klein); }
+.vitrine-detail dd { margin: 0; }
+
+/* ---------- Karten (Gruppen, Backups, Benutzer) ---------- */
+
+table.liste { width: 100%; border-collapse: collapse; background: var(--farbe-flaeche); }
+table.liste th { text-align: left; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); padding: var(--abstand-s); border-bottom: 1px solid var(--farbe-linie); }
+table.liste td { padding: var(--abstand-s); border-bottom: 1px solid var(--farbe-linie); }
+table.liste .aktionen { display: flex; gap: var(--abstand-s); }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; border: 1px solid var(--farbe-linie); color: var(--farbe-text-sekundaer); }
+.badge--admin { border-color: var(--farbe-akzent); color: var(--farbe-akzent); }
+.badge--gesperrt { border-color: var(--farbe-status-rot); color: var(--farbe-status-rot); }
+
+.karte { background: var(--farbe-flaeche); border: 1px solid var(--farbe-linie); padding: var(--abstand-l); }
+.karte + .karte { margin-top: var(--abstand-m); }
+
+/* ---------- Login ---------- */
+
+.login-seite { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-karte { background: var(--farbe-flaeche); border: 1px solid var(--farbe-linie); padding: var(--abstand-xl); width: 340px; }
+.login-karte h1 { font-family: var(--schrift-serif); font-style: italic; text-align: center; }
+
+/* ---------- Sonstiges ---------- */
+
+.text-sekundaer { color: var(--farbe-text-sekundaer); }
+.text-klein { font-size: var(--schrift-groesse-klein); }
+.mt-m { margin-top: var(--abstand-m); }
+.mt-l { margin-top: var(--abstand-l); }
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--abstand-m); gap: var(--abstand-m); flex-wrap: wrap; }
+.toolbar-aktionen { display: flex; gap: var(--abstand-s); flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+    .kopf { flex-direction: column; align-items: flex-start; gap: var(--abstand-s); }
+    .nav { flex-wrap: wrap; gap: var(--abstand-m); }
+    table.werkliste thead { display: none; }
+    table.werkliste tr { display: block; border-bottom: 2px solid var(--farbe-linie); padding: var(--abstand-s) 0; }
+    table.werkliste td { display: flex; justify-content: space-between; border-bottom: none; padding: 2px var(--abstand-s); }
+    table.werkliste td::before { content: attr(data-label); color: var(--farbe-text-sekundaer); font-size: 12px; margin-right: var(--abstand-s); }
+    .vitrine-detail { flex-direction: column; }
+}

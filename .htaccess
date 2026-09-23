@@ -1,0 +1,10 @@
+# Schutz für Dateien im Dokumenten-Root, die nicht öffentlich sein sollen.
+# (Die eigentlichen Privatordner haben zusätzlich eigene .htaccess-Sperren.)
+
+<FilesMatch "^(composer\.(json|lock)|\.gitignore|.*\.sqlite.*)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
