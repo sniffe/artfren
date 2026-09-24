@@ -5,13 +5,12 @@ namespace App;
 
 final class Helpers
 {
+    // Markierungsfarben laut Legende der Excel-Tabelle. Andere Farben (etwa
+    // alte gelbe/blaue Markierungen) ignoriert der Import.
     public const STATUS_FARBEN = [
         'rot' => 'Rot',
         'orange' => 'Orange',
-        'gelb' => 'Gelb',
         'gruen' => 'Grün',
-        'blau' => 'Blau',
-        'violett' => 'Violett',
     ];
 
     public static function e(?string $value): string
@@ -162,7 +161,8 @@ final class Helpers
             'blau' => 'blau', 'blue' => 'blau',
             'violett' => 'violett', 'lila' => 'violett', 'purple' => 'violett',
         ];
-        return $zuordnung[$w] ?? null;
+        $status = $zuordnung[$w] ?? null;
+        return isset(self::STATUS_FARBEN[$status ?? '']) ? $status : null;
     }
 
     /**
@@ -198,7 +198,7 @@ final class Helpers
             $farbton += 360;
         }
 
-        return match (true) {
+        $farbe = match (true) {
             $farbton < 15 || $farbton >= 330 => 'rot',
             $farbton < 45 => 'orange',
             $farbton < 70 => 'gelb',
@@ -206,6 +206,7 @@ final class Helpers
             $farbton < 260 => 'blau',
             default => 'violett',
         };
+        return isset(self::STATUS_FARBEN[$farbe]) ? $farbe : null;
     }
 
     /** Normalform eines Ortsnamens für Vergleiche und Aliase. */

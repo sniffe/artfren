@@ -51,8 +51,8 @@ nur über die Kommandozeile ausführbar.
 
 Die Excel-Datei kann **direkt** hochgeladen werden (erstes Tabellenblatt):
 Die Kopfzeile wird automatisch gefunden, Legenden- und Summenzeilen werden
-übersprungen, Zellfarben werden zum Status (Rot, Orange, Gelb, Grün, Blau,
-Violett). CSV (UTF-8 oder Windows-1252, `;`/`,`/Tab) funktioniert ebenfalls.
+übersprungen, farbig markierte Zeilen werden laut Legende zum Status (Rot,
+Orange, Grün); andere Farben werden ignoriert. CSV (UTF-8 oder Windows-1252, `;`/`,`/Tab) funktioniert ebenfalls.
 
 - Beim erneuten Import werden Werke über Ort + Maler + Titel wiedererkannt;
   gleiche Kombinationen (z. B. mehrere „o.T.“) werden der Reihe nach

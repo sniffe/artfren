@@ -130,10 +130,7 @@ table.werkliste .platzhalter-thumb { width: var(--thumb-groesse); height: var(--
 .status-punkt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
 .status-punkt--rot { background: var(--farbe-status-rot); }
 .status-punkt--orange { background: var(--farbe-status-orange); }
-.status-punkt--gelb { background: var(--farbe-status-gelb); }
 .status-punkt--gruen { background: var(--farbe-status-gruen); }
-.status-punkt--blau { background: var(--farbe-status-blau); }
-.status-punkt--violett { background: var(--farbe-status-violett); }
 
 table.werkliste th a { color: inherit; }
 table.werkliste th a.sortiert { color: var(--farbe-akzent); }
