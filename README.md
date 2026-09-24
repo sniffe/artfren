@@ -79,6 +79,9 @@ Seite). Gruppen, Benutzer und Einstellungen enthält nur das Backup.
 
 ## Werke bearbeiten
 
+Über „+ Neues Werk anlegen“ in der Werkliste lassen sich Werke auch ohne
+Tabelle erfassen (leeres Formular, Bild direkt mit hochladbar).
+
 Admins können jedes Werk aus der Werkliste („bearbeiten“) oder der
 Detailansicht („Bearbeiten“) ändern, inklusive Bild (hochladen, aus dem
 Bilder-Ordner zuweisen oder Zuordnung entfernen). In der Werkliste öffnet ein

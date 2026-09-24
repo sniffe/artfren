@@ -43,7 +43,10 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
     <h2>Werke für Gruppe „<?= Helpers::e($gruppe['name']) ?>“ auswählen</h2>
     <p class="text-sekundaer">Aktuelle Mitglieder sind bereits angehakt. Auswahl anpassen und unten speichern.</p>
 <?php else: ?>
-    <h2>Werke</h2>
+    <div class="toolbar">
+        <h2 style="margin:0;">Werke</h2>
+        <a href="/werk_bearbeiten.php" class="btn btn--primaer">+ Neues Werk anlegen</a>
+    </div>
 <?php endif; ?>
 
 <form method="get" action="/werke.php" class="werkstatt-leiste">

@@ -7,6 +7,7 @@
 /** @var string[] $orte */
 /** @var string[] $malerListe */
 /** @var string[] $freieBilder */
+/** @var bool $neu */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -20,7 +21,7 @@ $feld = static function (string $name, string $label, string $wert, string $extr
 };
 ?>
 <p class="text-klein"><a href="<?= Helpers::e($zurueck) ?>">← zurück</a></p>
-<h2>Werk bearbeiten</h2>
+<h2><?= $neu ? 'Neues Werk anlegen' : 'Werk bearbeiten' ?></h2>
 
 <?php if ($fehler): ?>
     <div class="flash flash--fehler">
@@ -40,7 +41,7 @@ $feld = static function (string $name, string $label, string $wert, string $extr
     <div class="bearbeiten-raster">
         <div class="karte">
             <div class="feldreihe">
-                <?php $feld('maler', 'Maler', (string) $eingabe['maler'], 'list="liste-maler" maxlength="500"'); ?>
+                <?php $feld('maler', 'Maler', (string) $eingabe['maler'], 'list="liste-maler" maxlength="500"' . ($neu ? ' autofocus' : '')); ?>
                 <?php $feld('titel', 'Titel', (string) $eingabe['titel'], 'maxlength="500"'); ?>
             </div>
             <div class="feldreihe">
@@ -110,7 +111,7 @@ $feld = static function (string $name, string $label, string $wert, string $extr
     </div>
 
     <div class="toolbar-aktionen mt-m">
-        <button type="submit" class="btn btn--primaer">Speichern</button>
+        <button type="submit" class="btn btn--primaer"><?= $neu ? 'Werk anlegen' : 'Speichern' ?></button>
         <a href="<?= Helpers::e($zurueck) ?>" class="btn">Abbrechen</a>
     </div>
 </form>

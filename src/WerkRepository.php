@@ -179,6 +179,18 @@ final class WerkRepository
         $this->pdo->commit();
     }
 
+    /** Legt ein Werk von Hand an und liefert seine ID. */
+    public function anlegen(array $daten): int
+    {
+        $felder = self::BEARBEITBARE_FELDER;
+        // Als "im Programm bearbeitet" markiert: taucht dasselbe Werk später in
+        // einer importierten Tabelle auf, wird es nicht ungefragt überschrieben.
+        $this->pdo->prepare(
+            'INSERT INTO kunstwerke (' . implode(', ', $felder) . ", bearbeitet_am) VALUES (:" . implode(', :', $felder) . ", datetime('now'))"
+        )->execute(array_intersect_key($daten, array_flip($felder)));
+        return (int) $this->pdo->lastInsertId();
+    }
+
     /** Setzt (oder entfernt mit null) das Hauptbild eines Werks. */
     public function setzeHauptbild(int $werkId, ?string $dateiname): void
     {

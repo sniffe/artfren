@@ -13,19 +13,26 @@ use App\WerkRepository;
 Auth::requireAdmin();
 $repo = WerkRepository::neu();
 
+// Ohne ID: leeres Formular zum Anlegen eines neuen Werks.
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
-$werk = $repo->finde($id);
-if ($werk === null) {
-    Helpers::abbrechen(404, 'Dieses Werk wurde nicht gefunden.');
+$neu = $id === 0;
+if ($neu) {
+    $werk = array_fill_keys(WerkRepository::BEARBEITBARE_FELDER, null);
+    $werk = array_merge($werk, ['id' => 0, 'werktyp' => 'Bild', 'bearbeitet_am' => null]);
+} else {
+    $werk = $repo->finde($id);
+    if ($werk === null) {
+        Helpers::abbrechen(404, 'Dieses Werk wurde nicht gefunden.');
+    }
 }
-$zurueck = Helpers::ruecksprung($_GET['zurueck'] ?? $_POST['zurueck'] ?? null, '/werk.php?id=' . $id);
+$zurueck = Helpers::ruecksprung($_GET['zurueck'] ?? $_POST['zurueck'] ?? null, $neu ? '/werke.php' : '/werk.php?id=' . $id);
 $fehler = [];
 $eingabe = $werk;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
         Helpers::flashSet('fehler', 'Das Bild ist größer als vom Server erlaubt (' . ini_get('post_max_size') . '). Die Änderungen wurden nicht gespeichert.');
-        Helpers::redirect('/werk_bearbeiten.php?id=' . $id);
+        Helpers::redirect('/werk_bearbeiten.php' . ($neu ? '' : '?id=' . $id));
     }
     Helpers::checkCsrf();
 
@@ -57,6 +64,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eingabe['werktyp'] = ($_POST['werktyp'] ?? '') === 'Objekt' ? 'Objekt' : 'Bild';
     $status = (string) ($_POST['status_farbe'] ?? '');
     $eingabe['status_farbe'] = isset(Helpers::STATUS_FARBEN[$status]) ? $status : null;
+
+    if ($fehler === [] && $neu) {
+        $neueId = $repo->anlegen($eingabe);
+        $details = trim(($eingabe['maler'] ?? '') . ' – ' . ($eingabe['titel'] ?? ''), ' –');
+        [$bildName, $bildFehler] = BildUpload::zuweisenAusFormular($repo, $neueId, $_FILES['bild'] ?? null, (string) ($_POST['vorhandenes_bild'] ?? ''));
+        Protokoll::schreibe('werk_angelegt', $details . ($bildName !== null ? " · Bild „{$bildName}“" : ''));
+
+        if ($bildFehler !== null) {
+            // Das Werk ist gespeichert – nur das Bild nicht. Direkt zum Nachreichen.
+            Helpers::flashSet('fehler', "Das Werk wurde angelegt, das Bild aber nicht gespeichert: {$bildFehler}");
+            Helpers::redirect('/werk_bearbeiten.php?id=' . $neueId);
+        }
+        Helpers::flashSet('erfolg', "Das Werk „{$details}“ wurde angelegt.");
+        Helpers::redirect('/werk.php?id=' . $neueId);
+    }
 
     if ($fehler === []) {
         $geaendert = array_values(array_filter(
@@ -99,7 +121,8 @@ $bilder = Database::get()->prepare('SELECT * FROM bilder WHERE kunstwerk_id = :i
 $bilder->execute(['id' => $id]);
 
 render('werk_bearbeiten', [
-    'titel' => 'Werk bearbeiten',
+    'titel' => $neu ? 'Neues Werk' : 'Werk bearbeiten',
+    'neu' => $neu,
     'aktuelleSeite' => 'werke',
     'werk' => $werk,
     'eingabe' => $eingabe,
