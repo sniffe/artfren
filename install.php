@@ -133,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$gesperrt && $probleme === []) {
     }
 }
 
+$appName = $probleme === [] ? App\Einstellungen::appName() : APP_NAME;
 $oeffentlich = $pruefung !== null ? array_keys($pruefung, App\Sicherheitscheck::OEFFENTLICH, true) : [];
 ?>
 <!DOCTYPE html>
@@ -141,14 +142,14 @@ $oeffentlich = $pruefung !== null ? array_keys($pruefung, App\Sicherheitscheck::
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Installation · <?= e(APP_NAME) ?></title>
+<title>Installation · <?= e($appName) ?></title>
 <link rel="stylesheet" href="/assets/fonts.css">
 <link rel="stylesheet" href="/assets/tokens.css">
 <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
 <main class="hauptinhalt" style="max-width:640px;">
-    <h1 class="gruppenname">Installation – <?= e(APP_NAME) ?></h1>
+    <h1 class="gruppenname">Installation – <?= e($appName) ?></h1>
 
     <?php if ($meldungFehler): ?><div class="flash flash--fehler"><?= e($meldungFehler) ?></div><?php endif; ?>
     <?php if ($meldungErfolg): ?><div class="flash flash--erfolg"><?= e($meldungErfolg) ?></div><?php endif; ?>

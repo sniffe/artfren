@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// Zentrale Konfiguration – Werte bei Bedarf direkt hier anpassen.
+// Technische Grundkonfiguration. Muss für den Betrieb nicht angepasst werden.
 
-// Name der Anwendung – frei wählbar, wird in Titel, Kopfzeile und Login
-// angezeigt. Hier einmal anpassen, ändert sich überall.
+// Standardwerte. Name der Anwendung und HTTPS-Zwang werden im Browser unter
+// "System → Einstellungen" geändert und in der Datenbank gespeichert – ein
+// Update überschreibt sie daher nicht. Diese Datei muss man nicht anpassen.
 define('APP_NAME', 'Kunstverwaltung');
 
 define('APP_ROOT', dirname(__DIR__));
@@ -26,8 +27,7 @@ define('LOGIN_SPERR_MINUTEN', 15);
 define('LOGIN_MAX_VERSUCHE_PRO_IP', 20);
 define('SITZUNG_LEERLAUF_MINUTEN', 60);
 
-// Auf true setzen, sobald die Seite zuverlässig per HTTPS erreichbar ist:
-// dann wird jeder HTTP-Aufruf auf HTTPS umgeleitet.
+// Standard für "HTTPS erzwingen" (siehe System → Einstellungen).
 define('HTTPS_ERZWINGEN', false);
 
 // Die Datenbank bekommt bei der Installation einen zufälligen Dateinamen,

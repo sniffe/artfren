@@ -7,7 +7,7 @@ declare(strict_types=1);
 use App\Auth;
 use App\Helpers;
 
-$titel = $titel ?? APP_NAME;
+$titel = $titel ?? \App\Einstellungen::appName();
 $aktuelleSeite = $aktuelleSeite ?? '';
 $istAdmin = $aktuellerBenutzer !== null && Auth::isAdmin($aktuellerBenutzer);
 
@@ -20,7 +20,7 @@ $navLink = static function (string $url, string $seite, string $text) use ($aktu
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= Helpers::e($titel) ?> · <?= Helpers::e(APP_NAME) ?></title>
+<title><?= Helpers::e($titel) ?> · <?= Helpers::e(\App\Einstellungen::appName()) ?></title>
 <link rel="stylesheet" href="/assets/fonts.css">
 <link rel="stylesheet" href="/assets/tokens.css">
 <link rel="stylesheet" href="/assets/style.css">
@@ -29,7 +29,7 @@ $navLink = static function (string $url, string $seite, string $text) use ($aktu
 <body>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
-    <a class="kopf__marke" href="<?= Auth::startseite($aktuellerBenutzer) ?>" title="Zur Startseite"><?= Helpers::e(APP_NAME) ?></a>
+    <a class="kopf__marke" href="<?= Auth::startseite($aktuellerBenutzer) ?>" title="Zur Startseite"><?= Helpers::e(\App\Einstellungen::appName()) ?></a>
     <nav class="nav">
         <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', 'Werke') ?><?php endif; ?>
         <?= $navLink('/gruppen.php', 'gruppen', 'Gruppen') ?>
@@ -52,6 +52,9 @@ $navLink = static function (string $url, string $seite, string $text) use ($aktu
 </header>
 <?php endif; ?>
 <main class="hauptinhalt <?= !empty($breit) ? 'hauptinhalt--breit' : '' ?>">
+    <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::veralteteDateien() !== []): ?>
+        <div class="flash flash--hinweis">Nach dem Update liegen noch veraltete Dateien auf dem Server. <a href="/system.php">Unter „System“ aufräumen</a></div>
+    <?php endif; ?>
     <?php foreach ($flashes as $flash): ?>
         <div class="flash flash--<?= Helpers::e($flash['typ']) ?>"><?= Helpers::e($flash['nachricht']) ?></div>
     <?php endforeach; ?>

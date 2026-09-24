@@ -6,7 +6,7 @@ use App\Helpers;
 ?>
 <div class="login-seite">
     <div class="login-karte">
-        <h1><?= Helpers::e(APP_NAME) ?></h1>
+        <h1><?= Helpers::e(\App\Einstellungen::appName()) ?></h1>
         <?php if ($fehler): ?>
             <div class="flash flash--fehler"><?= Helpers::e($fehler) ?></div>
         <?php endif; ?>

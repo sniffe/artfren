@@ -11,6 +11,7 @@ require APP_ROOT . '/vendor/autoload.php';
 
 use App\Auth;
 use App\Database;
+use App\Einstellungen;
 use App\Helpers;
 use App\Migration;
 
@@ -52,7 +53,13 @@ $https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
     || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
     || strtolower($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '') === 'on';
 
-if (HTTPS_ERZWINGEN && !$https) {
+if (!Database::existiert()) {
+    Helpers::redirect('/install.php');
+}
+// Datenbank-Updates laufen automatisch, sobald neue Programmdateien hochgeladen wurden.
+Migration::aktualisiere(Database::get());
+
+if (Einstellungen::httpsErzwingen() && !$https) {
     $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
     if (preg_match('/^[a-z0-9.-]+(:\d{1,5})?$/i', $host)) {
         header('Location: https://' . $host . ($_SERVER['REQUEST_URI'] ?? '/'), true, 301);
@@ -82,12 +89,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 if ($https) {
     header('Strict-Transport-Security: max-age=31536000');
 }
-
-if (!Database::existiert()) {
-    Helpers::redirect('/install.php');
-}
-// Datenbank-Updates laufen automatisch, sobald neue Programmdateien hochgeladen wurden.
-Migration::aktualisiere(Database::get());
 
 /**
  * Rendert ein Template innerhalb des gemeinsamen Layouts. Die Schlüssel von

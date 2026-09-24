@@ -5,17 +5,47 @@ require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
 use App\Database;
+use App\Einstellungen;
 use App\Helpers;
 use App\Migration;
 use App\Protokoll;
 use App\Sicherheitscheck;
+use App\Wartung;
 
 Auth::requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Helpers::checkCsrf();
-    if (($_POST['aktion'] ?? '') === 'pruefen') {
+    $aktion = $_POST['aktion'] ?? '';
+    if ($aktion === 'pruefen') {
         $_SESSION['sicherheitscheck'] = ['zeit' => time(), 'ergebnis' => Sicherheitscheck::pruefeOrdner()];
+    } elseif ($aktion === 'einstellungen') {
+        $name = trim((string) ($_POST['app_name'] ?? ''));
+        $httpsGewuenscht = isset($_POST['https_erzwingen']);
+        // $https stammt aus bootstrap.php. Einschalten nur über HTTPS, damit man
+        // sich nicht aussperrt, falls der Server gar kein Zertifikat hat.
+        $fehler = Einstellungen::appNameFehler($name)
+            ?? ($httpsGewuenscht && !$https
+                ? 'HTTPS erzwingen lässt sich nur einschalten, wenn die Seite bereits über https:// aufgerufen wird.'
+                : null);
+        if ($fehler !== null) {
+            Helpers::flashSet('fehler', $fehler);
+        } else {
+            $vorher = Einstellungen::appName();
+            Einstellungen::setze('app_name', $name);
+            Einstellungen::setze('https_erzwingen', $httpsGewuenscht ? '1' : '0');
+            Protokoll::schreibe('einstellungen', "Name: „{$vorher}“ → „{$name}“, HTTPS erzwingen: " . ($httpsGewuenscht ? 'ja' : 'nein'));
+            Helpers::flashSet('erfolg', 'Einstellungen wurden gespeichert.');
+        }
+    } elseif ($aktion === 'aufraeumen') {
+        $ergebnis = Wartung::loescheVeraltete();
+        if ($ergebnis['geloescht'] !== []) {
+            Protokoll::schreibe('aufraeumen', 'Veraltete Dateien gelöscht: ' . implode(', ', $ergebnis['geloescht']));
+            Helpers::flashSet('erfolg', 'Gelöscht: ' . implode(', ', $ergebnis['geloescht']));
+        }
+        if ($ergebnis['fehler'] !== []) {
+            Helpers::flashSet('fehler', 'Konnte nicht gelöscht werden (bitte per FTP entfernen): ' . implode(', ', $ergebnis['fehler']));
+        }
     }
     Helpers::redirect('/system.php');
 }
@@ -23,9 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $proSeite = 100;
 $seite = max(1, (int) ($_GET['seite'] ?? 1));
 $pdo = Database::get();
-
-$https = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
-    || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 
 render('system', [
     'titel' => 'System',
@@ -41,9 +68,12 @@ render('system', [
         'Datenbankgröße' => Helpers::formatGroesse((int) filesize(DB_PATH)),
         'Schema-Version' => Migration::aktuelleVersion($pdo) . ' / ' . Migration::zielVersion(),
         'Verbindung' => $https ? 'HTTPS (verschlüsselt)' : 'HTTP (unverschlüsselt)',
-        'HTTPS erzwingen' => HTTPS_ERZWINGEN ? 'ja' : 'nein (src/config.php)',
+        'HTTPS erzwingen' => Einstellungen::httpsErzwingen() ? 'ja' : 'nein',
     ],
     'httpsAktiv' => $https,
+    'appName' => Einstellungen::appName(),
+    'httpsErzwingen' => Einstellungen::httpsErzwingen(),
+    'veraltet' => Wartung::veralteteDateien(),
     'protokoll' => Protokoll::letzte($proSeite + 1, ($seite - 1) * $proSeite),
     'proSeite' => $proSeite,
     'seite' => $seite,

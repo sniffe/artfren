@@ -2,6 +2,9 @@
 /** @var array|null $pruefung */
 /** @var array<string, string> $info */
 /** @var bool $httpsAktiv */
+/** @var string $appName */
+/** @var bool $httpsErzwingen */
+/** @var array<string, string> $veraltet */
 /** @var array $protokoll */
 /** @var int $proSeite */
 /** @var int $seite */
@@ -20,6 +23,46 @@ $mehrSeiten = count($protokoll) > $proSeite;
 $protokoll = array_slice($protokoll, 0, $proSeite);
 ?>
 <h2>System</h2>
+
+<?php if ($veraltet): ?>
+    <div class="karte">
+        <h3>Veraltete Dateien aus früheren Versionen</h3>
+        <p class="text-klein text-sekundaer">Beim Update per Hochladen bleiben Dateien, die es in der neuen Version nicht mehr gibt, auf dem Server liegen. Sie werden nicht mehr gebraucht und sollten entfernt werden.</p>
+        <ul class="warnung-liste">
+            <?php foreach ($veraltet as $pfad => $beschreibung): ?>
+                <li><code><?= Helpers::e($pfad) ?></code> – <?= Helpers::e($beschreibung) ?></li>
+            <?php endforeach; ?>
+        </ul>
+        <form method="post" action="/system.php">
+            <?= Helpers::csrfField() ?>
+            <input type="hidden" name="aktion" value="aufraeumen">
+            <button type="submit" class="btn btn--primaer" data-bestaetigen="Die aufgelisteten veralteten Dateien jetzt endgültig löschen?">Jetzt löschen</button>
+        </form>
+    </div>
+<?php endif; ?>
+
+<div class="karte">
+    <h3>Einstellungen</h3>
+    <p class="text-klein text-sekundaer">Werden in der Datenbank gespeichert und bleiben bei Updates erhalten.</p>
+    <form method="post" action="/system.php">
+        <?= Helpers::csrfField() ?>
+        <input type="hidden" name="aktion" value="einstellungen">
+        <div class="feld">
+            <label for="app_name">Name der Anwendung (links oben und im Login)</label>
+            <input type="text" id="app_name" name="app_name" required maxlength="80" value="<?= Helpers::e($appName) ?>">
+        </div>
+        <div class="feld">
+            <label>
+                <input type="checkbox" name="https_erzwingen" value="1" <?= $httpsErzwingen ? 'checked' : '' ?> <?= !$httpsAktiv && !$httpsErzwingen ? 'disabled' : '' ?>>
+                HTTPS erzwingen (unverschlüsselte Aufrufe werden auf https:// umgeleitet)
+            </label>
+            <?php if (!$httpsAktiv): ?>
+                <p class="text-klein text-sekundaer">Nur einschaltbar, wenn diese Seite über <code>https://</code> aufgerufen wird – so ist sichergestellt, dass das Zertifikat funktioniert und man sich nicht aussperrt.</p>
+            <?php endif; ?>
+        </div>
+        <button type="submit" class="btn btn--primaer">Speichern</button>
+    </form>
+</div>
 
 <div class="feldreihe">
     <div class="karte" style="flex:1;min-width:320px;">
@@ -51,7 +94,7 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
             <button type="submit" class="btn btn--primaer">Jetzt prüfen</button>
         </form>
         <?php if (!$httpsAktiv): ?>
-            <div class="flash flash--hinweis mt-m">Die Seite wird unverschlüsselt (HTTP) aufgerufen. Passwörter werden so im Klartext übertragen. Bei fast allen Hostern lässt sich ein kostenloses SSL-Zertifikat (Let’s Encrypt) aktivieren; danach in <code>src/config.php</code> <code>HTTPS_ERZWINGEN</code> auf <code>true</code> setzen.</div>
+            <div class="flash flash--hinweis mt-m">Die Seite wird unverschlüsselt (HTTP) aufgerufen. Passwörter werden so im Klartext übertragen. Bei fast allen Hostern lässt sich ein kostenloses SSL-Zertifikat (Let’s Encrypt) aktivieren; danach die Seite über <code>https://</code> aufrufen und oben unter „Einstellungen“ „HTTPS erzwingen“ einschalten.</div>
         <?php endif; ?>
     </div>
 

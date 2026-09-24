@@ -4,9 +4,10 @@ Web-Anwendung (PHP 8.1+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
 Umsetzung gemäß dem übergebenen technischen Konzept-Dokument.
 
-Der angezeigte Name der Anwendung ist frei wählbar: einfach `APP_NAME` in
-`src/config.php` anpassen (wirkt sich auf Seitentitel, Kopfzeile und
-Login-Seite aus).
+Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
+**System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
+Login-Seite aus). Der Wert liegt in der Datenbank und bleibt bei Updates
+erhalten; `APP_NAME` in `src/config.php` ist nur der Standardwert.
 
 ## Einrichtung (Shared-Hosting, kein Shell-/SSH-Zugriff nötig)
 
@@ -31,15 +32,23 @@ Abhängigkeiten ist bereits Teil dieses Repositories.
    Die Prüfung lässt sich jederzeit unter „System“ wiederholen.
 4. `install.php` sperrt sich nach der Einrichtung selbst und kann zusätzlich
    gelöscht werden.
-5. Sobald ein SSL-Zertifikat aktiv ist: in `src/config.php`
-   `HTTPS_ERZWINGEN` auf `true` setzen.
+5. Sobald ein SSL-Zertifikat aktiv ist: die Seite über `https://` aufrufen
+   und unter **System → Einstellungen** „HTTPS erzwingen“ einschalten.
 
 ### Updates einspielen
 
-Neue Programmdateien einfach hochladen (die Ordner `data/`, `bilder/` und
-`backups/` dabei nicht überschreiben). Nötige Datenbank-Änderungen laufen
-beim nächsten Seitenaufruf automatisch (`migrations/NNN_*.sql`,
-Versionsstand über `PRAGMA user_version`). Vorher ein Backup erstellen.
+1. Unter „Backup“ ein Backup erstellen und herunterladen.
+2. Die neue Version komplett hochladen und alles überschreiben lassen.
+   Werke, Benutzer, Bilder, Backups und Einstellungen sind nicht betroffen:
+   Sie liegen in `data/`, `bilder/` und `backups/`, und die neue Version
+   bringt diese Ordner nur mit ihrer `.htaccess`-Sperre mit. Im FTP-Programm
+   versteckte Dateien anzeigen lassen, damit die `.htaccess`-Dateien
+   mitkommen.
+3. Irgendeine Seite aufrufen: Nötige Datenbank-Änderungen laufen dabei
+   automatisch (`migrations/NNN_*.sql`, Versionsstand über
+   `PRAGMA user_version`).
+4. Bleiben Dateien früherer Versionen liegen, weist ein Hinweis darauf hin;
+   unter **System** lassen sie sich mit einem Klick löschen.
 
 ### Alternative mit Shell-Zugriff (lokale Entwicklung)
 
