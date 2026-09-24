@@ -7,30 +7,27 @@ use App\Auth;
 use App\Export;
 use App\Protokoll;
 use App\WerkRepository;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 Auth::requireAdmin();
 $format = (string) ($_GET['format'] ?? '');
+$repo = WerkRepository::neu();
 
-if (!in_array($format, ['csv', 'xlsx'], true)) {
-    render('export_gesamt', ['titel' => 'Gesamtexport', 'aktuelleSeite' => 'export']);
+if (!in_array($format, ['xlsx', 'bilder', 'csv'], true)) {
+    render('export_gesamt', [
+        'titel' => 'Gesamtexport',
+        'aktuelleSeite' => 'export',
+        'anzahlWerke' => $repo->zaehle([]),
+        'bilder' => Export::bilderZuWerken($repo->alle()),
+    ]);
     exit;
 }
 
-Protokoll::schreibe('export_gesamt', strtoupper($format));
+Protokoll::schreibe('export_gesamt', $format === 'bilder' ? 'Bilder-ZIP' : strtoupper($format));
 session_write_close();
-@set_time_limit(300);
-$werke = WerkRepository::neu()->alle();
+@set_time_limit(0);
 
-if ($format === 'csv') {
-    header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . Export::dateiname('kunstwerke_gesamt', 'csv') . '"');
-    $ausgabe = fopen('php://output', 'w');
-    Export::schreibeCsv($ausgabe, $werke);
-    fclose($ausgabe);
-    exit;
+if ($format === 'bilder') {
+    Export::sendeBilderZip($repo->alle(), Export::dateiname('kunstwerke_bilder', 'zip'));
+} else {
+    Export::sendeTabelle($repo->alle(), $format, 'kunstwerke_gesamt');
 }
-
-header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment; filename="' . Export::dateiname('kunstwerke_gesamt', 'xlsx') . '"');
-(new Xlsx(Export::xlsx($werke)))->save('php://output');

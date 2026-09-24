@@ -6,8 +6,10 @@ namespace App;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use ZipStream\CompressionMethod;
+use ZipStream\ZipStream;
 
-/** Gemeinsame Export-Logik für CSV und XLSX. */
+/** Gemeinsame Export-Logik: Tabelle (XLSX/CSV) und Bilder-ZIP. */
 final class Export
 {
     /** DB-Feld => Spaltenüberschrift */
@@ -104,6 +106,87 @@ final class Export
         $blatt->freezePane('A2');
 
         return $mappe;
+    }
+
+    /**
+     * Dateinamen der Bilder, die zu den Werken gehören und auf dem Server
+     * liegen – genau so, wie sie in der Spalte "Dateiname" stehen.
+     *
+     * @param iterable<array> $werke
+     * @return array{dateien: string[], fehlend: string[], groesse: int}
+     */
+    public static function bilderZuWerken(iterable $werke): array
+    {
+        $dateien = [];
+        $fehlend = [];
+        $groesse = 0;
+        foreach ($werke as $werk) {
+            $name = $werk['bild_dateiname'] ?? null;
+            if (!$name || isset($dateien[$name]) || isset($fehlend[$name])) {
+                continue;
+            }
+            $pfad = Bilder::originalPfad($name);
+            if (is_file($pfad)) {
+                $dateien[$name] = $name;
+                $groesse += (int) filesize($pfad);
+            } else {
+                $fehlend[$name] = $name;
+            }
+        }
+        return ['dateien' => array_values($dateien), 'fehlend' => array_values($fehlend), 'groesse' => $groesse];
+    }
+
+    /**
+     * Streamt die Bilder als ZIP direkt an den Browser – ohne Zwischendatei,
+     * damit auch große Sammlungen auf Shared-Hosting nicht am Speicherplatz
+     * oder an der Laufzeit scheitern. Die Dateien liegen flach im Archiv, mit
+     * denselben Namen wie in der Spalte "Dateiname" der Excel-Datei: der Inhalt
+     * kann unverändert unter "Import → Bilder hochladen" (oder per FTP in
+     * bilder/) wieder eingespielt werden.
+     *
+     * @param iterable<array> $werke
+     */
+    public static function sendeBilderZip(iterable $werke, string $zipName): void
+    {
+        $bilder = self::bilderZuWerken($werke);
+        $zip = new ZipStream(
+            outputName: $zipName,
+            sendHttpHeaders: true,
+            contentType: 'application/zip',
+            // Größen vorab in die Kopfdaten schreiben: kompatibler mit dem
+            // Entpacken unter Windows/macOS als "Zero-Header"-Archive.
+            defaultEnableZeroHeader: false,
+            // Bilder sind bereits komprimiert – nur speichern spart Rechenzeit.
+            defaultCompressionMethod: CompressionMethod::STORE,
+        );
+        foreach ($bilder['dateien'] as $name) {
+            $zip->addFileFromPath(fileName: $name, path: Bilder::originalPfad($name));
+        }
+        if ($bilder['fehlend'] !== []) {
+            $zip->addFile(
+                fileName: 'FEHLENDE_BILDER.txt',
+                data: "Diese Dateien stehen in der Excel-Spalte \"Dateiname\", liegen aber nicht auf dem Server:\r\n\r\n"
+                    . implode("\r\n", $bilder['fehlend']) . "\r\n",
+                compressionMethod: CompressionMethod::DEFLATE,
+            );
+        }
+        $zip->finish();
+    }
+
+    /** Sendet die Werke als Excel- oder CSV-Download. @param iterable<array> $werke */
+    public static function sendeTabelle(iterable $werke, string $format, string $basisname): void
+    {
+        if ($format === 'csv') {
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . self::dateiname($basisname, 'csv') . '"');
+            $ausgabe = fopen('php://output', 'w');
+            self::schreibeCsv($ausgabe, $werke);
+            fclose($ausgabe);
+            return;
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . self::dateiname($basisname, 'xlsx') . '"');
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx(self::xlsx($werke)))->save('php://output');
     }
 
     public static function dateiname(string $basis, string $endung): string

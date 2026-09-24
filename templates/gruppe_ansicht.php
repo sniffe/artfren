@@ -4,6 +4,7 @@
 /** @var bool $istAdmin */
 /** @var array $freigegebenFuer */
 /** @var string[] $auswahlVerwerfen */
+/** @var int $bilderAnzahl */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -27,8 +28,11 @@ $gruppeId = (int) $gruppe['id'];
         </p>
     </div>
     <div class="toolbar-aktionen">
-        <a href="/export_gruppe_zip.php?id=<?= $gruppeId ?>" class="btn">Export ZIP</a>
-        <a href="/export_gruppe_pdf.php?id=<?= $gruppeId ?>" class="btn">Export PDF</a>
+        <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="Tabelle mit allen Feldern und Dateinamen">Excel</a>
+        <?php if ($bilderAnzahl > 0): ?>
+            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="Bilddateien der Gruppe als ZIP">Bilder-ZIP (<?= $bilderAnzahl ?>)</a>
+        <?php endif; ?>
+        <a href="/export_gruppe_pdf.php?id=<?= $gruppeId ?>" class="btn">PDF</a>
         <?php if ($istAdmin): ?>
             <a href="/werke.php?gruppe_id=<?= $gruppeId ?>" class="btn btn--primaer">Werke hinzufügen/entfernen</a>
         <?php endif; ?>

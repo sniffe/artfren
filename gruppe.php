@@ -37,12 +37,14 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
 }
 
 $istAdmin = Auth::isAdmin($benutzer);
+$werke = WerkRepository::neu()->fuerGruppe($id);
 render('gruppe_ansicht', [
     'titel' => $gruppe['name'],
     'aktuelleSeite' => 'gruppen',
     'breit' => true,
     'gruppe' => $gruppe,
-    'werke' => WerkRepository::neu()->fuerGruppe($id),
+    'werke' => $werke,
+    'bilderAnzahl' => count(\App\Export::bilderZuWerken($werke)['dateien']),
     'istAdmin' => $istAdmin,
     'freigegebenFuer' => $istAdmin ? $repo->freigegebenFuer($id) : [],
     'auswahlVerwerfen' => array_filter([

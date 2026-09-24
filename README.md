@@ -63,6 +63,20 @@ Orange, Grün); andere Farben werden ignoriert. CSV (UTF-8 oder Windows-1252, `;
   „Dateiname“ entsprechen. Verknüpfungen werden auch gespeichert, wenn das
   Bild noch fehlt – es erscheint automatisch, sobald es hochgeladen ist.
 
+## Export
+
+Gesamtexport und Gruppenexport liefern jeweils **zwei Dateien**, die
+zusammengehören:
+
+- **Excel** mit allen Feldern; die Spalte „Dateiname“ nennt die Bilddatei.
+- **Bilder-ZIP** mit genau diesen Dateien (flach, ohne Unterordner). Fehlende
+  Dateien stehen in `FEHLENDE_BILDER.txt`.
+
+Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen“
+(oder per FTP nach `bilder/`), Excel unter „Tabelle importieren“ – in
+beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro
+Seite). Gruppen, Benutzer und Einstellungen enthält nur das Backup.
+
 ## Werke bearbeiten
 
 Admins können jedes Werk aus der Werkliste („bearbeiten“) oder der

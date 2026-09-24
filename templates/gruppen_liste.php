@@ -30,7 +30,8 @@ use App\Helpers;
             <td><?= (int) $g['anzahl_werke'] ?></td>
             <td class="text-klein"><?= Helpers::e(Helpers::formatDatum($g['erstellt_am'], 'd.m.Y')) ?></td>
             <td class="aktionen">
-                <a href="/export_gruppe_zip.php?id=<?= $id ?>" class="btn btn--klein">ZIP</a>
+                <a href="/export_gruppe.php?id=<?= $id ?>&amp;format=xlsx" class="btn btn--klein" title="Tabelle mit allen Feldern und Dateinamen">Excel</a>
+                <a href="/export_gruppe.php?id=<?= $id ?>&amp;format=bilder" class="btn btn--klein" title="Bilddateien der Gruppe als ZIP">Bilder</a>
                 <a href="/export_gruppe_pdf.php?id=<?= $id ?>" class="btn btn--klein">PDF</a>
                 <?php if ($istAdmin): ?>
                     <details class="aufklappen">
