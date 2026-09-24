@@ -10,6 +10,7 @@
 /** @var int $gesamtAnzahl */
 /** @var array|null $gruppe */
 /** @var int[] $aktuelleMitglieder */
+/** @var string[] $freieBilder */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -102,14 +103,23 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($werke as $w): $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't'); ?>
-        <tr>
+    <?php foreach ($werke as $w):
+        $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't');
+        $zeilenUrl = $url() . '#werk-' . (int) $w['id'];
+        $werkText = trim(($w['maler'] ?? '') . ' – ' . ($w['titel'] ?? ''), ' –'); ?>
+        <tr id="werk-<?= (int) $w['id'] ?>">
             <td data-label="Auswahl"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="Auswählen"></td>
             <td data-label="Bild">
                 <?php if ($thumb): ?>
                     <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
                 <?php else: ?>
-                    <span class="platzhalter-thumb" title="<?= $w['bild_dateiname'] ? 'Bilddatei fehlt: ' . Helpers::e($w['bild_dateiname']) : 'Kein Bild' ?>"></span>
+                    <button type="button" class="platzhalter-thumb platzhalter-thumb--aktiv"
+                            data-bild-zuweisen="<?= (int) $w['id'] ?>"
+                            data-werk-text="<?= Helpers::e($werkText) ?>"
+                            data-erwartet="<?= Helpers::e((string) $w['bild_dateiname']) ?>"
+                            data-ruecksprung="<?= Helpers::e($zeilenUrl) ?>"
+                            title="<?= $w['bild_dateiname'] ? 'Bilddatei „' . Helpers::e($w['bild_dateiname']) . '“ fehlt – klicken zum Hochladen' : 'Bild hochladen oder zuweisen' ?>"
+                            aria-label="Bild hochladen oder zuweisen">+</button>
                 <?php endif; ?>
             </td>
             <td data-label="Ort"><?= Helpers::e($w['ort']) ?></td>
@@ -122,6 +132,7 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
             <td data-label="">
                 <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>"></span><?php endif; ?>
                 <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="text-klein">ansehen</a>
+                <a href="/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>" class="text-klein">bearbeiten</a>
             </td>
         </tr>
     <?php endforeach; ?>
@@ -156,4 +167,31 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
 </div>
 
 </div>
+
+<dialog id="bild-dialog" class="dialog">
+    <form method="post" action="/werk_bild.php" enctype="multipart/form-data">
+        <?= Helpers::csrfField() ?>
+        <input type="hidden" name="werk_id" value="">
+        <input type="hidden" name="zurueck" value="">
+        <h3>Bild zuweisen</h3>
+        <p class="text-sekundaer" data-dialog-werk></p>
+        <p class="text-klein text-sekundaer" data-dialog-erwartet hidden></p>
+        <div class="feld">
+            <label for="dialog-bild">Bild hochladen</label>
+            <input type="file" id="dialog-bild" name="bild" accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+        </div>
+        <div class="feld">
+            <label for="dialog-vorhanden">… oder vorhandenes Bild aus dem Bilder-Ordner</label>
+            <input type="text" id="dialog-vorhanden" name="vorhandenes_bild" list="liste-freie-bilder" autocomplete="off"
+                   placeholder="<?= $freieBilder ? count($freieBilder) . ' noch nicht zugeordnete Bilder – Namen tippen' : 'Dateiname' ?>">
+        </div>
+        <div class="toolbar-aktionen">
+            <button type="submit" class="btn btn--primaer">Zuweisen</button>
+            <button type="button" class="btn" data-dialog-schliessen>Abbrechen</button>
+        </div>
+    </form>
+</dialog>
+<datalist id="liste-freie-bilder"><?php foreach ($freieBilder as $b): ?><option value="<?= Helpers::e($b) ?>"><?php endforeach; ?></datalist>
+
 <script src="/assets/auswahl.js"></script>
+<script src="/assets/bild-dialog.js"></script>

@@ -380,10 +380,10 @@ final class TabellenImport
                 continue;
             }
 
-            $daten['entstehungsjahr'] = self::jahr($daten['entstehungsjahr']);
-            $daten['ankaufjahr'] = self::jahr($daten['ankaufjahr']);
-            $daten['ankaufswert'] = self::betrag($daten['ankaufswert']);
-            $daten['wert'] = self::betrag($daten['wert']);
+            $daten['entstehungsjahr'] = Helpers::parseJahr($daten['entstehungsjahr']);
+            $daten['ankaufjahr'] = Helpers::parseJahr($daten['ankaufjahr']);
+            $daten['ankaufswert'] = Helpers::parseBetrag($daten['ankaufswert']);
+            $daten['wert'] = Helpers::parseBetrag($daten['wert']);
             $daten['werktyp'] = mb_strtolower((string) $daten['werktyp']) === 'objekt' ? 'Objekt' : 'Bild';
             $daten['status_farbe'] = Helpers::normalisiereStatus($daten['status_farbe']);
 
@@ -400,30 +400,6 @@ final class TabellenImport
         fclose($handle);
 
         return ['zeilen' => $zeilen, 'uebersprungen' => $uebersprungen, 'ungueltigeDateinamen' => $ungueltig];
-    }
-
-    /** "2005", "ca. 2005", "2005/06", 2005.0 → 2005 */
-    private static function jahr(?string $wert): ?int
-    {
-        if ($wert === null || !preg_match('/\d{4}/', $wert, $m)) {
-            return null;
-        }
-        return (int) $m[0];
-    }
-
-    /** "1.500,50 €", "1500.5", "1.500" (deutsch) → float */
-    private static function betrag(?string $wert): ?float
-    {
-        if ($wert === null) {
-            return null;
-        }
-        $w = str_replace([' ', "\u{00A0}", '€', 'EUR'], '', $wert);
-        if (str_contains($w, ',')) {
-            $w = str_replace(['.', ','], ['', '.'], $w);
-        } elseif (preg_match('/^-?\d{1,3}(\.\d{3})+$/', $w)) {
-            $w = str_replace('.', '', $w);
-        }
-        return is_numeric($w) ? (float) $w : null;
     }
 
     /** Ersetzt abweichende Ort-Schreibweisen durch den zusammengeführten Namen. */
@@ -457,28 +433,40 @@ final class TabellenImport
      *
      * Gleiche Ort/Maler/Titel-Kombinationen (z. B. mehrere „o.T.“) werden der
      * Reihe nach zugeordnet: 1. Vorkommen in der Datei ↔ ältester Datensatz usw.
+     * Wurden Ort/Maler/Titel im Programm geändert, findet der alte Schlüssel
+     * (werk_schluessel_alias) das Werk trotzdem.
+     *
+     * Geänderte Werke, die im Programm bearbeitet wurden, landen in
+     * "geschuetzt" statt "geaendert" – sie werden nur auf Wunsch überschrieben.
      *
      * @param string[] $gemappt
      */
     public static function berechneAbgleich(PDO $pdo, array $zeilen, array $gemappt): array
     {
         $bestand = [];
+        $nachId = [];
         $sql = "SELECT k.*, (SELECT b.dateiname FROM bilder b WHERE b.kunstwerk_id = k.id AND b.ist_hauptbild = 1 ORDER BY b.sortierung, b.id LIMIT 1) AS bild_dateiname
                 FROM kunstwerke k ORDER BY k.id";
         foreach ($pdo->query($sql) as $row) {
             $bestand[self::abgleichsschluessel($row)][] = $row;
+            $nachId[(int) $row['id']] = $row;
+        }
+        $aliase = [];
+        foreach ($pdo->query('SELECT schluessel, kunstwerk_id FROM werk_schluessel_alias ORDER BY kunstwerk_id') as $a) {
+            $aliase[$a['schluessel']][] = (int) $a['kunstwerk_id'];
         }
 
         $vergleich = array_values(array_intersect(array_merge(self::FELDER, ['bild_dateiname']), $gemappt));
 
-        $ergebnis = ['neu' => [], 'geaendert' => [], 'unveraendert' => 0, 'fehlerBild' => [], 'duplikate' => []];
+        $ergebnis = ['neu' => [], 'geaendert' => [], 'geschuetzt' => [], 'unveraendert' => 0, 'fehlerBild' => [], 'duplikate' => []];
         $vorkommen = [];
+        $verwendet = [];
 
         foreach ($zeilen as $eintrag) {
             $daten = $eintrag['daten'];
             $schluessel = self::abgleichsschluessel($daten);
-            $position = $vorkommen[$schluessel] = ($vorkommen[$schluessel] ?? -1) + 1;
-            if ($position > 0) {
+            $vorkommen[$schluessel] = ($vorkommen[$schluessel] ?? 0) + 1;
+            if ($vorkommen[$schluessel] > 1) {
                 $ergebnis['duplikate'][] = $eintrag;
             }
 
@@ -486,11 +474,28 @@ final class TabellenImport
                 $ergebnis['fehlerBild'][] = $eintrag;
             }
 
-            $vorhanden = $bestand[$schluessel][$position] ?? null;
+            // Erster noch nicht zugeordneter Datensatz mit diesem Schlüssel,
+            // sonst einer, der früher diesen Schlüssel hatte.
+            $vorhanden = null;
+            foreach ($bestand[$schluessel] ?? [] as $row) {
+                if (!isset($verwendet[(int) $row['id']])) {
+                    $vorhanden = $row;
+                    break;
+                }
+            }
+            if ($vorhanden === null) {
+                foreach ($aliase[$schluessel] ?? [] as $id) {
+                    if (!isset($verwendet[$id]) && isset($nachId[$id])) {
+                        $vorhanden = $nachId[$id];
+                        break;
+                    }
+                }
+            }
             if ($vorhanden === null) {
                 $ergebnis['neu'][] = $eintrag;
                 continue;
             }
+            $verwendet[(int) $vorhanden['id']] = true;
 
             $unterschiede = [];
             foreach ($vergleich as $feld) {
@@ -499,12 +504,18 @@ final class TabellenImport
                 }
             }
 
-            if ($unterschiede !== []) {
-                $eintrag['kunstwerk_id'] = (int) $vorhanden['id'];
-                $eintrag['unterschiede'] = $unterschiede;
-                $ergebnis['geaendert'][] = $eintrag;
-            } else {
+            if ($unterschiede === []) {
                 $ergebnis['unveraendert']++;
+                continue;
+            }
+            $eintrag['kunstwerk_id'] = (int) $vorhanden['id'];
+            $eintrag['unterschiede'] = $unterschiede;
+            if ($vorhanden['bearbeitet_am'] !== null) {
+                $eintrag['bearbeitet_am'] = $vorhanden['bearbeitet_am'];
+                $eintrag['bestand'] = $vorhanden;
+                $ergebnis['geschuetzt'][] = $eintrag;
+            } else {
+                $ergebnis['geaendert'][] = $eintrag;
             }
         }
 
@@ -522,8 +533,11 @@ final class TabellenImport
         return (string) ($neu ?? '') === (string) ($alt ?? '');
     }
 
-    /** @param string[] $gemappt */
-    public static function uebernehmen(PDO $pdo, array $abgleich, array $gemappt): void
+    /**
+     * @param string[] $gemappt
+     * @param bool $bearbeiteteUeberschreiben auch im Programm bearbeitete Werke mit Tabellenwerten überschreiben
+     */
+    public static function uebernehmen(PDO $pdo, array $abgleich, array $gemappt, bool $bearbeiteteUeberschreiben = false): void
     {
         $felder = array_values(array_intersect(self::FELDER, $gemappt));
         $bildGemappt = in_array('bild_dateiname', $gemappt, true);
@@ -549,7 +563,14 @@ final class TabellenImport
             }
         }
 
-        foreach ($abgleich['geaendert'] as $eintrag) {
+        // Nach dem Überschreiben entspricht das Werk wieder der Tabelle.
+        $synchron = $pdo->prepare('UPDATE kunstwerke SET bearbeitet_am = NULL WHERE id = :id');
+        $zuAktualisieren = $bearbeiteteUeberschreiben
+            ? array_merge($abgleich['geaendert'], $abgleich['geschuetzt'])
+            : $abgleich['geaendert'];
+
+        foreach ($zuAktualisieren as $eintrag) {
+            $synchron->execute(['id' => $eintrag['kunstwerk_id']]);
             $daten = $eintrag['daten'];
             $id = $eintrag['kunstwerk_id'];
             if ($update !== null) {

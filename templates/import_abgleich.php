@@ -44,6 +44,7 @@ require __DIR__ . '/_import_reiter.php';
     <div class="karte"><strong><?= count($abgleich['neu']) ?></strong><span class="text-klein text-sekundaer">neu</span></div>
     <div class="karte"><strong><?= count($abgleich['geaendert']) ?></strong><span class="text-klein text-sekundaer">werden aktualisiert</span></div>
     <div class="karte"><strong><?= $abgleich['unveraendert'] ?></strong><span class="text-klein text-sekundaer">unverändert</span></div>
+    <?php if ($abgleich['geschuetzt']): ?><div class="karte"><strong><?= count($abgleich['geschuetzt']) ?></strong><span class="text-klein text-sekundaer">im Programm bearbeitet</span></div><?php endif; ?>
     <div class="karte"><strong><?= count($abgleich['fehlerBild']) ?></strong><span class="text-klein text-sekundaer">Bilddatei fehlt noch</span></div>
 </div>
 
@@ -61,6 +62,14 @@ require __DIR__ . '/_import_reiter.php';
         <ul class="text-klein"><?php $zeigeListe($abgleich['geaendert'], 25, true); ?></ul>
     </div>
 </div>
+
+<?php if ($abgleich['geschuetzt']): ?>
+<div class="karte mt-m">
+    <h3>Im Programm bearbeitete Werke (<?= count($abgleich['geschuetzt']) ?>)</h3>
+    <p class="text-klein text-sekundaer">Diese Werke wurden nach dem letzten Import von Hand geändert. Die Tabelle enthält für sie andere Werte – ohne Häkchen unten bleiben die Änderungen im Programm erhalten.</p>
+    <ul class="text-klein"><?php $zeigeListe($abgleich['geschuetzt'], 50, true); ?></ul>
+</div>
+<?php endif; ?>
 
 <?php if ($abgleich['fehlerBild']): ?>
 <div class="karte mt-m">
@@ -93,6 +102,14 @@ require __DIR__ . '/_import_reiter.php';
     <?php foreach ($mapping as $index => $ziel): ?>
         <input type="hidden" name="mapping[<?= (int) $index ?>]" value="<?= Helpers::e($ziel) ?>">
     <?php endforeach; ?>
+    <?php if ($abgleich['geschuetzt']): ?>
+        <div class="feld">
+            <label style="display:inline-flex;gap:6px;align-items:center;color:var(--farbe-text);font-size:var(--schrift-groesse-basis);">
+                <input type="checkbox" name="bearbeitete_ueberschreiben" value="1">
+                Auch die <?= count($abgleich['geschuetzt']) ?> im Programm bearbeiteten Werke mit den Tabellenwerten überschreiben
+            </label>
+        </div>
+    <?php endif; ?>
     <button type="submit" class="btn btn--primaer">Jetzt importieren</button>
     <a href="/import.php" class="btn">Abbrechen</a>
 </form>

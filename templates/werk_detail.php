@@ -9,7 +9,12 @@ $hauptbild = $bilder[0] ?? null;
 $bildUrl = $hauptbild ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'g') : null;
 $originalUrl = $hauptbild ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'o') : null;
 ?>
-<p class="text-klein"><a href="/" data-zurueck>← zurück</a></p>
+<div class="toolbar">
+    <p class="text-klein" style="margin:0;"><a href="/" data-zurueck>← zurück</a></p>
+    <?php if (\App\Auth::isAdmin($aktuellerBenutzer)): ?>
+        <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--primaer">Bearbeiten</a>
+    <?php endif; ?>
+</div>
 <div class="vitrine-detail">
     <div class="passepartout">
         <?php if ($bildUrl): ?>

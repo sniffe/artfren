@@ -48,4 +48,5 @@ render('werke_liste', [
     'gesamtAnzahl' => $gesamtAnzahl,
     'gruppe' => $gruppe,
     'aktuelleMitglieder' => $gruppe ? $werkRepo->mitgliedIds((int) $gruppe['id']) : [],
+    'freieBilder' => \App\BildUpload::unzugeordnet(),
 ]);

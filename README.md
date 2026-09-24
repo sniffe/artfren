@@ -63,6 +63,18 @@ Orange, Grün); andere Farben werden ignoriert. CSV (UTF-8 oder Windows-1252, `;
   „Dateiname“ entsprechen. Verknüpfungen werden auch gespeichert, wenn das
   Bild noch fehlt – es erscheint automatisch, sobald es hochgeladen ist.
 
+## Werke bearbeiten
+
+Admins können jedes Werk aus der Werkliste („bearbeiten“) oder der
+Detailansicht („Bearbeiten“) ändern, inklusive Bild (hochladen, aus dem
+Bilder-Ordner zuweisen oder Zuordnung entfernen). In der Werkliste öffnet ein
+Klick auf den Bild-Platzhalter direkt einen Dialog zum Hochladen/Zuweisen.
+
+Im Programm bearbeitete Werke sind vor dem nächsten Tabellen-Import
+geschützt: Die Vorschau listet sie gesondert, überschrieben werden sie nur mit
+ausdrücklichem Häkchen. Werden Ort, Maler oder Titel geändert, erkennt der
+Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
+
 ## Sicherheit
 
 - Passwörter mit bcrypt; Kontosperre nach 4 Fehlversuchen (15 Min.) plus

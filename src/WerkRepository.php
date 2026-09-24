@@ -134,6 +134,13 @@ final class WerkRepository
             ->fetchAll(PDO::FETCH_COLUMN);
     }
 
+    /** @return string[] */
+    public function maler(): array
+    {
+        return $this->pdo->query("SELECT DISTINCT maler FROM kunstwerke WHERE maler IS NOT NULL AND maler <> '' ORDER BY maler COLLATE NOCASE")
+            ->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     /** Filtert eine ID-Liste auf tatsächlich existierende Werke. @return int[] */
     public function vorhandeneIds(array $ids): array
     {
@@ -143,6 +150,46 @@ final class WerkRepository
         $stmt = $this->pdo->prepare('SELECT id FROM kunstwerke WHERE id IN (' . Helpers::platzhalter($ids) . ')');
         $stmt->execute($ids);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    public const BEARBEITBARE_FELDER = [
+        'ort', 'maler', 'titel', 'format', 'technik', 'entstehungsjahr', 'ankaufjahr',
+        'ankauf', 'ankaufswert', 'wert', 'werktyp', 'status_farbe',
+    ];
+
+    /**
+     * Speichert manuelle Änderungen. Ändern sich Ort, Maler oder Titel, bleibt
+     * der alte Abgleichsschlüssel erhalten, damit ein Import der unveränderten
+     * Tabelle das Werk wiedererkennt statt es doppelt anzulegen.
+     */
+    public function aktualisieren(array $alt, array $neu): void
+    {
+        $this->pdo->beginTransaction();
+        $felder = self::BEARBEITBARE_FELDER;
+        $this->pdo->prepare(
+            'UPDATE kunstwerke SET ' . implode(', ', array_map(static fn($f) => "{$f} = :{$f}", $felder))
+            . ", bearbeitet_am = datetime('now') WHERE id = :id"
+        )->execute(array_merge(array_intersect_key($neu, array_flip($felder)), ['id' => $alt['id']]));
+
+        $alterSchluessel = TabellenImport::abgleichsschluessel($alt);
+        if ($alterSchluessel !== TabellenImport::abgleichsschluessel($neu)) {
+            $this->pdo->prepare('INSERT OR IGNORE INTO werk_schluessel_alias (schluessel, kunstwerk_id) VALUES (:s, :id)')
+                ->execute(['s' => $alterSchluessel, 'id' => $alt['id']]);
+        }
+        $this->pdo->commit();
+    }
+
+    /** Setzt (oder entfernt mit null) das Hauptbild eines Werks. */
+    public function setzeHauptbild(int $werkId, ?string $dateiname): void
+    {
+        $this->pdo->beginTransaction();
+        $this->pdo->prepare('DELETE FROM bilder WHERE kunstwerk_id = :id AND ist_hauptbild = 1')->execute(['id' => $werkId]);
+        if ($dateiname !== null) {
+            $this->pdo->prepare('INSERT INTO bilder (kunstwerk_id, dateiname, ist_hauptbild, sortierung) VALUES (:id, :d, 1, 0)')
+                ->execute(['id' => $werkId, 'd' => $dateiname]);
+        }
+        $this->pdo->prepare("UPDATE kunstwerke SET bearbeitet_am = datetime('now') WHERE id = :id")->execute(['id' => $werkId]);
+        $this->pdo->commit();
     }
 
     /** @return int[] */

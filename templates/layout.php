@@ -29,7 +29,7 @@ $navLink = static function (string $url, string $seite, string $text) use ($aktu
 <body>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
-    <div class="kopf__marke"><?= Helpers::e(APP_NAME) ?></div>
+    <a class="kopf__marke" href="<?= Auth::startseite($aktuellerBenutzer) ?>" title="Zur Startseite"><?= Helpers::e(APP_NAME) ?></a>
     <nav class="nav">
         <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', 'Werke') ?><?php endif; ?>
         <?= $navLink('/gruppen.php', 'gruppen', 'Gruppen') ?>

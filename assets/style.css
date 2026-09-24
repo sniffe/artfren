@@ -36,7 +36,9 @@ h1, h2, h3 {
     font-family: var(--schrift-serif);
     font-style: italic;
     font-size: var(--schrift-groesse-gross);
+    color: var(--farbe-text);
 }
+.kopf__marke:hover { text-decoration: none; color: var(--farbe-akzent); }
 
 .nav { display: flex; gap: var(--abstand-l); align-items: center; }
 .nav a { color: var(--farbe-text); font-size: var(--schrift-groesse-klein); text-transform: uppercase; letter-spacing: .04em; }
@@ -126,6 +128,16 @@ table.werkliste tr:hover td { background: color-mix(in srgb, var(--farbe-akzent)
 table.werkliste .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.werkliste img.thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); object-fit: cover; border: 1px solid var(--farbe-linie); }
 table.werkliste .platzhalter-thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); border: 1px dashed var(--farbe-linie); display: inline-block; }
+table.werkliste .platzhalter-thumb--aktiv {
+    background: none;
+    color: var(--farbe-text-sekundaer);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+table.werkliste .platzhalter-thumb--aktiv:hover,
+table.werkliste .platzhalter-thumb--aktiv:focus-visible { border-color: var(--farbe-akzent); border-style: solid; color: var(--farbe-akzent); }
 
 .status-punkt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
 .status-punkt--rot { background: var(--farbe-status-rot); }
@@ -221,6 +233,21 @@ details.aufklappen form { display: flex; gap: var(--abstand-s); align-items: cen
 
 code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, transparent); padding: 1px 4px; border-radius: var(--radius); }
 
+/* ---------- Bearbeiten & Dialog ---------- */
+
+.bearbeiten-raster { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--abstand-m); align-items: start; }
+.bearbeiten-raster .karte + .karte { margin-top: 0; }
+
+.dialog {
+    border: 1px solid var(--farbe-linie);
+    border-radius: var(--radius);
+    background: var(--farbe-flaeche);
+    color: var(--farbe-text);
+    padding: var(--abstand-l);
+    width: min(480px, calc(100vw - 32px));
+}
+.dialog::backdrop { background: rgb(0 0 0 / .35); }
+
 /* ---------- Sonstiges ---------- */
 
 .text-sekundaer { color: var(--farbe-text-sekundaer); }
@@ -242,4 +269,5 @@ code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, tra
     .auswahl-leiste { padding: var(--abstand-s); font-size: var(--schrift-groesse-klein); }
     .auswahl-leiste .btn { padding: 5px 10px; }
     table.liste .aktionen { flex-wrap: wrap; }
+    .bearbeiten-raster { grid-template-columns: 1fr; }
 }

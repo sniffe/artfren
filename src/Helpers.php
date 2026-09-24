@@ -103,6 +103,18 @@ final class Helpers
         exit;
     }
 
+    /**
+     * Rücksprung-Adresse aus einem Formularfeld – nur interne Seiten, damit
+     * niemand über einen präparierten Link auf fremde Seiten umleiten kann.
+     */
+    public static function ruecksprung(mixed $url, string $standard): string
+    {
+        if (is_string($url) && preg_match('~^/[a-z_]+\.php(\?[^\s#]*)?(#[\w-]+)?$~i', $url)) {
+            return $url;
+        }
+        return $standard;
+    }
+
     /** "?,?,?"-Platzhalter für IN(...)-Abfragen. */
     public static function platzhalter(array $liste): string
     {
@@ -207,6 +219,30 @@ final class Helpers
             default => 'violett',
         };
         return isset(self::STATUS_FARBEN[$farbe]) ? $farbe : null;
+    }
+
+    /** "2005", "ca. 2005", "2005/06", 2005.0 → 2005 */
+    public static function parseJahr(?string $wert): ?int
+    {
+        if ($wert === null || !preg_match('/\d{4}/', $wert, $m)) {
+            return null;
+        }
+        return (int) $m[0];
+    }
+
+    /** "1.500,50 €", "1500.5", "1.500" (deutsch) → float */
+    public static function parseBetrag(?string $wert): ?float
+    {
+        if ($wert === null) {
+            return null;
+        }
+        $w = str_replace([' ', "\u{00A0}", '€', 'EUR'], '', $wert);
+        if (str_contains($w, ',')) {
+            $w = str_replace(['.', ','], ['', '.'], $w);
+        } elseif (preg_match('/^-?\d{1,3}(\.\d{3})+$/', $w)) {
+            $w = str_replace('.', '', $w);
+        }
+        return is_numeric($w) ? (float) $w : null;
     }
 
     /** Normalform eines Ortsnamens für Vergleiche und Aliase. */

@@ -122,6 +122,90 @@ final class BildUpload
     }
 
     /**
+     * Speichert ein einzelnes, direkt einem Werk zugeordnetes Bild. Ist der Name
+     * schon vergeben (z. B. "IMG_0001.jpg" vom Handy), wird ein freier Name
+     * gewählt – hier verweist keine Tabelle auf den exakten Namen.
+     *
+     * @return array{0: ?string, 1: ?string} gespeicherter Dateiname, Fehlermeldung
+     */
+    public static function speichereEinzeln(array $datei): array
+    {
+        $fehler = (int) ($datei['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($fehler !== UPLOAD_ERR_OK) {
+            return [null, $fehler === UPLOAD_ERR_INI_SIZE || $fehler === UPLOAD_ERR_FORM_SIZE
+                ? 'Das Bild ist größer als vom Server erlaubt (' . ini_get('upload_max_filesize') . ').'
+                : 'Das Bild konnte nicht hochgeladen werden.'];
+        }
+        $name = Bilder::gueltigerDateiname((string) $datei['name']);
+        if ($name === null) {
+            return [null, 'Nur Bilder mit der Endung ' . implode(', ', BILD_ENDUNGEN) . ' sind erlaubt.'];
+        }
+        $info = @getimagesize((string) $datei['tmp_name']);
+        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
+            return [null, 'Die Datei ist kein JPEG-, PNG-, GIF- oder WebP-Bild.'];
+        }
+        if ((int) $datei['size'] > self::MAX_BILD) {
+            return [null, 'Das Bild ist größer als 50 MB.'];
+        }
+
+        $basis = pathinfo($name, PATHINFO_FILENAME);
+        $endung = pathinfo($name, PATHINFO_EXTENSION);
+        for ($n = 2; is_file(BILDER_PATH . '/' . $name); $n++) {
+            $name = "{$basis}_{$n}.{$endung}";
+        }
+        if (!move_uploaded_file((string) $datei['tmp_name'], BILDER_PATH . '/' . $name)) {
+            return [null, 'Das Bild konnte nicht gespeichert werden (Schreibrechte bilder/?).'];
+        }
+        @chmod(BILDER_PATH . '/' . $name, 0644);
+        return [$name, null];
+    }
+
+    /**
+     * Wertet ein Formular mit Datei-Feld und/oder "vorhandenes Bild" aus und
+     * setzt das Ergebnis als Hauptbild des Werks. Ein hochgeladenes Bild hat
+     * Vorrang.
+     *
+     * @return array{0: ?string, 1: ?string} zugewiesener Dateiname (null = nichts gewählt), Fehlermeldung
+     */
+    public static function zuweisenAusFormular(WerkRepository $repo, int $werkId, ?array $datei, string $vorhanden): array
+    {
+        if ($datei !== null && (int) ($datei['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            [$name, $fehler] = self::speichereEinzeln($datei);
+            if ($fehler !== null) {
+                return [null, $fehler];
+            }
+            $repo->setzeHauptbild($werkId, $name);
+            return [$name, null];
+        }
+
+        $vorhanden = trim($vorhanden);
+        if ($vorhanden === '') {
+            return [null, null];
+        }
+        $name = Bilder::gueltigerDateiname($vorhanden);
+        if ($name !== $vorhanden || !is_file(BILDER_PATH . '/' . $name)) {
+            return [null, "Die Bilddatei „{$vorhanden}“ gibt es im Bilder-Ordner nicht."];
+        }
+        $repo->setzeHauptbild($werkId, $name);
+        return [$name, null];
+    }
+
+    /** @return string[] Bilddateien im Ordner, die noch keinem Werk zugeordnet sind. */
+    public static function unzugeordnet(): array
+    {
+        $vergeben = array_flip(Database::get()->query('SELECT DISTINCT dateiname FROM bilder')->fetchAll(\PDO::FETCH_COLUMN));
+        $frei = [];
+        foreach (new \DirectoryIterator(BILDER_PATH) as $datei) {
+            $name = $datei->getFilename();
+            if ($datei->isFile() && !isset($vergeben[$name]) && Bilder::gueltigerDateiname($name) === $name) {
+                $frei[] = $name;
+            }
+        }
+        natcasesort($frei);
+        return array_values($frei);
+    }
+
+    /**
      * Dateinamen, auf die Werke verweisen, die aber im Bilder-Ordner fehlen.
      *
      * @return array<int, array{dateiname: string, anzahl: int, beispiel: string}>
