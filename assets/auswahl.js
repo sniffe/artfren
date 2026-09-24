@@ -10,7 +10,7 @@
     function ladeAuswahl(schluessel) {
         try {
             var roh = localStorage.getItem(schluessel);
-            return roh ? new Set(JSON.parse(roh)) : new Set();
+            return roh ? new Set(JSON.parse(roh).map(String)) : new Set();
         } catch (e) {
             return new Set();
         }
@@ -22,47 +22,71 @@
         } catch (e) {}
     }
 
+    function jsonAttribut(element, name) {
+        try {
+            return JSON.parse(element.getAttribute(name) || 'null');
+        } catch (e) {
+            return null;
+        }
+    }
+
     function init(root) {
-        var schluessel = root.dataset.auswahlSchluessel;
+        var schluessel = root.getAttribute('data-auswahl-schluessel');
         if (!schluessel) return;
 
-        var startwerte = null;
-        try {
-            startwerte = JSON.parse(root.dataset.auswahlStart || 'null');
-        } catch (e) {}
-
+        var startwerte = jsonAttribut(root, 'data-auswahl-start');
         if (startwerte !== null && localStorage.getItem(schluessel) === null) {
-            speichereAuswahl(schluessel, new Set(startwerte));
+            speichereAuswahl(schluessel, new Set(startwerte.map(String)));
         }
 
         var auswahl = ladeAuswahl(schluessel);
-        var zaehler = root.querySelector('[data-auswahl-zaehler]');
-        var absenden = root.querySelectorAll('[data-auswahl-formular]');
+        var checkboxen = root.querySelectorAll('input[type=checkbox][data-werk-id]');
 
-        function aktualisiereZaehler() {
-            if (zaehler) {
-                zaehler.textContent = String(auswahl.size);
-            }
+        function aktualisiere() {
+            root.querySelectorAll('[data-auswahl-zaehler]').forEach(function (el) {
+                el.textContent = String(auswahl.size);
+            });
             root.querySelectorAll('[data-auswahl-leer-hinweis]').forEach(function (el) {
-                el.style.display = auswahl.size === 0 ? '' : 'none';
+                el.hidden = auswahl.size !== 0;
+            });
+            checkboxen.forEach(function (cb) {
+                cb.checked = auswahl.has(cb.getAttribute('data-werk-id'));
             });
         }
 
-        root.querySelectorAll('input[type=checkbox][data-werk-id]').forEach(function (cb) {
-            var id = cb.dataset.werkId;
-            cb.checked = auswahl.has(id);
+        function speichern() {
+            speichereAuswahl(schluessel, auswahl);
+            aktualisiere();
+        }
+
+        checkboxen.forEach(function (cb) {
             cb.addEventListener('change', function () {
+                var id = cb.getAttribute('data-werk-id');
                 if (cb.checked) {
                     auswahl.add(id);
                 } else {
                     auswahl.delete(id);
                 }
-                speichereAuswahl(schluessel, auswahl);
-                aktualisiereZaehler();
+                speichern();
             });
         });
 
-        absenden.forEach(function (form) {
+        // Alle Treffer des aktuellen Filters (über alle Seiten) an-/abwählen.
+        var treffer = (jsonAttribut(root, 'data-treffer-ids') || []).map(String);
+        root.querySelectorAll('[data-treffer-auswaehlen]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                treffer.forEach(function (id) { auswahl.add(id); });
+                speichern();
+            });
+        });
+        root.querySelectorAll('[data-treffer-abwaehlen]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                treffer.forEach(function (id) { auswahl.delete(id); });
+                speichern();
+            });
+        });
+
+        root.querySelectorAll('[data-auswahl-formular]').forEach(function (form) {
             form.addEventListener('submit', function () {
                 form.querySelectorAll('input[name="werk_ids[]"]').forEach(function (el) { el.remove(); });
                 auswahl.forEach(function (id) {
@@ -77,21 +101,23 @@
 
         root.querySelectorAll('[data-auswahl-leeren]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                if (!confirm('Auswahl wirklich leeren?')) return;
+                if (!window.confirm('Auswahl wirklich leeren?')) return;
                 auswahl.clear();
-                speichereAuswahl(schluessel, auswahl);
-                root.querySelectorAll('input[type=checkbox][data-werk-id]').forEach(function (cb) { cb.checked = false; });
-                aktualisiereZaehler();
+                speichern();
             });
         });
 
-        aktualisiereZaehler();
+        aktualisiere();
     }
 
-    function loescheAuswahl(schluessel) {
-        try { localStorage.removeItem(schluessel); } catch (e) {}
-    }
-    window.WerkAuswahl = { loesche: loescheAuswahl };
+    // Nach dem Speichern einer Gruppe die zugehörige Auswahl verwerfen:
+    // <div data-auswahl-loeschen="auswahl_neu auswahl_gruppe_5">
+    document.querySelectorAll('[data-auswahl-loeschen]').forEach(function (el) {
+        el.getAttribute('data-auswahl-loeschen').split(/\s+/).forEach(function (schluessel) {
+            if (!schluessel) return;
+            try { localStorage.removeItem(schluessel); } catch (e) {}
+        });
+    });
 
     document.querySelectorAll('[data-auswahl-schluessel]').forEach(init);
 })();

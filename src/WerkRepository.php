@@ -1,0 +1,155 @@
+<?php
+declare(strict_types=1);
+
+namespace App;
+
+use PDO;
+
+/** Zentrale Abfragen für Kunstwerke inklusive Hauptbild. */
+final class WerkRepository
+{
+    private const BASIS = "SELECT k.*, hb.id AS bild_id, hb.dateiname AS bild_dateiname
+        FROM kunstwerke k
+        LEFT JOIN bilder hb ON hb.id = (
+            SELECT b.id FROM bilder b WHERE b.kunstwerk_id = k.id
+            ORDER BY b.ist_hauptbild DESC, b.sortierung, b.id LIMIT 1
+        )";
+
+    public const SORTIERUNGEN = [
+        'ort' => 'k.ort',
+        'maler' => 'k.maler',
+        'titel' => 'k.titel',
+        'jahr' => 'k.entstehungsjahr',
+        'wert' => 'k.wert',
+    ];
+
+    public function __construct(private readonly PDO $pdo)
+    {
+    }
+
+    public static function neu(): self
+    {
+        return new self(Database::get());
+    }
+
+    public function finde(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare(self::BASIS . ' WHERE k.id = :id');
+        $stmt->execute(['id' => $id]);
+        $werk = $stmt->fetch();
+        return $werk === false ? null : $werk;
+    }
+
+    public function fuerGruppe(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare(
+            self::BASIS . ' JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+             WHERE gk.gruppe_id = :id ORDER BY k.ort, k.maler, k.titel'
+        );
+        $stmt->execute(['id' => $gruppeId]);
+        return $stmt->fetchAll();
+    }
+
+    /** @return \Generator<array> Alle Werke, speicherschonend für Exporte. */
+    public function alle(): \Generator
+    {
+        $stmt = $this->pdo->query(self::BASIS . ' ORDER BY k.ort, k.maler, k.titel');
+        while (($zeile = $stmt->fetch()) !== false) {
+            yield $zeile;
+        }
+    }
+
+    /**
+     * @param array{q?: string, ort?: string, status?: string} $filter
+     * @return array{0: string, 1: array}
+     */
+    private function where(array $filter): array
+    {
+        $bedingungen = [];
+        $params = [];
+
+        $q = trim((string) ($filter['q'] ?? ''));
+        if ($q !== '') {
+            // kv_lower: umlautfähiges Kleinschreiben; % und _ im Suchtext wörtlich nehmen.
+            $muster = '%' . addcslashes(mb_strtolower($q), '%_\\') . '%';
+            $bedingungen[] = "(kv_lower(k.maler) LIKE :q ESCAPE '\\' OR kv_lower(k.titel) LIKE :q ESCAPE '\\' OR kv_lower(k.ort) LIKE :q ESCAPE '\\' OR kv_lower(k.technik) LIKE :q ESCAPE '\\')";
+            $params['q'] = $muster;
+        }
+        if (($filter['ort'] ?? '') !== '') {
+            $bedingungen[] = 'k.ort = :ort';
+            $params['ort'] = $filter['ort'];
+        }
+        $status = $filter['status'] ?? '';
+        if ($status === 'ohne') {
+            $bedingungen[] = 'k.status_farbe IS NULL';
+        } elseif (isset(Helpers::STATUS_FARBEN[$status])) {
+            $bedingungen[] = 'k.status_farbe = :status';
+            $params['status'] = $status;
+        }
+
+        return [$bedingungen ? 'WHERE ' . implode(' AND ', $bedingungen) : '', $params];
+    }
+
+    public function zaehle(array $filter): int
+    {
+        [$where, $params] = $this->where($filter);
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM kunstwerke k {$where}");
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** @return int[] */
+    public function ids(array $filter): array
+    {
+        [$where, $params] = $this->where($filter);
+        $stmt = $this->pdo->prepare("SELECT k.id FROM kunstwerke k {$where}");
+        $stmt->execute($params);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    public function suche(array $filter, string $sortierung, bool $absteigend, int $limit, int $offset): array
+    {
+        [$where, $params] = $this->where($filter);
+        $spalte = self::SORTIERUNGEN[$sortierung] ?? self::SORTIERUNGEN['ort'];
+        $richtung = $absteigend ? 'DESC' : 'ASC';
+
+        // Leere Werte immer ans Ende, unabhängig von der Richtung.
+        $sql = self::BASIS . " {$where}
+            ORDER BY ({$spalte} IS NULL OR {$spalte} = ''), {$spalte} {$richtung}, k.ort, k.maler, k.titel
+            LIMIT :limit OFFSET :offset";
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($params as $name => $wert) {
+            $stmt->bindValue($name, $wert);
+        }
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /** @return string[] */
+    public function orte(): array
+    {
+        return $this->pdo->query("SELECT DISTINCT ort FROM kunstwerke WHERE ort IS NOT NULL AND ort <> '' ORDER BY ort")
+            ->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /** Filtert eine ID-Liste auf tatsächlich existierende Werke. @return int[] */
+    public function vorhandeneIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $stmt = $this->pdo->prepare('SELECT id FROM kunstwerke WHERE id IN (' . Helpers::platzhalter($ids) . ')');
+        $stmt->execute($ids);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /** @return int[] */
+    public function mitgliedIds(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT kunstwerk_id FROM gruppe_kunstwerk WHERE gruppe_id = :id');
+        $stmt->execute(['id' => $gruppeId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+}

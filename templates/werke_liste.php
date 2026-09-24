@@ -1,29 +1,42 @@
 <?php
 /** @var array $werke */
-/** @var array $orte */
-/** @var string $q */
-/** @var string $ortFilter */
+/** @var int[] $trefferIds */
+/** @var string[] $orte */
+/** @var array{q: string, ort: string, status: string} $filter */
+/** @var string $sortierung */
+/** @var bool $absteigend */
 /** @var int $seite */
 /** @var int $seitenAnzahl */
 /** @var int $gesamtAnzahl */
 /** @var array|null $gruppe */
-/** @var array $aktuelleMitglieder */
+/** @var int[] $aktuelleMitglieder */
 declare(strict_types=1);
 
 use App\Helpers;
 
-$gruppeId = $gruppe['id'] ?? null;
+$gruppeId = $gruppe !== null ? (int) $gruppe['id'] : null;
 $auswahlSchluessel = $gruppeId !== null ? 'auswahl_gruppe_' . $gruppeId : 'auswahl_neu';
-$auswahlStart = $gruppeId !== null ? json_encode(array_map('strval', $aktuelleMitglieder)) : 'null';
+$auswahlStart = $gruppeId !== null ? json_encode($aktuelleMitglieder) : 'null';
 
-function seiten_url(array $ueberschreiben = []): string
-{
+$url = static function (array $ueberschreiben = []): string {
     $params = array_merge($_GET, $ueberschreiben);
-    $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
+    $params = array_filter($params, static fn($v) => $v !== '' && $v !== null);
     return '/werke.php?' . http_build_query($params);
-}
+};
+
+$kopf = static function (string $feld, string $text, bool $zahl = false) use ($url, $sortierung, $absteigend): string {
+    $aktiv = $sortierung === $feld;
+    $richtung = $aktiv && !$absteigend ? 'ab' : null;
+    $pfeil = $aktiv ? ($absteigend ? ' ▼' : ' ▲') : '';
+    return '<th' . ($zahl ? ' class="num"' : '') . '><a class="' . ($aktiv ? 'sortiert' : '') . '" href="'
+        . Helpers::e($url(['sort' => $feld, 'richtung' => $richtung, 'seite' => null])) . '">'
+        . Helpers::e($text) . $pfeil . '</a></th>';
+};
+$filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status'] !== '';
 ?>
-<div data-auswahl-schluessel="<?= Helpers::e($auswahlSchluessel) ?>" data-auswahl-start='<?= $auswahlStart ?>'>
+<div data-auswahl-schluessel="<?= Helpers::e($auswahlSchluessel) ?>"
+     data-auswahl-start="<?= Helpers::e($auswahlStart) ?>"
+     data-treffer-ids="<?= Helpers::e(json_encode($trefferIds)) ?>">
 
 <?php if ($gruppe): ?>
     <h2>Werke für Gruppe „<?= Helpers::e($gruppe['name']) ?>“ auswählen</h2>
@@ -33,52 +46,70 @@ function seiten_url(array $ueberschreiben = []): string
 <?php endif; ?>
 
 <form method="get" action="/werke.php" class="werkstatt-leiste">
-    <?php if ($gruppeId !== null): ?><input type="hidden" name="gruppe_id" value="<?= (int) $gruppeId ?>"><?php endif; ?>
+    <?php if ($gruppeId !== null): ?><input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>"><?php endif; ?>
+    <input type="hidden" name="sort" value="<?= Helpers::e($sortierung) ?>">
+    <?php if ($absteigend): ?><input type="hidden" name="richtung" value="ab"><?php endif; ?>
     <div class="feld">
-        <label for="q">Suche (Maler, Titel, Ort)</label>
-        <input type="search" id="q" name="q" value="<?= Helpers::e($q) ?>" placeholder="z. B. Zens, Madeira, Wohnung 17A …">
+        <label for="q">Suche (Maler, Titel, Ort, Technik)</label>
+        <input type="search" id="q" name="q" value="<?= Helpers::e($filter['q']) ?>" placeholder="z. B. Zens, Madeira, öl …">
     </div>
     <div class="feld">
         <label for="ort">Ort</label>
         <select id="ort" name="ort">
             <option value="">alle Orte</option>
-            <?php foreach ($orte as $o): ?>
-                <option value="<?= Helpers::e($o['ort']) ?>" <?= $ortFilter === $o['ort'] ? 'selected' : '' ?>><?= Helpers::e($o['ort']) ?></option>
+            <?php foreach ($orte as $ort): ?>
+                <option value="<?= Helpers::e($ort) ?>" <?= $filter['ort'] === $ort ? 'selected' : '' ?>><?= Helpers::e($ort) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="feld" style="min-width:150px;">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+            <option value="">alle</option>
+            <option value="ohne" <?= $filter['status'] === 'ohne' ? 'selected' : '' ?>>ohne Markierung</option>
+            <?php foreach (Helpers::STATUS_FARBEN as $wert => $label): ?>
+                <option value="<?= $wert ?>" <?= $filter['status'] === $wert ? 'selected' : '' ?>><?= $label ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <button type="submit" class="btn">Filtern</button>
-    <?php if ($q !== '' || $ortFilter !== ''): ?>
-        <a href="<?= Helpers::e(seiten_url(['q' => null, 'ort' => null])) ?>" class="btn">Filter zurücksetzen</a>
+    <?php if ($filterAktiv): ?>
+        <a href="<?= Helpers::e($url(['q' => null, 'ort' => null, 'status' => null, 'seite' => null])) ?>" class="btn">Filter zurücksetzen</a>
     <?php endif; ?>
 </form>
 
-<p class="text-klein text-sekundaer"><?= $gesamtAnzahl ?> Werke gefunden · Seite <?= $seite ?> von <?= $seitenAnzahl ?></p>
+<div class="treffer-auswahl text-klein">
+    <span class="text-sekundaer"><?= $gesamtAnzahl ?> Werke gefunden · Seite <?= $seite ?> von <?= $seitenAnzahl ?></span>
+    <?php if ($gesamtAnzahl > 0): ?>
+        <button type="button" class="btn btn--klein" data-treffer-auswaehlen>Alle <?= $gesamtAnzahl ?> Treffer auswählen</button>
+        <button type="button" class="btn btn--klein" data-treffer-abwaehlen>Treffer abwählen</button>
+    <?php endif; ?>
+</div>
 
 <table class="werkliste">
     <thead>
         <tr>
             <th></th>
             <th>Bild</th>
-            <th>Ort</th>
-            <th>Maler</th>
-            <th>Titel</th>
+            <?= $kopf('ort', 'Ort') ?>
+            <?= $kopf('maler', 'Maler') ?>
+            <?= $kopf('titel', 'Titel') ?>
             <th>Format</th>
             <th>Technik</th>
-            <th class="num">Jahr</th>
-            <th class="num">Wert</th>
+            <?= $kopf('jahr', 'Jahr', true) ?>
+            <?= $kopf('wert', 'Wert', true) ?>
             <th></th>
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($werke as $w): $thumb = Helpers::thumbUrl($w['bild_dateiname']); ?>
+    <?php foreach ($werke as $w): $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't'); ?>
         <tr>
-            <td data-label="Auswahl"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>"></td>
+            <td data-label="Auswahl"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="Auswählen"></td>
             <td data-label="Bild">
                 <?php if ($thumb): ?>
-                    <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="">
+                    <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
                 <?php else: ?>
-                    <span class="platzhalter-thumb"></span>
+                    <span class="platzhalter-thumb" title="<?= $w['bild_dateiname'] ? 'Bilddatei fehlt: ' . Helpers::e($w['bild_dateiname']) : 'Kein Bild' ?>"></span>
                 <?php endif; ?>
             </td>
             <td data-label="Ort"><?= Helpers::e($w['ort']) ?></td>
@@ -89,7 +120,7 @@ function seiten_url(array $ueberschreiben = []): string
             <td data-label="Jahr" class="num"><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
             <td data-label="Wert" class="num"><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
             <td data-label="">
-                <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e($w['status_farbe']) ?>"></span><?php endif; ?>
+                <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>"></span><?php endif; ?>
                 <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="text-klein">ansehen</a>
             </td>
         </tr>
@@ -101,9 +132,9 @@ function seiten_url(array $ueberschreiben = []): string
 </table>
 
 <div class="seiten-nav">
-    <?php if ($seite > 1): ?><a href="<?= Helpers::e(seiten_url(['seite' => $seite - 1])) ?>" class="btn btn--klein">← zurück</a><?php endif; ?>
+    <?php if ($seite > 1): ?><a href="<?= Helpers::e($url(['seite' => $seite - 1])) ?>" class="btn btn--klein">← zurück</a><?php endif; ?>
     <span>Seite <?= $seite ?> / <?= $seitenAnzahl ?></span>
-    <?php if ($seite < $seitenAnzahl): ?><a href="<?= Helpers::e(seiten_url(['seite' => $seite + 1])) ?>" class="btn btn--klein">weiter →</a><?php endif; ?>
+    <?php if ($seite < $seitenAnzahl): ?><a href="<?= Helpers::e($url(['seite' => $seite + 1])) ?>" class="btn btn--klein">weiter →</a><?php endif; ?>
 </div>
 
 <div class="auswahl-leiste">
@@ -111,13 +142,13 @@ function seiten_url(array $ueberschreiben = []): string
     <div class="toolbar-aktionen">
         <button type="button" class="btn" data-auswahl-leeren>Auswahl leeren</button>
         <?php if ($gruppe): ?>
-            <form method="post" action="/gruppe.php" data-auswahl-formular style="display:inline;">
+            <form method="post" action="/gruppe.php" data-auswahl-formular>
                 <?= Helpers::csrfField() ?>
                 <input type="hidden" name="aktion" value="mitglieder_speichern">
-                <input type="hidden" name="gruppe_id" value="<?= (int) $gruppe['id'] ?>">
+                <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
                 <button type="submit" class="btn btn--primaer">Auswahl als Mitglieder speichern</button>
             </form>
-            <a href="/gruppe.php?id=<?= (int) $gruppe['id'] ?>" class="btn">Abbrechen</a>
+            <a href="/gruppe.php?id=<?= $gruppeId ?>" class="btn">Abbrechen</a>
         <?php else: ?>
             <a href="/gruppe_neu.php" class="btn btn--primaer">Weiter: Gruppe anlegen</a>
         <?php endif; ?>

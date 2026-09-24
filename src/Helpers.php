@@ -5,6 +5,15 @@ namespace App;
 
 final class Helpers
 {
+    public const STATUS_FARBEN = [
+        'rot' => 'Rot',
+        'orange' => 'Orange',
+        'gelb' => 'Gelb',
+        'gruen' => 'Grün',
+        'blau' => 'Blau',
+        'violett' => 'Violett',
+    ];
+
     public static function e(?string $value): string
     {
         return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
@@ -28,9 +37,16 @@ final class Helpers
     {
         $token = $_POST['csrf_token'] ?? '';
         if (!is_string($token) || $token === '' || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
-            http_response_code(400);
-            exit('Ungültige Anfrage (CSRF-Token fehlt oder ist abgelaufen). Bitte Seite neu laden und erneut versuchen.');
+            self::abbrechen(400, 'Die Anfrage ist abgelaufen oder ungültig. Bitte die Seite neu laden und erneut versuchen.');
         }
+    }
+
+    /** Zeigt eine Fehlerseite im normalen Layout und beendet die Anfrage. */
+    public static function abbrechen(int $code, string $text): never
+    {
+        http_response_code($code);
+        render('fehler', ['titel' => $code === 403 ? 'Kein Zugriff' : 'Fehler', 'text' => $text]);
+        exit;
     }
 
     public static function formatGeld(?float $wert): string
@@ -43,8 +59,8 @@ final class Helpers
     }
 
     /**
-     * Formatiert einen in der DB gespeicherten Zeitstempel (immer UTC, siehe
-     * SQL-Defaults "datetime('now')") für die Anzeige in der App-Zeitzone.
+     * Formatiert einen in der DB gespeicherten Zeitstempel (immer UTC) für die
+     * Anzeige in der App-Zeitzone.
      */
     public static function formatDatum(?string $isoDatum, string $format = 'd.m.Y H:i'): string
     {
@@ -59,6 +75,14 @@ final class Helpers
         } catch (\Exception) {
             return $isoDatum;
         }
+    }
+
+    public static function formatGroesse(int $bytes): string
+    {
+        if ($bytes >= 1024 * 1024) {
+            return number_format($bytes / (1024 * 1024), 1, ',', '.') . ' MB';
+        }
+        return number_format($bytes / 1024, 0, ',', '.') . ' KB';
     }
 
     public static function flashSet(string $typ, string $nachricht): void
@@ -80,37 +104,113 @@ final class Helpers
         exit;
     }
 
-    /**
-     * Wandelt eine Liste von IDs in ein "?,?,?"-Platzhalter-Fragment für IN(...)-Abfragen.
-     */
+    /** "?,?,?"-Platzhalter für IN(...)-Abfragen. */
     public static function platzhalter(array $liste): string
     {
         return implode(',', array_fill(0, count($liste), '?'));
     }
 
     /**
-     * Liefert die Thumbnail-URL: direkt aus dem Cache, falls bereits erzeugt,
-     * sonst über thumb.php (das das Thumbnail bei diesem Aufruf erzeugt und cacht).
+     * Bereinigt eine vom Browser gelieferte ID-Liste.
+     *
+     * @return int[]
      */
-    public static function thumbUrl(?string $dateiname): ?string
+    public static function idListe(mixed $werte): array
     {
-        if (!$dateiname) {
-            return null;
+        if (!is_array($werte)) {
+            return [];
         }
-        if (is_file(THUMBS_PATH . '/' . $dateiname) && is_file(BILDER_PATH . '/' . $dateiname)) {
-            return '/thumbs/' . rawurlencode($dateiname);
-        }
-        if (is_file(BILDER_PATH . '/' . $dateiname)) {
-            return '/thumb.php?f=' . rawurlencode($dateiname);
-        }
-        return null;
+        $ids = array_map('intval', array_filter($werte, 'is_scalar'));
+        return array_values(array_unique(array_filter($ids, static fn(int $id) => $id > 0)));
     }
 
-    public static function bildUrl(?string $dateiname): ?string
+    /**
+     * URL für ein Bild über den geschützten Auslieferer bild.php.
+     * $groesse: t (Thumbnail), m (Karte/PDF), g (Detail), o (Original).
+     * Der Parameter v ändert sich mit der Datei, damit der Browser-Cache
+     * nach einem neuen Upload nicht das alte Bild zeigt.
+     */
+    public static function bildUrl(?int $bildId, ?string $dateiname, string $groesse = 'm'): ?string
     {
-        if ($dateiname && is_file(BILDER_PATH . '/' . $dateiname)) {
-            return '/bilder/' . rawurlencode($dateiname);
+        if (!$bildId || !$dateiname) {
+            return null;
         }
-        return null;
+        $mtime = @filemtime(BILDER_PATH . '/' . $dateiname);
+        if ($mtime === false) {
+            return null;
+        }
+        return '/bild.php?id=' . $bildId . '&g=' . $groesse . '&v=' . $mtime;
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return self::STATUS_FARBEN[$status ?? ''] ?? '';
+    }
+
+    /** Freitext aus einer Tabelle ("Grün", "green", "gruen" …) → interner Statuswert. */
+    public static function normalisiereStatus(?string $wert): ?string
+    {
+        if ($wert === null || trim($wert) === '') {
+            return null;
+        }
+        $w = str_replace(['ü', 'ö'], ['ue', 'oe'], mb_strtolower(trim($wert)));
+        $zuordnung = [
+            'rot' => 'rot', 'red' => 'rot',
+            'orange' => 'orange',
+            'gelb' => 'gelb', 'yellow' => 'gelb',
+            'gruen' => 'gruen', 'green' => 'gruen',
+            'blau' => 'blau', 'blue' => 'blau',
+            'violett' => 'violett', 'lila' => 'violett', 'purple' => 'violett',
+        ];
+        return $zuordnung[$w] ?? null;
+    }
+
+    /**
+     * Ordnet eine Excel-Füllfarbe (ARGB, z. B. "FF00B050") über den Farbton
+     * einem Status zu. Weiß/Grau und sehr blasse Töne gelten als "keine Markierung".
+     */
+    public static function statusAusFarbe(string $argb): ?string
+    {
+        $hex = substr(strtoupper($argb), -6);
+        if (!preg_match('/^[0-9A-F]{6}$/', $hex)) {
+            return null;
+        }
+        $r = hexdec(substr($hex, 0, 2)) / 255;
+        $g = hexdec(substr($hex, 2, 2)) / 255;
+        $b = hexdec(substr($hex, 4, 2)) / 255;
+        $max = max($r, $g, $b);
+        $min = min($r, $g, $b);
+        $delta = $max - $min;
+
+        $saettigung = $max == 0 ? 0 : $delta / $max;
+        if ($saettigung < 0.12 || $max < 0.15) {
+            return null;
+        }
+
+        if ($max == $r) {
+            $farbton = 60 * fmod((($g - $b) / $delta), 6);
+        } elseif ($max == $g) {
+            $farbton = 60 * ((($b - $r) / $delta) + 2);
+        } else {
+            $farbton = 60 * ((($r - $g) / $delta) + 4);
+        }
+        if ($farbton < 0) {
+            $farbton += 360;
+        }
+
+        return match (true) {
+            $farbton < 15 || $farbton >= 330 => 'rot',
+            $farbton < 45 => 'orange',
+            $farbton < 70 => 'gelb',
+            $farbton < 170 => 'gruen',
+            $farbton < 260 => 'blau',
+            default => 'violett',
+        };
+    }
+
+    /** Normalform eines Ortsnamens für Vergleiche und Aliase. */
+    public static function ortSchluessel(?string $ort): string
+    {
+        return mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', (string) $ort)));
     }
 }

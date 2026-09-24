@@ -1,25 +1,22 @@
 <?php
-/** @var int $anzahlNeu */
-/** @var int $anzahlGeaendert */
-/** @var int $anzahlUnveraendert */
-/** @var int $anzahlFehler */
-/** @var array $fehlerBild */
+/** @var array $abgleich */
 declare(strict_types=1);
 
-use App\Helpers;
+$aktiverReiter = 'tabelle';
+require __DIR__ . '/_import_reiter.php';
 ?>
 <h2>Import abgeschlossen</h2>
 
-<div class="karte" style="max-width:520px;">
-    <p><strong><?= $anzahlNeu ?></strong> neu, <strong><?= $anzahlGeaendert ?></strong> aktualisiert, <strong><?= $anzahlUnveraendert ?></strong> unverändert, <strong><?= $anzahlFehler ?></strong> Fehler.</p>
-    <?php if ($fehlerBild): ?>
-        <p class="text-klein text-sekundaer">Folgende Werke wurden ohne Bild importiert, da die Datei im Bilder-Ordner fehlt:</p>
-        <ul class="text-klein">
-            <?php foreach ($fehlerBild as $eintrag): $d = $eintrag['daten']; ?>
-                <li><?= Helpers::e(trim(($d['ort'] ?? '') . ' – ' . ($d['maler'] ?? '') . ' – ' . ($d['titel'] ?? ''), ' –')) ?> (<?= Helpers::e((string) $d['bild_dateiname']) ?>)</li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
+<div class="kennzahlen">
+    <div class="karte"><strong><?= count($abgleich['neu']) ?></strong><span class="text-klein text-sekundaer">neu</span></div>
+    <div class="karte"><strong><?= count($abgleich['geaendert']) ?></strong><span class="text-klein text-sekundaer">aktualisiert</span></div>
+    <div class="karte"><strong><?= $abgleich['unveraendert'] ?></strong><span class="text-klein text-sekundaer">unverändert</span></div>
+    <div class="karte"><strong><?= count($abgleich['fehlerBild']) ?></strong><span class="text-klein text-sekundaer">Bilddatei fehlt noch</span></div>
+</div>
+
+<div class="mt-l toolbar-aktionen">
     <a href="/werke.php" class="btn btn--primaer">Zur Werkliste</a>
-    <a href="/import.php" class="btn">Weiteren Import starten</a>
+    <?php if ($abgleich['fehlerBild']): ?><a href="/bilder_upload.php" class="btn">Fehlende Bilder hochladen</a><?php endif; ?>
+    <a href="/orte.php" class="btn">Orte prüfen</a>
+    <a href="/backup.php" class="btn">Backup erstellen</a>
 </div>

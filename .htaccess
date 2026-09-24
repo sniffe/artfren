@@ -1,7 +1,9 @@
 # Schutz für Dateien im Dokumenten-Root, die nicht öffentlich sein sollen.
-# (Die eigentlichen Privatordner haben zusätzlich eigene .htaccess-Sperren.)
+# Die Privatordner (data/, backups/, bilder/, src/, templates/, migrations/,
+# scripts/, vendor/) haben zusätzlich eigene .htaccess-Sperren.
+# Ob die Sperren greifen, zeigt die Sicherheitsprüfung unter "System".
 
-<FilesMatch "^(composer\.(json|lock)|\.gitignore|.*\.sqlite.*)$">
+<FilesMatch "^(composer\.(json|lock)|.*\.(sqlite.*|log|lock|sql))$">
     Require all denied
 </FilesMatch>
 

@@ -123,17 +123,24 @@ table.werkliste td {
     vertical-align: middle;
 }
 table.werkliste tr:hover td { background: color-mix(in srgb, var(--farbe-akzent) 5%, transparent); }
-table.werkliste .num { text-align: right; font-variant-numeric: tabular-nums; }
+table.werkliste .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.werkliste img.thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); object-fit: cover; border: 1px solid var(--farbe-linie); }
 table.werkliste .platzhalter-thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); border: 1px dashed var(--farbe-linie); display: inline-block; }
 
 .status-punkt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
 .status-punkt--rot { background: var(--farbe-status-rot); }
-.status-punkt--gruen { background: var(--farbe-status-gruen); }
 .status-punkt--orange { background: var(--farbe-status-orange); }
+.status-punkt--gelb { background: var(--farbe-status-gelb); }
+.status-punkt--gruen { background: var(--farbe-status-gruen); }
+.status-punkt--blau { background: var(--farbe-status-blau); }
+.status-punkt--violett { background: var(--farbe-status-violett); }
+
+table.werkliste th a { color: inherit; }
+table.werkliste th a.sortiert { color: var(--farbe-akzent); }
 
 .seiten-nav { display: flex; gap: var(--abstand-s); margin-top: var(--abstand-m); align-items: center; font-size: var(--schrift-groesse-klein); }
-.auswahl-leiste { position: sticky; bottom: 0; background: var(--farbe-flaeche); border-top: 1px solid var(--farbe-linie); padding: var(--abstand-m); display: flex; justify-content: space-between; align-items: center; margin-top: var(--abstand-m); }
+.auswahl-leiste { position: sticky; bottom: 0; background: var(--farbe-flaeche); border-top: 1px solid var(--farbe-linie); box-shadow: 0 -4px 12px rgb(0 0 0 / .06); padding: var(--abstand-m); display: flex; justify-content: space-between; align-items: center; gap: var(--abstand-s); flex-wrap: wrap; margin-top: var(--abstand-m); }
+.treffer-auswahl { display: flex; gap: var(--abstand-s); flex-wrap: wrap; align-items: center; margin-bottom: var(--abstand-s); }
 
 /* ---------- Vitrine: großformatige Betrachtung ---------- */
 
@@ -187,6 +194,36 @@ table.liste .aktionen { display: flex; gap: var(--abstand-s); }
 .login-karte { background: var(--farbe-flaeche); border: 1px solid var(--farbe-linie); padding: var(--abstand-xl); width: 340px; }
 .login-karte h1 { font-family: var(--schrift-serif); font-style: italic; text-align: center; }
 
+/* ---------- Reiter, aufklappbare Formulare ---------- */
+
+.reiter { display: flex; gap: var(--abstand-l); border-bottom: 1px solid var(--farbe-linie); margin-bottom: var(--abstand-l); flex-wrap: wrap; }
+.reiter a { color: var(--farbe-text-sekundaer); padding: var(--abstand-s) 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.reiter a.aktiv { color: var(--farbe-text); border-bottom-color: var(--farbe-akzent); }
+.reiter a:hover { text-decoration: none; color: var(--farbe-akzent); }
+
+details.aufklappen summary { cursor: pointer; list-style: none; }
+details.aufklappen summary::-webkit-details-marker { display: none; }
+details.aufklappen[open] summary { margin-bottom: var(--abstand-s); }
+details.aufklappen form { display: flex; gap: var(--abstand-s); align-items: center; }
+
+.gruppenname { font-family: var(--schrift-serif); font-style: italic; }
+
+/* Abmelden ist ein Formular (POST), sieht aber wie ein Link aus. */
+.link-button { background: none; border: none; padding: 0; color: var(--farbe-akzent); font: inherit; cursor: pointer; }
+.link-button:hover { text-decoration: underline; }
+
+.checkliste { display: flex; flex-wrap: wrap; gap: var(--abstand-s) var(--abstand-l); }
+.checkliste label { display: inline-flex; align-items: center; gap: 6px; color: var(--farbe-text); font-size: var(--schrift-groesse-basis); }
+
+.kennzahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--abstand-m); }
+.kennzahlen .karte strong { font-size: 1.5rem; display: block; }
+
+.warnung-liste li { margin-bottom: var(--abstand-xs); }
+.status-ok { color: var(--farbe-status-gruen); }
+.status-schlecht { color: var(--farbe-status-rot); font-weight: 600; }
+
+code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, transparent); padding: 1px 4px; border-radius: var(--radius); }
+
 /* ---------- Sonstiges ---------- */
 
 .text-sekundaer { color: var(--farbe-text-sekundaer); }
@@ -204,4 +241,8 @@ table.liste .aktionen { display: flex; gap: var(--abstand-s); }
     table.werkliste td { display: flex; justify-content: space-between; border-bottom: none; padding: 2px var(--abstand-s); }
     table.werkliste td::before { content: attr(data-label); color: var(--farbe-text-sekundaer); font-size: 12px; margin-right: var(--abstand-s); }
     .vitrine-detail { flex-direction: column; }
+    /* Kompakte Auswahl-Leiste, damit sie beim Scrollen wenig Inhalt verdeckt. */
+    .auswahl-leiste { padding: var(--abstand-s); font-size: var(--schrift-groesse-klein); }
+    .auswahl-leiste .btn { padding: 5px 10px; }
+    table.liste .aktionen { flex-wrap: wrap; }
 }

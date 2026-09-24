@@ -2,22 +2,40 @@
 /** @var string[] $header */
 /** @var array $zeilen */
 /** @var int $gesamtzeilen */
-/** @var string $trennzeichen */
 /** @var array<int,string> $mapping */
 /** @var string $tmp_datei */
+/** @var string|null $fehler */
+/** @var array|null $info */
+/** @var string|null $dateiname */
 declare(strict_types=1);
 
-use App\CsvImport;
 use App\Helpers;
+use App\TabellenImport;
+
+$aktiverReiter = 'tabelle';
+require __DIR__ . '/_import_reiter.php';
 ?>
-<h2>CSV-Import – Spaltenzuordnung prüfen</h2>
-<p class="text-sekundaer">Vorschau der ersten <?= count($zeilen) ?> von <?= $gesamtzeilen ?> Datenzeilen. Die Spaltenzuordnung wurde automatisch erkannt – bitte prüfen und bei Bedarf korrigieren.</p>
+<h2>Spalten zuordnen</h2>
+
+<?php if (!empty($info)): ?>
+    <p class="text-sekundaer">
+        <?= Helpers::e($dateiname ?? '') ?> (<?= Helpers::e($info['format']) ?>):
+        Kopfzeile in Zeile <?= (int) $info['kopfzeile'] ?> erkannt, <?= $gesamtzeilen ?> Datenzeilen.
+        <?php if ($info['farbige_zeilen'] > 0): ?>
+            <?= (int) $info['farbige_zeilen'] ?> farbig markierte Zeilen → Spalte „<?= Helpers::e(TabellenImport::FARB_SPALTE) ?>“.
+        <?php endif; ?>
+    </p>
+<?php endif; ?>
+<p class="text-sekundaer">Vorschau der ersten <?= count($zeilen) ?> Zeilen. Die Zuordnung wurde automatisch erkannt – bitte prüfen. Ort, Maler und Titel sind Pflicht.</p>
+
+<?php if ($fehler): ?>
+    <div class="flash flash--fehler"><?= Helpers::e($fehler) ?></div>
+<?php endif; ?>
 
 <form method="post" action="/import.php">
     <?= Helpers::csrfField() ?>
     <input type="hidden" name="aktion" value="abgleich">
     <input type="hidden" name="tmp_datei" value="<?= Helpers::e($tmp_datei) ?>">
-    <input type="hidden" name="trennzeichen" value="<?= Helpers::e($trennzeichen) ?>">
 
     <div style="overflow-x:auto;">
     <table class="liste">
@@ -25,9 +43,9 @@ use App\Helpers;
             <tr>
                 <?php foreach ($header as $i => $spalte): ?>
                 <th>
-                    <div class="text-klein text-sekundaer"><?= Helpers::e($spalte ?: '(ohne Titel)') ?></div>
-                    <select name="mapping[<?= $i ?>]">
-                        <?php foreach (CsvImport::ZIELFELDER as $wert => $label): ?>
+                    <div class="text-klein text-sekundaer"><?= Helpers::e($spalte !== '' ? $spalte : '(ohne Überschrift)') ?></div>
+                    <select name="mapping[<?= (int) $i ?>]" aria-label="Zuordnung für Spalte <?= (int) $i + 1 ?>">
+                        <?php foreach (TabellenImport::ZIELFELDER as $wert => $label): ?>
                             <option value="<?= Helpers::e($wert) ?>" <?= ($mapping[$i] ?? '') === $wert ? 'selected' : '' ?>><?= Helpers::e($label) ?></option>
                         <?php endforeach; ?>
                     </select>

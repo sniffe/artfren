@@ -6,4 +6,5 @@ require __DIR__ . '/src/bootstrap.php';
 use App\Auth;
 use App\Helpers;
 
-Helpers::redirect(Auth::currentUser() !== null ? '/werke.php' : '/login.php');
+$benutzer = Auth::currentUser();
+Helpers::redirect($benutzer !== null ? Auth::startseite($benutzer) : '/login.php');

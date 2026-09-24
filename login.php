@@ -6,8 +6,9 @@ require __DIR__ . '/src/bootstrap.php';
 use App\Auth;
 use App\Helpers;
 
-if (Auth::currentUser() !== null) {
-    Helpers::redirect('/werke.php');
+$benutzer = Auth::currentUser();
+if ($benutzer !== null) {
+    Helpers::redirect(Auth::startseite($benutzer));
 }
 
 $fehler = null;
@@ -19,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $ergebnis = Auth::login($benutzername, $passwort);
     if ($ergebnis['ok']) {
-        Helpers::redirect('/werke.php');
+        Helpers::redirect(Auth::startseite(Auth::requireLogin()));
     }
     $fehler = $ergebnis['fehler'];
 }

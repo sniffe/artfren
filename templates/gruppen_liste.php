@@ -24,33 +24,30 @@ use App\Helpers;
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($gruppen as $g): ?>
+    <?php foreach ($gruppen as $g): $id = (int) $g['id']; ?>
         <tr>
-            <td>
-                <?php if ($istAdmin): ?>
-                    <form method="post" action="/gruppen.php" style="display:flex;gap:6px;align-items:center;">
-                        <?= Helpers::csrfField() ?>
-                        <input type="hidden" name="aktion" value="umbenennen">
-                        <input type="hidden" name="id" value="<?= (int) $g['id'] ?>">
-                        <a href="/gruppe.php?id=<?= (int) $g['id'] ?>" style="font-family:var(--schrift-serif);font-style:italic;white-space:nowrap;"><?= Helpers::e($g['name']) ?></a>
-                        <input type="text" name="name" value="<?= Helpers::e($g['name']) ?>" style="max-width:220px;">
-                        <button type="submit" class="btn btn--klein">Speichern</button>
-                    </form>
-                <?php else: ?>
-                    <a href="/gruppe.php?id=<?= (int) $g['id'] ?>" style="font-family:var(--schrift-serif);font-style:italic;"><?= Helpers::e($g['name']) ?></a>
-                <?php endif; ?>
-            </td>
+            <td><a href="/gruppe.php?id=<?= $id ?>" class="gruppenname"><?= Helpers::e($g['name']) ?></a></td>
             <td><?= (int) $g['anzahl_werke'] ?></td>
             <td class="text-klein"><?= Helpers::e(Helpers::formatDatum($g['erstellt_am'], 'd.m.Y')) ?></td>
             <td class="aktionen">
-                <a href="/gruppe.php?id=<?= (int) $g['id'] ?>" class="btn btn--klein">Ansehen</a>
-                <a href="/export_gruppe_zip.php?id=<?= (int) $g['id'] ?>" class="btn btn--klein">ZIP</a>
-                <a href="/export_gruppe_pdf.php?id=<?= (int) $g['id'] ?>" class="btn btn--klein">PDF</a>
+                <a href="/export_gruppe_zip.php?id=<?= $id ?>" class="btn btn--klein">ZIP</a>
+                <a href="/export_gruppe_pdf.php?id=<?= $id ?>" class="btn btn--klein">PDF</a>
                 <?php if ($istAdmin): ?>
-                    <form method="post" action="/gruppen.php" onsubmit="return confirm('Gruppe „<?= Helpers::e($g['name']) ?>“ wirklich löschen? Die Kunstwerke selbst bleiben erhalten.');">
+                    <details class="aufklappen">
+                        <summary class="btn btn--klein">Umbenennen</summary>
+                        <form method="post" action="/gruppen.php">
+                            <?= Helpers::csrfField() ?>
+                            <input type="hidden" name="aktion" value="umbenennen">
+                            <input type="hidden" name="id" value="<?= $id ?>">
+                            <input type="text" name="name" value="<?= Helpers::e($g['name']) ?>" maxlength="200" required aria-label="Neuer Name">
+                            <button type="submit" class="btn btn--klein btn--primaer">Speichern</button>
+                        </form>
+                    </details>
+                    <form method="post" action="/gruppen.php"
+                          data-bestaetigen="Gruppe „<?= Helpers::e($g['name']) ?>“ wirklich löschen? Die Kunstwerke selbst bleiben erhalten.">
                         <?= Helpers::csrfField() ?>
                         <input type="hidden" name="aktion" value="loeschen">
-                        <input type="hidden" name="id" value="<?= (int) $g['id'] ?>">
+                        <input type="hidden" name="id" value="<?= $id ?>">
                         <button type="submit" class="btn btn--klein btn--gefahr">Löschen</button>
                     </form>
                 <?php endif; ?>
@@ -58,7 +55,9 @@ use App\Helpers;
         </tr>
     <?php endforeach; ?>
     <?php if (!$gruppen): ?>
-        <tr><td colspan="4" class="text-sekundaer">Noch keine Gruppen vorhanden.</td></tr>
+        <tr><td colspan="4" class="text-sekundaer">
+            <?= $istAdmin ? 'Noch keine Gruppen vorhanden.' : 'Dir sind noch keine Gruppen zugewiesen. Bitte beim Administrator nachfragen.' ?>
+        </td></tr>
     <?php endif; ?>
     </tbody>
 </table>

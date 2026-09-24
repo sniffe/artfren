@@ -4,47 +4,27 @@ declare(strict_types=1);
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
+use App\Backup;
 use App\Database;
 use App\Helpers;
+use App\Protokoll;
 
-$aktuellerBenutzer = Auth::requireAdmin();
-$pdo = Database::get();
+$benutzer = Auth::requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Helpers::checkCsrf();
     $aktion = (string) ($_POST['aktion'] ?? '');
 
     if ($aktion === 'erstellen') {
-        $zeitstempel = date('Y-m-d_Hi');
-        $dateiname = "backup_{$zeitstempel}.zip";
-        $zielPfad = BACKUPS_PATH . '/' . $dateiname;
-
-        $zip = new ZipArchive();
-        $zip->open($zielPfad, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-        $zip->addFile(DB_PATH, 'kunstverwaltung.sqlite');
-
-        $bilderDateien = glob(BILDER_PATH . '/*') ?: [];
-        foreach ($bilderDateien as $pfad) {
-            if (is_file($pfad) && basename($pfad) !== '.gitkeep') {
-                $zip->addFile($pfad, 'bilder/' . basename($pfad));
-            }
-        }
-        $zip->close();
-
-        $groesse = filesize($zielPfad) ?: 0;
-        $ins = $pdo->prepare('INSERT INTO backups (dateiname, erstellt_von, dateigroesse) VALUES (:d, :b, :g)');
-        $ins->execute(['d' => $dateiname, 'b' => $aktuellerBenutzer['id'], 'g' => $groesse]);
-
-        Helpers::flashSet('erfolg', "Backup „{$dateiname}“ wurde erstellt.");
+        $mitBildern = ($_POST['umfang'] ?? '') !== 'nur_datenbank';
+        $ergebnis = Backup::erstellen($mitBildern, $benutzer);
+        Protokoll::schreibe('backup_erstellt', $ergebnis['dateiname'] . ' (' . Helpers::formatGroesse($ergebnis['groesse']) . ')');
+        Helpers::flashSet('erfolg', "Backup „{$ergebnis['dateiname']}“ wurde erstellt.");
     } elseif ($aktion === 'loeschen') {
-        $id = (int) ($_POST['id'] ?? 0);
-        $stmt = $pdo->prepare('SELECT * FROM backups WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $backup = $stmt->fetch();
-        if ($backup !== false) {
-            @unlink(BACKUPS_PATH . '/' . $backup['dateiname']);
-            $del = $pdo->prepare('DELETE FROM backups WHERE id = :id');
-            $del->execute(['id' => $id]);
+        $backup = Backup::finde((int) ($_POST['id'] ?? 0));
+        if ($backup !== null) {
+            Backup::loeschen($backup);
+            Protokoll::schreibe('backup_geloescht', $backup['dateiname']);
             Helpers::flashSet('erfolg', 'Backup wurde gelöscht.');
         }
     }
@@ -52,10 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Helpers::redirect('/backup.php');
 }
 
-$backups = $pdo->query('SELECT * FROM backups ORDER BY erstellt_am DESC')->fetchAll();
+$bilderGroesse = 0;
+$bilderAnzahl = 0;
+foreach (new DirectoryIterator(BILDER_PATH) as $datei) {
+    if ($datei->isFile() && !str_starts_with($datei->getFilename(), '.')) {
+        $bilderGroesse += $datei->getSize();
+        $bilderAnzahl++;
+    }
+}
 
 render('backup_liste', [
     'titel' => 'Backup',
     'aktuelleSeite' => 'backup',
-    'backups' => $backups,
+    'backups' => Database::get()->query('SELECT * FROM backups ORDER BY id DESC')->fetchAll(),
+    'bilderGroesse' => $bilderGroesse,
+    'bilderAnzahl' => $bilderAnzahl,
 ]);

@@ -1,51 +1,46 @@
 <?php
 declare(strict_types=1);
 
-// CLI-Skript: legt den ersten Admin-Benutzer an (löst das Henne-Ei-Problem,
-// da die Benutzerverwaltung selbst einen eingeloggten Admin voraussetzt).
-//
+// CLI-Alternative zum Web-Installer: legt einen Admin-Benutzer an.
 // Aufruf: php scripts/seed_admin.php <benutzername> <passwort> [echter_name] [email]
 
-require __DIR__ . '/../src/config.php';
-require __DIR__ . '/../src/Database.php';
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
 
+require __DIR__ . '/../src/config.php';
+require APP_ROOT . '/vendor/autoload.php';
+
+use App\Auth;
+use App\BenutzerRepository;
 use App\Database;
+use App\Migration;
 
 if ($argc < 3) {
     fwrite(STDERR, "Aufruf: php scripts/seed_admin.php <benutzername> <passwort> [echter_name] [email]\n");
     exit(1);
 }
 
-$benutzername = $argv[1];
-$passwort = $argv[2];
+[, $benutzername, $passwort] = $argv;
 $echterName = $argv[3] ?? $benutzername;
 $email = $argv[4] ?? '';
 
-if (mb_strlen($passwort) < 8) {
-    fwrite(STDERR, "Das Passwort muss mindestens 8 Zeichen lang sein.\n");
+$fehler = BenutzerRepository::benutzernameFehler($benutzername)
+    ?? BenutzerRepository::stammdatenFehler($echterName, $email)
+    ?? Auth::passwortFehler($passwort, $passwort);
+if ($fehler !== null) {
+    fwrite(STDERR, $fehler . "\n");
     exit(1);
 }
 
-$pdo = Database::get();
-
-$stmt = $pdo->prepare('SELECT id FROM benutzer WHERE benutzername = :benutzername');
-$stmt->execute(['benutzername' => $benutzername]);
-if ($stmt->fetch() !== false) {
+$pdo = Database::oeffne();
+Migration::aktualisiere($pdo);
+$repo = new BenutzerRepository($pdo);
+if ($repo->benutzernameVergeben($benutzername)) {
     fwrite(STDERR, "Ein Benutzer mit diesem Namen existiert bereits.\n");
     exit(1);
 }
 
-$hash = password_hash($passwort, PASSWORD_BCRYPT);
-
-$stmt = $pdo->prepare(
-    'INSERT INTO benutzer (benutzername, echter_name, email, passwort_hash, rolle)
-     VALUES (:benutzername, :echter_name, :email, :hash, \'admin\')'
-);
-$stmt->execute([
-    'benutzername' => $benutzername,
-    'echter_name' => $echterName,
-    'email' => $email,
-    'hash' => $hash,
-]);
-
+$repo->anlegen($benutzername, $echterName, $email, $passwort, 'admin', []);
 echo "Admin-Benutzer '{$benutzername}' wurde angelegt.\n";

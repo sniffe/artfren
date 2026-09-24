@@ -14,7 +14,7 @@ use App\Helpers;
         <input type="hidden" name="aktion" value="anlegen">
         <div class="feld">
             <label for="name">Gruppenname</label>
-            <input type="text" id="name" name="name" required autofocus>
+            <input type="text" id="name" name="name" required autofocus maxlength="200">
         </div>
         <button type="submit" class="btn btn--primaer">Gruppe speichern</button>
         <a href="/werke.php" class="btn">Auswahl bearbeiten</a>

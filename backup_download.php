@@ -4,28 +4,23 @@ declare(strict_types=1);
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
-use App\Database;
+use App\Backup;
+use App\Helpers;
+use App\Protokoll;
 
 Auth::requireAdmin();
-$pdo = Database::get();
 
-$id = (int) ($_GET['id'] ?? 0);
-$stmt = $pdo->prepare('SELECT * FROM backups WHERE id = :id');
-$stmt->execute(['id' => $id]);
-$backup = $stmt->fetch();
-
-if ($backup === false) {
-    http_response_code(404);
-    exit('Backup wurde nicht gefunden.');
+$backup = Backup::finde((int) ($_GET['id'] ?? 0));
+$pfad = $backup !== null ? Backup::pfad($backup) : null;
+if ($pfad === null || !is_file($pfad)) {
+    Helpers::abbrechen(404, 'Dieses Backup wurde nicht gefunden.');
 }
 
-$pfad = BACKUPS_PATH . '/' . $backup['dateiname'];
-if (!is_file($pfad)) {
-    http_response_code(404);
-    exit('Backup-Datei fehlt auf dem Server.');
-}
+Protokoll::schreibe('backup_heruntergeladen', $backup['dateiname']);
+session_write_close();
+@set_time_limit(0);
 
 header('Content-Type: application/zip');
-header('Content-Disposition: attachment; filename="' . $backup['dateiname'] . '"');
+header('Content-Disposition: attachment; filename="' . basename($pfad) . '"');
 header('Content-Length: ' . filesize($pfad));
 readfile($pfad);

@@ -4,10 +4,16 @@
 /** @var array $flashes */
 declare(strict_types=1);
 
+use App\Auth;
 use App\Helpers;
 
 $titel = $titel ?? APP_NAME;
 $aktuelleSeite = $aktuelleSeite ?? '';
+$istAdmin = $aktuellerBenutzer !== null && Auth::isAdmin($aktuellerBenutzer);
+
+$navLink = static function (string $url, string $seite, string $text) use ($aktuelleSeite): string {
+    return '<a href="' . $url . '" class="' . ($aktuelleSeite === $seite ? 'aktiv' : '') . '">' . $text . '</a>';
+};
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -15,41 +21,33 @@ $aktuelleSeite = $aktuelleSeite ?? '';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= Helpers::e($titel) ?> · <?= Helpers::e(APP_NAME) ?></title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz@0,8..60;1,8..60&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/fonts.css">
 <link rel="stylesheet" href="/assets/tokens.css">
 <link rel="stylesheet" href="/assets/style.css">
-<script>
-(function () {
-    try {
-        var gespeichert = localStorage.getItem('theme');
-        if (gespeichert) {
-            document.documentElement.setAttribute('data-theme', gespeichert);
-        }
-    } catch (e) {}
-})();
-</script>
+<script src="/assets/theme-init.js"></script>
 </head>
 <body>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
     <div class="kopf__marke"><?= Helpers::e(APP_NAME) ?></div>
     <nav class="nav">
-        <?php if (\App\Auth::isAdmin($aktuellerBenutzer)): ?>
-        <a href="/werke.php" class="<?= $aktuelleSeite === 'werke' ? 'aktiv' : '' ?>">Werke</a>
-        <?php endif; ?>
-        <a href="/gruppen.php" class="<?= $aktuelleSeite === 'gruppen' ? 'aktiv' : '' ?>">Gruppen</a>
-        <?php if (\App\Auth::isAdmin($aktuellerBenutzer)): ?>
-        <a href="/import.php" class="<?= $aktuelleSeite === 'import' ? 'aktiv' : '' ?>">Import</a>
-        <a href="/export_gesamt.php">Gesamtexport</a>
-        <a href="/benutzer.php" class="<?= $aktuelleSeite === 'benutzer' ? 'aktiv' : '' ?>">Benutzer</a>
-        <a href="/backup.php" class="<?= $aktuelleSeite === 'backup' ? 'aktiv' : '' ?>">Backup</a>
+        <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', 'Werke') ?><?php endif; ?>
+        <?= $navLink('/gruppen.php', 'gruppen', 'Gruppen') ?>
+        <?php if ($istAdmin): ?>
+            <?= $navLink('/import.php', 'import', 'Import') ?>
+            <?= $navLink('/export_gesamt.php', 'export', 'Export') ?>
+            <?= $navLink('/benutzer.php', 'benutzer', 'Benutzer') ?>
+            <?= $navLink('/backup.php', 'backup', 'Backup') ?>
+            <?= $navLink('/system.php', 'system', 'System') ?>
         <?php endif; ?>
     </nav>
     <div class="kopf__benutzer">
         <button type="button" class="theme-schalter" id="theme-schalter" aria-label="Farbschema umschalten">Hell/Dunkel</button>
-        <span><?= Helpers::e($aktuellerBenutzer['echter_name'] ?: $aktuellerBenutzer['benutzername']) ?></span>
-        <a href="/logout.php">Abmelden</a>
+        <a href="/konto.php" title="Mein Konto"><?= Helpers::e($aktuellerBenutzer['echter_name'] ?: $aktuellerBenutzer['benutzername']) ?></a>
+        <form method="post" action="/logout.php">
+            <?= Helpers::csrfField() ?>
+            <button type="submit" class="link-button">Abmelden</button>
+        </form>
     </div>
 </header>
 <?php endif; ?>
@@ -59,17 +57,6 @@ $aktuelleSeite = $aktuelleSeite ?? '';
     <?php endforeach; ?>
     <?= $inhalt ?>
 </main>
-<script>
-(function () {
-    var schalter = document.getElementById('theme-schalter');
-    if (!schalter) return;
-    schalter.addEventListener('click', function () {
-        var aktuell = document.documentElement.getAttribute('data-theme');
-        var neu = aktuell === 'dunkel' ? 'hell' : 'dunkel';
-        document.documentElement.setAttribute('data-theme', neu);
-        try { localStorage.setItem('theme', neu); } catch (e) {}
-    });
-})();
-</script>
+<script src="/assets/app.js"></script>
 </body>
 </html>

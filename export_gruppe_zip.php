@@ -4,79 +4,53 @@ declare(strict_types=1);
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
-use App\Database;
+use App\Bilder;
+use App\Export;
+use App\GruppeRepository;
+use App\Helpers;
+use App\Protokoll;
+use App\WerkRepository;
 
-$aktuellerBenutzer = Auth::requireLogin();
-$istAdmin = Auth::isAdmin($aktuellerBenutzer);
-$pdo = Database::get();
-
+$benutzer = Auth::requireLogin();
 $id = (int) ($_GET['id'] ?? 0);
-$stmt = $pdo->prepare('SELECT * FROM gruppen WHERE id = :id');
-$stmt->execute(['id' => $id]);
-$gruppe = $stmt->fetch();
-
-if ($gruppe === false) {
-    http_response_code(404);
-    exit('Gruppe wurde nicht gefunden.');
+$gruppe = GruppeRepository::neu()->finde($id);
+if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
+    Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.');
 }
 
-if (!$istAdmin && !in_array($id, Auth::sichtbareGruppenIds($aktuellerBenutzer), true)) {
-    http_response_code(403);
-    exit('Zugriff verweigert.');
-}
+Protokoll::schreibe('export_gruppe', "ZIP „{$gruppe['name']}“");
+session_write_close();
+@set_time_limit(300);
 
-$werke = $pdo->prepare(
-    "SELECT k.*, (
-        SELECT dateiname FROM bilder b WHERE b.kunstwerk_id = k.id
-        ORDER BY ist_hauptbild DESC, sortierung ASC LIMIT 1
-    ) AS bild_dateiname
-    FROM kunstwerke k
-    JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-    WHERE gk.gruppe_id = :id
-    ORDER BY k.ort, k.maler, k.titel"
-);
-$werke->execute(['id' => $id]);
-$werke = $werke->fetchAll();
+$werke = WerkRepository::neu()->fuerGruppe($id);
 
-$tmpZip = tempnam(sys_get_temp_dir(), 'gruppe_export_');
+$tmpZip = tempnam(sys_get_temp_dir(), 'kv_zip_');
 $zip = new ZipArchive();
 $zip->open($tmpZip, ZipArchive::OVERWRITE);
 
 $csv = fopen('php://temp', 'w+');
-fwrite($csv, "\xEF\xBB\xBF");
-fputcsv($csv, ['Ort', 'Maler', 'Titel', 'Format', 'Technik', 'Entstehungsjahr', 'Ankaufjahr', 'Ankauf', 'Ankaufswert', 'Wert', 'Typ', 'Status-Farbe', 'Bild-Dateiname'], ';');
+Export::schreibeCsv($csv, $werke);
+rewind($csv);
+$zip->addFromString('kunstwerke.csv', (string) stream_get_contents($csv));
+fclose($csv);
 
-$verwendeteNamen = [];
-foreach ($werke as $w) {
-    fputcsv($csv, [
-        $w['ort'], $w['maler'], $w['titel'], $w['format'], $w['technik'],
-        $w['entstehungsjahr'], $w['ankaufjahr'], $w['ankauf'], $w['ankaufswert'], $w['wert'],
-        $w['werktyp'], $w['status_farbe'], $w['bild_dateiname'],
-    ], ';');
-
-    if ($w['bild_dateiname'] && is_file(BILDER_PATH . '/' . $w['bild_dateiname'])) {
-        $name = $w['bild_dateiname'];
-        $eindeutig = $name;
-        $n = 2;
-        while (isset($verwendeteNamen[$eindeutig])) {
-            $eindeutig = pathinfo($name, PATHINFO_FILENAME) . '_' . $n . '.' . pathinfo($name, PATHINFO_EXTENSION);
-            $n++;
-        }
-        $verwendeteNamen[$eindeutig] = true;
-        $zip->addFile(BILDER_PATH . '/' . $name, 'bilder/' . $eindeutig);
+$hinzugefuegt = [];
+foreach ($werke as $werk) {
+    $name = $werk['bild_dateiname'];
+    if (!$name || isset($hinzugefuegt[$name])) {
+        continue;
+    }
+    $pfad = Bilder::originalPfad($name);
+    if (is_file($pfad)) {
+        // Originaldateinamen beibehalten: die CSV verweist in "Dateiname" genau darauf.
+        $zip->addFile($pfad, 'bilder/' . basename($name));
+        $hinzugefuegt[$name] = true;
     }
 }
-
-rewind($csv);
-$csvInhalt = stream_get_contents($csv);
-fclose($csv);
-$zip->addFromString('kunstwerke.csv', $csvInhalt);
 $zip->close();
 
-$dateiname = preg_replace('/[^A-Za-z0-9_-]+/', '_', $gruppe['name']) . '_' . date('Y-m-d_Hi') . '.zip';
-
 header('Content-Type: application/zip');
-header('Content-Disposition: attachment; filename="' . $dateiname . '"');
+header('Content-Disposition: attachment; filename="' . Export::dateiname($gruppe['name'], 'zip') . '"');
 header('Content-Length: ' . filesize($tmpZip));
 readfile($tmpZip);
 unlink($tmpZip);

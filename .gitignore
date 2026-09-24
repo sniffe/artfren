@@ -4,11 +4,12 @@
 /data/*.sqlite-shm
 /data/import_tmp/*
 !/data/import_tmp/.gitkeep
+/data/cache/
+/data/logs/
 /data/installed.lock
 /backups/*.zip
 /bilder/*
 !/bilder/.gitkeep
-/thumbs/*
-!/thumbs/.gitkeep
+!/bilder/.htaccess
 /.env
 *.log

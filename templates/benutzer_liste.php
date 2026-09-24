@@ -1,10 +1,14 @@
 <?php
 /** @var array $benutzerListe */
 /** @var array $gruppen */
-/** @var array $benutzerGruppenZuordnung */
+/** @var array<int, int[]> $zuordnungen */
+/** @var array $aktuellerBenutzer */
 declare(strict_types=1);
 
 use App\Helpers;
+
+$gruppenNamen = array_column($gruppen, 'name', 'id');
+$jetzt = gmdate('Y-m-d H:i:s');
 ?>
 <h2>Benutzerverwaltung</h2>
 
@@ -12,8 +16,7 @@ use App\Helpers;
     <thead>
         <tr>
             <th>Benutzername</th>
-            <th>Echter Name</th>
-            <th>E-Mail</th>
+            <th>Name / E-Mail</th>
             <th>Rolle</th>
             <th>Letzter Login</th>
             <th>Status</th>
@@ -21,25 +24,20 @@ use App\Helpers;
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($benutzerListe as $b): ?>
-        <?php
-        $utc = new DateTimeZone('UTC');
-        $gesperrt = !empty($b['gesperrt_bis']) && new DateTimeImmutable($b['gesperrt_bis'], $utc) > new DateTimeImmutable('now', $utc);
-        ?>
+    <?php foreach ($benutzerListe as $b): $id = (int) $b['id']; $gesperrt = !empty($b['gesperrt_bis']) && $b['gesperrt_bis'] > $jetzt; ?>
         <tr>
-            <td><?= Helpers::e($b['benutzername']) ?></td>
-            <td><?= Helpers::e($b['echter_name']) ?></td>
-            <td><?= Helpers::e($b['email']) ?></td>
+            <td><?= Helpers::e($b['benutzername']) ?><?= $id === (int) $aktuellerBenutzer['id'] ? ' <span class="text-klein text-sekundaer">(du)</span>' : '' ?></td>
             <td>
-                <span class="badge <?= $b['rolle'] === 'admin' ? 'badge--admin' : '' ?>">
-                    <?= $b['rolle'] === 'admin' ? 'Admin' : 'Eingeschränkt' ?>
-                </span>
+                <?= Helpers::e($b['echter_name']) ?>
+                <?php if ($b['email']): ?><div class="text-klein text-sekundaer"><?= Helpers::e($b['email']) ?></div><?php endif; ?>
+            </td>
+            <td>
+                <span class="badge <?= $b['rolle'] === 'admin' ? 'badge--admin' : '' ?>"><?= $b['rolle'] === 'admin' ? 'Admin' : 'Eingeschränkt' ?></span>
                 <?php if ($b['rolle'] === 'eingeschraenkt'): ?>
                     <div class="text-klein text-sekundaer">
                         <?php
-                        $ids = $benutzerGruppenZuordnung[(int) $b['id']] ?? [];
-                        $namen = array_filter($gruppen, fn($g) => in_array((int) $g['id'], $ids, true));
-                        echo $namen ? Helpers::e(implode(', ', array_column($namen, 'name'))) : 'keine Gruppen zugewiesen';
+                        $namen = array_filter(array_map(static fn(int $gid) => $gruppenNamen[$gid] ?? null, $zuordnungen[$id] ?? []));
+                        echo $namen ? Helpers::e(implode(', ', $namen)) : 'keine Gruppen zugewiesen';
                         ?>
                     </div>
                 <?php endif; ?>
@@ -53,21 +51,22 @@ use App\Helpers;
                 <?php endif; ?>
             </td>
             <td class="aktionen">
+                <a href="/benutzer_bearbeiten.php?id=<?= $id ?>" class="btn btn--klein">Bearbeiten</a>
                 <?php if ($gesperrt): ?>
-                <form method="post" action="/benutzer.php">
-                    <?= Helpers::csrfField() ?>
-                    <input type="hidden" name="aktion" value="entsperren">
-                    <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
-                    <button type="submit" class="btn btn--klein">Jetzt entsperren</button>
-                </form>
+                    <form method="post" action="/benutzer.php">
+                        <?= Helpers::csrfField() ?>
+                        <input type="hidden" name="aktion" value="entsperren">
+                        <input type="hidden" name="id" value="<?= $id ?>">
+                        <button type="submit" class="btn btn--klein">Jetzt entsperren</button>
+                    </form>
                 <?php endif; ?>
-                <?php if ((int) $b['id'] !== (int) $aktuellerBenutzer['id']): ?>
-                <form method="post" action="/benutzer.php" onsubmit="return confirm('Benutzer „<?= Helpers::e($b['benutzername']) ?>“ wirklich löschen?');">
-                    <?= Helpers::csrfField() ?>
-                    <input type="hidden" name="aktion" value="loeschen">
-                    <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
-                    <button type="submit" class="btn btn--klein btn--gefahr">Löschen</button>
-                </form>
+                <?php if ($id !== (int) $aktuellerBenutzer['id']): ?>
+                    <form method="post" action="/benutzer.php" data-bestaetigen="Benutzer „<?= Helpers::e($b['benutzername']) ?>“ wirklich löschen?">
+                        <?= Helpers::csrfField() ?>
+                        <input type="hidden" name="aktion" value="loeschen">
+                        <input type="hidden" name="id" value="<?= $id ?>">
+                        <button type="submit" class="btn btn--klein btn--gefahr">Löschen</button>
+                    </form>
                 <?php endif; ?>
             </td>
         </tr>
@@ -75,19 +74,19 @@ use App\Helpers;
     </tbody>
 </table>
 
-<div class="karte mt-l">
+<div class="karte mt-l" style="max-width:820px;">
     <h3>Neuen Benutzer anlegen</h3>
-    <form method="post" action="/benutzer.php">
+    <form method="post" action="/benutzer.php" autocomplete="off">
         <?= Helpers::csrfField() ?>
         <input type="hidden" name="aktion" value="anlegen">
         <div class="feldreihe">
             <div class="feld">
                 <label for="benutzername">Benutzername</label>
-                <input type="text" id="benutzername" name="benutzername" required>
+                <input type="text" id="benutzername" name="benutzername" required minlength="3" maxlength="50">
             </div>
             <div class="feld">
                 <label for="echter_name">Echter Name</label>
-                <input type="text" id="echter_name" name="echter_name">
+                <input type="text" id="echter_name" name="echter_name" maxlength="100">
             </div>
             <div class="feld">
                 <label for="email">E-Mail</label>
@@ -97,28 +96,21 @@ use App\Helpers;
         <div class="feldreihe">
             <div class="feld">
                 <label for="passwort">Passwort</label>
-                <input type="password" id="passwort" name="passwort" required minlength="8">
+                <input type="password" id="passwort" name="passwort" required minlength="8" autocomplete="new-password">
+            </div>
+            <div class="feld">
+                <label for="passwort_wiederholen">Passwort wiederholen</label>
+                <input type="password" id="passwort_wiederholen" name="passwort_wiederholen" required minlength="8" autocomplete="new-password">
             </div>
             <div class="feld">
                 <label for="rolle">Rolle</label>
-                <select id="rolle" name="rolle" onchange="document.getElementById('gruppen-auswahl').style.display = this.value === 'eingeschraenkt' ? 'block' : 'none';">
-                    <option value="eingeschraenkt">Eingeschränkt</option>
-                    <option value="admin">Admin</option>
+                <select id="rolle" name="rolle" data-rolle-umschalter="#gruppen-auswahl-neu">
+                    <option value="eingeschraenkt">Eingeschränkt (nur zugewiesene Gruppen)</option>
+                    <option value="admin">Admin (voller Zugriff)</option>
                 </select>
             </div>
         </div>
-        <div class="feld" id="gruppen-auswahl">
-            <label>Sichtbare Gruppen (nur für eingeschränkte Benutzer)</label>
-            <?php if (!$gruppen): ?>
-                <p class="text-klein text-sekundaer">Es sind noch keine Gruppen angelegt.</p>
-            <?php else: ?>
-                <?php foreach ($gruppen as $g): ?>
-                    <label style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-weight:normal;">
-                        <input type="checkbox" name="gruppen[]" value="<?= (int) $g['id'] ?>"> <?= Helpers::e($g['name']) ?>
-                    </label>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-        <button type="submit" class="btn btn--primaer mt-m">Benutzer anlegen</button>
+        <?php $ausgewaehlt = []; $auswahlId = 'gruppen-auswahl-neu'; require __DIR__ . '/_gruppen_auswahl.php'; ?>
+        <button type="submit" class="btn btn--primaer">Benutzer anlegen</button>
     </form>
 </div>

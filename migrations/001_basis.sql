@@ -1,7 +1,4 @@
--- Kunstverwaltung – Datenbankschema (SQLite)
--- Sieben Tabellen gemäß technischem Konzept.
-
-PRAGMA foreign_keys = ON;
+-- Migration 001: Basisschema (sieben Tabellen gemäß technischem Konzept).
 
 CREATE TABLE IF NOT EXISTS kunstwerke (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,

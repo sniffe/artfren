@@ -1,20 +1,16 @@
 <?php
 declare(strict_types=1);
 
-// CLI-Skript: legt die SQLite-Datenbank an bzw. bringt sie auf den
-// aktuellen Stand. Aufruf: php scripts/migrate.php
+// CLI-Alternative zum Web-Installer: legt die Datenbank an bzw. bringt sie
+// auf den aktuellen Stand. Aufruf: php scripts/migrate.php
 
-require __DIR__ . '/../src/config.php';
-
-$dataDir = dirname(DB_PATH);
-if (!is_dir($dataDir)) {
-    mkdir($dataDir, 0755, true);
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
 }
 
-$pdo = new PDO('sqlite:' . DB_PATH);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+require __DIR__ . '/../src/config.php';
+require APP_ROOT . '/vendor/autoload.php';
 
-$schema = file_get_contents(__DIR__ . '/../migrations/schema.sql');
-$pdo->exec($schema);
-
-echo "Datenbank aktualisiert: " . DB_PATH . PHP_EOL;
+$angewandt = App\Migration::aktualisiere(App\Database::oeffne());
+echo "Datenbank " . DB_PATH . ": {$angewandt} Migration(en) angewandt, Version " . App\Migration::zielVersion() . PHP_EOL;
