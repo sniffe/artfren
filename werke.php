@@ -12,9 +12,12 @@ Auth::requireAdmin();
 $werkRepo = WerkRepository::neu();
 
 $filter = [
-    'q' => trim((string) ($_GET['q'] ?? '')),
-    'ort' => trim((string) ($_GET['ort'] ?? '')),
-    'status' => (string) ($_GET['status'] ?? ''),
+    'q'            => trim((string) ($_GET['q'] ?? '')),
+    'ort'          => trim((string) ($_GET['ort'] ?? '')),
+    'maler'        => trim((string) ($_GET['maler'] ?? '')),
+    'status'       => (string) ($_GET['status'] ?? ''),
+    'web_freigabe' => (string) ($_GET['web_freigabe'] ?? ''),
+    'ohne_bild'    => (string) ($_GET['ohne_bild'] ?? ''),
 ];
 $sortierung = isset(WerkRepository::SORTIERUNGEN[$_GET['sort'] ?? '']) ? (string) $_GET['sort'] : 'ort';
 $absteigend = ($_GET['richtung'] ?? '') === 'ab';
@@ -40,6 +43,7 @@ render('werke_liste', [
     'werke' => $werkRepo->suche($filter, $sortierung, $absteigend, $proSeite, ($seite - 1) * $proSeite),
     'trefferIds' => $werkRepo->ids($filter),
     'orte' => $werkRepo->orte(),
+    'malerListe' => $werkRepo->maler(),
     'filter' => $filter,
     'sortierung' => $sortierung,
     'absteigend' => $absteigend,

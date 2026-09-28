@@ -187,6 +187,16 @@ final class Helpers
         return self::STATUS_FARBEN[$status ?? ''] ?? '';
     }
 
+    /**
+     * Gibt ein SVG-Icon aus dem Sprite zurück.
+     * Das Sprite muss im HTML-Body inline eingebettet sein (readfile im Layout).
+     */
+    public static function icon(string $name, string $klasse = ''): string
+    {
+        $attr = $klasse !== '' ? ' class="' . self::e($klasse) . '"' : '';
+        return '<svg' . $attr . ' aria-hidden="true" focusable="false"><use href="#icon-' . self::e($name) . '"></use></svg>';
+    }
+
     /** Freitext aus einer Tabelle ("Grün", "green", "gruen" …) → interner Statuswert. */
     public static function normalisiereStatus(?string $wert): ?string
     {

@@ -51,4 +51,35 @@
         auswahl.addEventListener('change', aktualisieren);
         aktualisieren();
     });
+
+    // Hamburger-Navigation (mobil)
+    var hamburger = document.getElementById('nav-hamburger');
+    var navInhalt = document.getElementById('nav-inhalt');
+    if (hamburger && navInhalt) {
+        hamburger.addEventListener('click', function () {
+            var offen = navInhalt.classList.toggle('nav-inhalt--offen');
+            hamburger.setAttribute('aria-expanded', offen ? 'true' : 'false');
+        });
+    }
+
+    // Nav-Dropdowns (details.nav-klappe) bei Außenklick schließen
+    document.addEventListener('click', function (ereignis) {
+        document.querySelectorAll('details.nav-klappe[open]').forEach(function (klappe) {
+            if (!klappe.contains(ereignis.target)) {
+                klappe.removeAttribute('open');
+            }
+        });
+    });
+
+    // Escape schließt Dropdowns und Hamburger-Nav
+    document.addEventListener('keydown', function (ereignis) {
+        if (ereignis.key !== 'Escape') { return; }
+        document.querySelectorAll('details.nav-klappe[open]').forEach(function (klappe) {
+            klappe.removeAttribute('open');
+        });
+        if (navInhalt && hamburger) {
+            navInhalt.classList.remove('nav-inhalt--offen');
+            hamburger.setAttribute('aria-expanded', 'false');
+        }
+    });
 })();

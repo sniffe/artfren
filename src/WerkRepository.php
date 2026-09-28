@@ -61,7 +61,7 @@ final class WerkRepository
     }
 
     /**
-     * @param array{q?: string, ort?: string, status?: string} $filter
+     * @param array{q?: string, ort?: string, maler?: string, status?: string, web_freigabe?: string, ohne_bild?: string} $filter
      * @return array{0: string, 1: array}
      */
     private function where(array $filter): array
@@ -80,12 +80,25 @@ final class WerkRepository
             $bedingungen[] = 'k.ort = :ort';
             $params['ort'] = $filter['ort'];
         }
+        if (($filter['maler'] ?? '') !== '') {
+            $bedingungen[] = 'k.maler = :maler';
+            $params['maler'] = $filter['maler'];
+        }
         $status = $filter['status'] ?? '';
         if ($status === 'ohne') {
             $bedingungen[] = 'k.status_farbe IS NULL';
         } elseif (isset(Helpers::STATUS_FARBEN[$status])) {
             $bedingungen[] = 'k.status_farbe = :status';
             $params['status'] = $status;
+        }
+        $webFreigabe = $filter['web_freigabe'] ?? '';
+        if ($webFreigabe === 'ja') {
+            $bedingungen[] = 'k.web_freigabe = 1';
+        } elseif ($webFreigabe === 'nein') {
+            $bedingungen[] = 'k.web_freigabe = 0';
+        }
+        if (!empty($filter['ohne_bild'])) {
+            $bedingungen[] = 'NOT EXISTS (SELECT 1 FROM bilder b WHERE b.kunstwerk_id = k.id)';
         }
 
         return [$bedingungen ? 'WHERE ' . implode(' AND ', $bedingungen) : '', $params];

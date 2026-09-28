@@ -2,7 +2,8 @@
 /** @var array $werke */
 /** @var int[] $trefferIds */
 /** @var string[] $orte */
-/** @var array{q: string, ort: string, status: string} $filter */
+/** @var string[] $malerListe */
+/** @var array{q: string, ort: string, maler: string, status: string, web_freigabe: string, ohne_bild: string} $filter */
 /** @var string $sortierung */
 /** @var bool $absteigend */
 /** @var int $seite */
@@ -33,7 +34,8 @@ $kopf = static function (string $feld, string $text, bool $zahl = false) use ($u
         . Helpers::e($url(['sort' => $feld, 'richtung' => $richtung, 'seite' => null])) . '">'
         . Helpers::e($text) . $pfeil . '</a></th>';
 };
-$filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status'] !== '';
+$filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] !== ''
+    || $filter['status'] !== '' || $filter['web_freigabe'] !== '' || $filter['ohne_bild'] !== '';
 ?>
 <div data-auswahl-schluessel="<?= Helpers::e($auswahlSchluessel) ?>"
      data-auswahl-start="<?= Helpers::e($auswahlStart) ?>"
@@ -67,6 +69,15 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
         </select>
     </div>
     <div class="feld" style="min-width:150px;">
+        <label for="maler">Maler</label>
+        <select id="maler" name="maler">
+            <option value="">alle Maler</option>
+            <?php foreach ($malerListe as $m): ?>
+                <option value="<?= Helpers::e($m) ?>" <?= $filter['maler'] === $m ? 'selected' : '' ?>><?= Helpers::e($m) ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="feld" style="min-width:150px;">
         <label for="status">Status</label>
         <select id="status" name="status">
             <option value="">alle</option>
@@ -76,9 +87,24 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
             <?php endforeach; ?>
         </select>
     </div>
+    <div class="feld" style="min-width:150px;">
+        <label for="web_freigabe">Web-Freigabe</label>
+        <select id="web_freigabe" name="web_freigabe">
+            <option value="">alle</option>
+            <option value="ja" <?= $filter['web_freigabe'] === 'ja' ? 'selected' : '' ?>>freigegeben</option>
+            <option value="nein" <?= $filter['web_freigabe'] === 'nein' ? 'selected' : '' ?>>nicht freigegeben</option>
+        </select>
+    </div>
+    <div class="feld" style="min-width:130px;justify-content:flex-end;">
+        <label>&nbsp;</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;color:var(--farbe-text);font-size:var(--schrift-groesse-basis);">
+            <input type="checkbox" name="ohne_bild" value="1" <?= $filter['ohne_bild'] ? 'checked' : '' ?>>
+            Ohne Bild
+        </label>
+    </div>
     <button type="submit" class="btn">Filtern</button>
     <?php if ($filterAktiv): ?>
-        <a href="<?= Helpers::e($url(['q' => null, 'ort' => null, 'status' => null, 'seite' => null])) ?>" class="btn">Filter zurücksetzen</a>
+        <a href="<?= Helpers::e($url(['q' => null, 'ort' => null, 'maler' => null, 'status' => null, 'web_freigabe' => null, 'ohne_bild' => null, 'seite' => null])) ?>" class="btn">Filter zurücksetzen</a>
     <?php endif; ?>
 </form>
 
@@ -132,10 +158,10 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['status']
             <td data-label="Technik"><?= Helpers::e($w['technik']) ?></td>
             <td data-label="Jahr" class="num"><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
             <td data-label="Wert" class="num"><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
-            <td data-label="">
+            <td data-label="" style="white-space:nowrap;">
                 <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>"></span><?php endif; ?>
-                <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="text-klein">ansehen</a>
-                <a href="/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>" class="text-klein">bearbeiten</a>
+                <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="ikon-link" title="Ansehen" aria-label="Werk ansehen"><?= Helpers::icon('auge') ?></a>
+                <a href="/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>" class="ikon-link" title="Bearbeiten" aria-label="Werk bearbeiten"><?= Helpers::icon('stift') ?></a>
             </td>
         </tr>
     <?php endforeach; ?>

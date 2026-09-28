@@ -40,9 +40,92 @@ h1, h2, h3 {
 }
 .kopf__marke:hover { text-decoration: none; color: var(--farbe-akzent); }
 
-.nav { display: flex; gap: var(--abstand-l); align-items: center; }
-.nav a { color: var(--farbe-text); font-size: var(--schrift-groesse-klein); text-transform: uppercase; letter-spacing: .04em; }
-.nav a.aktiv, .nav a:hover { color: var(--farbe-akzent); text-decoration: none; }
+.nav-inhalt { display: flex; align-items: center; gap: var(--abstand-l); flex: 1; }
+.nav { display: flex; gap: var(--abstand-m); align-items: center; flex: 1; }
+
+.nav__link {
+    color: var(--farbe-text);
+    font-size: var(--schrift-groesse-klein);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    list-style: none;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+}
+.nav__link::-webkit-details-marker { display: none; }
+.nav__link.aktiv, .nav__link:hover { color: var(--farbe-akzent); text-decoration: none; }
+.nav__link--benutzer { text-transform: none; letter-spacing: 0; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+
+/* Nav-Klappe (Dropdown) */
+.nav-klappe { position: relative; }
+.nav-klappe__pfeil { width: 12px; height: 12px; transition: transform .15s; flex-shrink: 0; }
+.nav-klappe[open] > summary .nav-klappe__pfeil { transform: rotate(180deg); }
+.nav-klappe__person-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+.nav-klappe__inhalt {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    background: var(--farbe-flaeche);
+    border: 1px solid var(--farbe-linie);
+    border-radius: var(--radius);
+    min-width: 210px;
+    z-index: 200;
+    box-shadow: 0 4px 16px rgb(0 0 0 / .1);
+    padding: 4px 0;
+}
+.nav-klappe__inhalt--rechts { left: auto; right: 0; }
+
+.nav-klappe__inhalt a,
+.nav-klappe__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px var(--abstand-m);
+    color: var(--farbe-text);
+    font-size: var(--schrift-groesse-klein);
+    white-space: nowrap;
+    text-decoration: none;
+}
+.nav-klappe__inhalt a svg,
+.nav-klappe__btn svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--farbe-text-sekundaer); }
+.nav-klappe__inhalt a:hover,
+.nav-klappe__btn:hover {
+    background: color-mix(in srgb, var(--farbe-akzent) 8%, var(--farbe-flaeche));
+    color: var(--farbe-akzent);
+    text-decoration: none;
+}
+.nav-klappe__inhalt a.aktiv { color: var(--farbe-akzent); font-weight: 600; }
+
+.nav-klappe__btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--schrift-grotesk);
+}
+
+/* Hamburger (nur mobil) */
+.nav-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--farbe-text);
+    padding: 4px;
+    border-radius: var(--radius);
+    margin-left: auto;
+}
+.nav-hamburger:hover { color: var(--farbe-akzent); }
+.nav-hamburger__icon { width: 20px; height: 20px; display: block; }
 
 .kopf__benutzer { display: flex; align-items: center; gap: var(--abstand-m); font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); }
 
@@ -248,6 +331,24 @@ code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, tra
 }
 .dialog::backdrop { background: rgb(0 0 0 / .35); }
 
+/* ---------- Icon-Elemente ---------- */
+
+svg { fill: currentColor; }
+
+.ikon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--farbe-text-sekundaer);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+}
+.ikon-link:hover { color: var(--farbe-akzent); background: color-mix(in srgb, var(--farbe-akzent) 8%, transparent); text-decoration: none; }
+.ikon-link svg { width: 14px; height: 14px; pointer-events: none; }
+.ikon-link--gefahr:hover { color: var(--farbe-status-rot); background: color-mix(in srgb, var(--farbe-status-rot) 8%, transparent); }
+
 /* ---------- Sonstiges ---------- */
 
 .text-sekundaer { color: var(--farbe-text-sekundaer); }
@@ -258,14 +359,20 @@ code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, tra
 .toolbar-aktionen { display: flex; gap: var(--abstand-s); flex-wrap: wrap; }
 
 @media (max-width: 720px) {
-    .kopf { flex-direction: column; align-items: flex-start; gap: var(--abstand-s); }
-    .nav { flex-wrap: wrap; gap: var(--abstand-m); }
+    .kopf { flex-wrap: wrap; gap: var(--abstand-s); }
+    .nav-hamburger { display: inline-flex; }
+    .nav-inhalt { display: none; width: 100%; flex-direction: column; align-items: flex-start; gap: 0; order: 10; }
+    .nav-inhalt.nav-inhalt--offen { display: flex; }
+    .nav { flex-direction: column; align-items: flex-start; gap: 0; width: 100%; }
+    .nav__link { padding: 10px 0; width: 100%; }
+    .nav-klappe { width: 100%; }
+    .nav-klappe__inhalt { position: static; box-shadow: none; border: none; border-left: 2px solid var(--farbe-linie); margin-left: var(--abstand-m); padding: 0; }
+    .nav-klappe--benutzer { width: 100%; border-top: 1px solid var(--farbe-linie); margin-top: var(--abstand-s); padding-top: var(--abstand-s); }
     table.werkliste thead { display: none; }
     table.werkliste tr { display: block; border-bottom: 2px solid var(--farbe-linie); padding: var(--abstand-s) 0; }
     table.werkliste td { display: flex; justify-content: space-between; border-bottom: none; padding: 2px var(--abstand-s); }
     table.werkliste td::before { content: attr(data-label); color: var(--farbe-text-sekundaer); font-size: 12px; margin-right: var(--abstand-s); }
     .vitrine-detail { flex-direction: column; }
-    /* Kompakte Auswahl-Leiste, damit sie beim Scrollen wenig Inhalt verdeckt. */
     .auswahl-leiste { padding: var(--abstand-s); font-size: var(--schrift-groesse-klein); }
     .auswahl-leiste .btn { padding: 5px 10px; }
     table.liste .aktionen { flex-wrap: wrap; }
