@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App;
 
 use PDO;
+use App\Felder;
 
 /** Zentrale Abfragen für Kunstwerke inklusive Hauptbild. */
 final class WerkRepository
@@ -152,10 +153,15 @@ final class WerkRepository
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    public const BEARBEITBARE_FELDER = [
-        'ort', 'maler', 'titel', 'format', 'technik', 'entstehungsjahr', 'ankaufjahr',
-        'ankauf', 'ankaufswert', 'wert', 'werktyp', 'status_farbe',
-    ];
+    /**
+     * Alle per Formular und Import bearbeitbaren Felder.
+     * Abgeleitet von Felder::bearbeitbareKeys() – nie mehr direkt pflegen.
+     * @return string[]
+     */
+    public static function bearbeitbareFelder(): array
+    {
+        return Felder::bearbeitbareKeys();
+    }
 
     /**
      * Speichert manuelle Änderungen. Ändern sich Ort, Maler oder Titel, bleibt
@@ -165,7 +171,7 @@ final class WerkRepository
     public function aktualisieren(array $alt, array $neu): void
     {
         $this->pdo->beginTransaction();
-        $felder = self::BEARBEITBARE_FELDER;
+        $felder = self::bearbeitbareFelder();
         $this->pdo->prepare(
             'UPDATE kunstwerke SET ' . implode(', ', array_map(static fn($f) => "{$f} = :{$f}", $felder))
             . ", bearbeitet_am = datetime('now') WHERE id = :id"
@@ -182,7 +188,7 @@ final class WerkRepository
     /** Legt ein Werk von Hand an und liefert seine ID. */
     public function anlegen(array $daten): int
     {
-        $felder = self::BEARBEITBARE_FELDER;
+        $felder = self::bearbeitbareFelder();
         // Als "im Programm bearbeitet" markiert: taucht dasselbe Werk später in
         // einer importierten Tabelle auf, wird es nicht ungefragt überschrieben.
         $this->pdo->prepare(

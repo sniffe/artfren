@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Felder;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -12,34 +13,37 @@ use ZipStream\ZipStream;
 /** Gemeinsame Export-Logik: Tabelle (XLSX/CSV) und Bilder-ZIP. */
 final class Export
 {
-    /** DB-Feld => Spaltenüberschrift */
-    public const SPALTEN = [
-        'ort' => 'Ort',
-        'maler' => 'Maler',
-        'titel' => 'Titel',
-        'format' => 'Format',
-        'technik' => 'Technik',
-        'entstehungsjahr' => 'Entstehungsjahr',
-        'ankaufjahr' => 'Ankaufjahr',
-        'ankauf' => 'Ankauf',
-        'ankaufswert' => 'Ankaufswert',
-        'wert' => 'Wert',
-        'werktyp' => 'Bild',
-        'status_farbe' => 'Status',
-        'bild_dateiname' => 'Dateiname',
-    ];
+    /**
+     * Exportierbare Felder in der historisch fixierten Reihenfolge.
+     * Abgeleitet von Felder::exportSpalten() – nie mehr direkt pflegen.
+     * @return array<string, string>
+     */
+    private static function spalten(): array
+    {
+        return Felder::exportSpalten();
+    }
 
-    private const ZAHLEN = ['entstehungsjahr', 'ankaufjahr', 'ankaufswert', 'wert'];
+    /**
+     * Felder, die im Export als Zahl (nicht als String) gesetzt werden.
+     * @return string[]
+     */
+    private static function zahlenFelder(): array
+    {
+        return Felder::zahlenKeys();
+    }
 
     /** @return array<int, string|int|float|null> */
     private static function werte(array $werk): array
     {
+        $zahlen = self::zahlenFelder();
         $zeile = [];
-        foreach (array_keys(self::SPALTEN) as $feld) {
+        foreach (array_keys(self::spalten()) as $feld) {
             $wert = $werk[$feld] ?? null;
             if ($feld === 'status_farbe') {
                 $wert = $wert !== null ? Helpers::statusLabel($wert) : null;
-            } elseif (in_array($feld, self::ZAHLEN, true) && $wert !== null) {
+            } elseif ($feld === 'web_freigabe') {
+                $wert = (int) $wert === 1 ? 'ja' : 'nein';
+            } elseif (in_array($feld, $zahlen, true) && $wert !== null) {
                 $wert = str_contains((string) $wert, '.') ? (float) $wert : (int) $wert;
             }
             $zeile[] = $wert;
@@ -63,7 +67,7 @@ final class Export
     public static function schreibeCsv($handle, iterable $werke): void
     {
         fwrite($handle, "\xEF\xBB\xBF"); // BOM, damit Excel UTF-8 erkennt
-        fputcsv($handle, array_values(self::SPALTEN), ';', '"', '');
+        fputcsv($handle, array_values(self::spalten()), ';', '"', '');
         foreach ($werke as $werk) {
             fputcsv($handle, array_map([self::class, 'csvSicher'], self::werte($werk)), ';', '"', '');
         }
@@ -77,7 +81,7 @@ final class Export
         $blatt->setTitle('Kunstwerke');
 
         $spalte = 1;
-        foreach (self::SPALTEN as $ueberschrift) {
+        foreach (self::spalten() as $ueberschrift) {
             $blatt->setCellValue(Coordinate::stringFromColumnIndex($spalte++) . '1', $ueberschrift);
         }
         $blatt->getStyle('1:1')->getFont()->setBold(true);
@@ -100,7 +104,7 @@ final class Export
             $zeile++;
         }
 
-        foreach (range(1, count(self::SPALTEN)) as $i) {
+        foreach (range(1, count(self::spalten())) as $i) {
             $blatt->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
         }
         $blatt->freezePane('A2');

@@ -274,6 +274,23 @@ final class Helpers
         return is_numeric($w) ? (float) $w : null;
     }
 
+    /**
+     * Kurzbezeichnung fuer Technik + Jahr: "Öl auf Leinwand, 1982".
+     * Behandelt '/' und '-' als leere Technik, erzeugt kein fuehrendes Komma.
+     */
+    public static function werkMeta(?string $technik, mixed $jahr): string
+    {
+        $teile = [];
+        $t = trim((string) ($technik ?? ''));
+        if ($t !== '' && $t !== '/' && $t !== '-') {
+            $teile[] = $t;
+        }
+        if ($jahr !== null && $jahr !== '' && (int) $jahr > 0) {
+            $teile[] = (string) (int) $jahr;
+        }
+        return implode(', ', $teile);
+    }
+
     /** Normalform eines Ortsnamens für Vergleiche und Aliase. */
     public static function ortSchluessel(?string $ort): string
     {

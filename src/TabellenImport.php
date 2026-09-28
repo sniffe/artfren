@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App;
 
 use PDO;
+use App\Felder;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
@@ -16,60 +17,38 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  */
 final class TabellenImport
 {
-    public const ZIELFELDER = [
-        '' => '– ignorieren –',
-        'ort' => 'Ort',
-        'maler' => 'Maler',
-        'titel' => 'Titel',
-        'format' => 'Format',
-        'technik' => 'Technik',
-        'entstehungsjahr' => 'Entstehungsjahr',
-        'ankaufjahr' => 'Ankaufjahr',
-        'ankauf' => 'Ankauf',
-        'ankaufswert' => 'Ankaufswert',
-        'wert' => 'Wert',
-        'werktyp' => 'Bild/Objekt',
-        'status_farbe' => 'Status (Farbe)',
-        'bild_dateiname' => 'Bild-Dateiname',
-    ];
-
     public const PFLICHTFELDER = ['ort', 'maler', 'titel'];
 
     /** Spaltenname der aus Zellfarben erzeugten Status-Spalte. */
     public const FARB_SPALTE = 'Status (Zellfarbe)';
 
-    private const AUTO_ERKENNUNG = [
-        'ort' => 'ort',
-        'standort' => 'ort',
-        'maler' => 'maler',
-        'kuenstler' => 'maler',
-        'kuenstlerin' => 'maler',
-        'titel' => 'titel',
-        'format' => 'format',
-        'technik' => 'technik',
-        'entstehungsjahr' => 'entstehungsjahr',
-        'enstehungsjahr' => 'entstehungsjahr',
-        'jahr' => 'entstehungsjahr',
-        'ankaufjahr' => 'ankaufjahr',
-        'ankaufsjahr' => 'ankaufjahr',
-        'ankauf' => 'ankauf',
-        'ankaufswert' => 'ankaufswert',
-        'ankaufwert' => 'ankaufswert',
-        'wert' => 'wert',
-        'bild' => 'werktyp',
-        'werktyp' => 'werktyp',
-        'typ' => 'werktyp',
-        'status' => 'status_farbe',
-        'statusfarbe' => 'status_farbe',
-        'statuszellfarbe' => 'status_farbe',
-        'dateiname' => 'bild_dateiname',
-        'bilddateiname' => 'bild_dateiname',
-    ];
+    /**
+     * Import-Dropdown: key => Anzeige-Label.
+     * Abgeleitet von Felder::zielfelder() – nie mehr direkt pflegen.
+     * @return array<string, string>
+     */
+    public static function zielfelder(): array
+    {
+        return Felder::zielfelder();
+    }
 
-    private const FELDER = [
-        'ort', 'maler', 'titel', 'format', 'technik', 'entstehungsjahr', 'ankaufjahr',
-        'ankauf', 'ankaufswert', 'wert', 'werktyp', 'status_farbe',
-    ];
+    /**
+     * Importierbare kunstwerke-Felder (fuer INSERT und Abgleich).
+     * @return string[]
+     */
+    private static function felder(): array
+    {
+        return Felder::felder();
+    }
+
+    /**
+     * Auto-Erkennung beim Import: normalisierter Name => Feldkey.
+     * @return array<string, string>
+     */
+    private static function autoErkennung(): array
+    {
+        return Felder::autoErkennung();
+    }
 
     public const MAX_DATEIGROESSE = 20 * 1024 * 1024;
 
@@ -231,7 +210,7 @@ final class TabellenImport
         foreach (array_slice($zeilen, 0, 30, true) as $index => $zeile) {
             $treffer = 0;
             foreach ($zeile as $zelle) {
-                if (isset(self::AUTO_ERKENNUNG[self::normalisiereName((string) $zelle)])) {
+                if (isset(self::autoErkennung()[self::normalisiereName((string) $zelle)])) {
                     $treffer++;
                 }
             }
@@ -291,7 +270,7 @@ final class TabellenImport
         $mapping = [];
         $vergeben = [];
         foreach ($header as $index => $spalte) {
-            $ziel = self::AUTO_ERKENNUNG[self::normalisiereName($spalte)] ?? '';
+            $ziel = self::autoErkennung()[self::normalisiereName($spalte)] ?? '';
             // Jedes Zielfeld nur einmal vergeben. Ausnahme: die aus Zellfarben
             // erzeugte Status-Spalte verdrängt eine Text-Spalte "Status".
             if ($ziel !== '' && isset($vergeben[$ziel])) {
@@ -325,7 +304,7 @@ final class TabellenImport
     {
         $ergebnis = [];
         foreach (is_array($mapping) ? $mapping : [] as $index => $ziel) {
-            if (is_int($index) && is_string($ziel) && array_key_exists($ziel, self::ZIELFELDER)) {
+            if (is_int($index) && is_string($ziel) && array_key_exists($ziel, self::zielfelder())) {
                 $ergebnis[$index] = $ziel;
             }
         }
@@ -336,12 +315,13 @@ final class TabellenImport
     {
         $fehlend = array_diff(self::PFLICHTFELDER, $mapping);
         if ($fehlend !== []) {
-            $namen = array_map(static fn($f) => self::ZIELFELDER[$f], $fehlend);
+            $zielfelder = self::zielfelder();
+            $namen = array_map(static fn($f) => $zielfelder[$f], $fehlend);
             return 'Bitte eine Spalte zuordnen für: ' . implode(', ', $namen) . ' (daran werden Werke beim erneuten Import wiedererkannt).';
         }
         $doppelt = array_diff_assoc(array_filter($mapping), array_unique(array_filter($mapping)));
         if ($doppelt !== []) {
-            return 'Das Feld „' . self::ZIELFELDER[reset($doppelt)] . '“ ist mehreren Spalten zugeordnet.';
+            return 'Das Feld „' . self::zielfelder()[reset($doppelt)] . '” ist mehreren Spalten zugeordnet.';
         }
         return null;
     }
@@ -363,7 +343,7 @@ final class TabellenImport
         $nummer = 1;
         while (($zeile = fgetcsv($handle, 0, ';', '"', '')) !== false) {
             $nummer++;
-            $daten = array_fill_keys(self::FELDER, null);
+            $daten = array_fill_keys(self::felder(), null);
             $daten['bild_dateiname'] = null;
 
             foreach ($mapping as $index => $ziel) {
@@ -386,6 +366,8 @@ final class TabellenImport
             $daten['wert'] = Helpers::parseBetrag($daten['wert']);
             $daten['werktyp'] = mb_strtolower((string) $daten['werktyp']) === 'objekt' ? 'Objekt' : 'Bild';
             $daten['status_farbe'] = Helpers::normalisiereStatus($daten['status_farbe']);
+            // web_freigabe: "ja" → 1, alles andere (leer, "nein") → 0
+            $daten['web_freigabe'] = mb_strtolower(trim((string) ($daten['web_freigabe'] ?? ''))) === 'ja' ? 1 : 0;
 
             if ($daten['bild_dateiname'] !== null) {
                 $gueltig = Bilder::gueltigerDateiname($daten['bild_dateiname']);
@@ -456,7 +438,7 @@ final class TabellenImport
             $aliase[$a['schluessel']][] = (int) $a['kunstwerk_id'];
         }
 
-        $vergleich = array_values(array_intersect(array_merge(self::FELDER, ['bild_dateiname']), $gemappt));
+        $vergleich = array_values(array_intersect(array_merge(self::felder(), ['bild_dateiname']), $gemappt));
 
         $ergebnis = ['neu' => [], 'geaendert' => [], 'geschuetzt' => [], 'unveraendert' => 0, 'fehlerBild' => [], 'duplikate' => []];
         $vorkommen = [];
@@ -539,13 +521,14 @@ final class TabellenImport
      */
     public static function uebernehmen(PDO $pdo, array $abgleich, array $gemappt, bool $bearbeiteteUeberschreiben = false): void
     {
-        $felder = array_values(array_intersect(self::FELDER, $gemappt));
+        $felder = array_values(array_intersect(self::felder(), $gemappt));
         $bildGemappt = in_array('bild_dateiname', $gemappt, true);
 
         $pdo->beginTransaction();
 
+        $insertFelder = self::felder();
         $insert = $pdo->prepare(
-            'INSERT INTO kunstwerke (' . implode(', ', self::FELDER) . ') VALUES (:' . implode(', :', self::FELDER) . ')'
+            'INSERT INTO kunstwerke (' . implode(', ', $insertFelder) . ') VALUES (:' . implode(', :', $insertFelder) . ')'
         );
         $update = $felder === [] ? null : $pdo->prepare(
             'UPDATE kunstwerke SET ' . implode(', ', array_map(static fn($f) => "{$f} = :{$f}", $felder)) . ' WHERE id = :id'
@@ -557,7 +540,7 @@ final class TabellenImport
 
         foreach ($abgleich['neu'] as $eintrag) {
             $daten = $eintrag['daten'];
-            $insert->execute(array_intersect_key($daten, array_flip(self::FELDER)));
+            $insert->execute(array_intersect_key($daten, array_flip($insertFelder)));
             if ($daten['bild_dateiname'] !== null) {
                 $bildEinfuegen->execute(['id' => (int) $pdo->lastInsertId(), 'd' => $daten['bild_dateiname']]);
             }

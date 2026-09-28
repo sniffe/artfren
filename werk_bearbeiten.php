@@ -17,8 +17,8 @@ $repo = WerkRepository::neu();
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 $neu = $id === 0;
 if ($neu) {
-    $werk = array_fill_keys(WerkRepository::BEARBEITBARE_FELDER, null);
-    $werk = array_merge($werk, ['id' => 0, 'werktyp' => 'Bild', 'bearbeitet_am' => null]);
+    $werk = array_fill_keys(WerkRepository::bearbeitbareFelder(), null);
+    $werk = array_merge($werk, ['id' => 0, 'werktyp' => 'Bild', 'bearbeitet_am' => null, 'web_freigabe' => 0]);
 } else {
     $werk = $repo->finde($id);
     if ($werk === null) {
@@ -36,11 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     Helpers::checkCsrf();
 
+    // Einzeilige Textfelder: Whitespace kollabieren
     $text = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\s+/u', ' ', (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
-    foreach (['ort', 'maler', 'titel', 'format', 'technik', 'ankauf'] as $feld) {
+    // Mehrzeilige Textfelder: Zeilenumbrüche erhalten, nur normalisieren
+    $langtext = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\r\n?/', “\n”, (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
+
+    foreach (['ort', 'maler', 'titel', 'format', 'technik', 'ankauf', 'herkunft', 'copyright'] as $feld) {
         $eingabe[$feld] = $text($feld);
         if ($eingabe[$feld] !== null && mb_strlen($eingabe[$feld]) > 500) {
-            $fehler[] = "„{$feld}“ ist zu lang (höchstens 500 Zeichen).";
+            $fehler[] = “„{$feld}” ist zu lang (höchstens 500 Zeichen).”;
+        }
+    }
+    foreach (['beschreibung_oeffentlich', 'beschreibung_intern'] as $feld) {
+        $eingabe[$feld] = $langtext($feld);
+        if ($eingabe[$feld] !== null && mb_strlen($eingabe[$feld]) > 5000) {
+            $fehler[] = “„{$feld}” ist zu lang (höchstens 5000 Zeichen).”;
         }
     }
     if ($eingabe['maler'] === null && $eingabe['titel'] === null) {
@@ -51,19 +61,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $roh = $text($feld);
         $eingabe[$feld] = Helpers::parseJahr($roh);
         if ($roh !== null && ($eingabe[$feld] === null || $eingabe[$feld] < 1000 || $eingabe[$feld] > 2200)) {
-            $fehler[] = "{$label}: bitte eine vierstellige Jahreszahl angeben.";
+            $fehler[] = “{$label}: bitte eine vierstellige Jahreszahl angeben.”;
         }
     }
     foreach (['ankaufswert' => 'Ankaufswert', 'wert' => 'Wert'] as $feld => $label) {
         $roh = $text($feld);
         $eingabe[$feld] = Helpers::parseBetrag($roh);
         if ($roh !== null && $eingabe[$feld] === null) {
-            $fehler[] = "{$label}: bitte einen Betrag angeben (z. B. 1.500 oder 1500,50).";
+            $fehler[] = “{$label}: bitte einen Betrag angeben (z. B. 1.500 oder 1500,50).”;
         }
     }
     $eingabe['werktyp'] = ($_POST['werktyp'] ?? '') === 'Objekt' ? 'Objekt' : 'Bild';
     $status = (string) ($_POST['status_farbe'] ?? '');
     $eingabe['status_farbe'] = isset(Helpers::STATUS_FARBEN[$status]) ? $status : null;
+    $eingabe['web_freigabe'] = isset($_POST['web_freigabe']) ? 1 : 0;
 
     if ($fehler === [] && $neu) {
         $neueId = $repo->anlegen($eingabe);
@@ -82,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($fehler === []) {
         $geaendert = array_values(array_filter(
-            WerkRepository::BEARBEITBARE_FELDER,
+            WerkRepository::bearbeitbareFelder(),
             static fn(string $f) => (string) ($werk[$f] ?? '') !== (string) ($eingabe[$f] ?? ''),
         ));
         if ($geaendert !== []) {

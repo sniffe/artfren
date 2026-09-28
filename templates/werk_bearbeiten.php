@@ -76,6 +76,25 @@ $feld = static function (string $name, string $label, string $wert, string $extr
                     </select>
                 </div>
             </div>
+
+            <div class="feld mt-m">
+                <label for="beschreibung_oeffentlich">Beschreibung (öffentlich)</label>
+                <textarea id="beschreibung_oeffentlich" name="beschreibung_oeffentlich" rows="4" maxlength="5000"><?= Helpers::e((string) ($eingabe['beschreibung_oeffentlich'] ?? '')) ?></textarea>
+            </div>
+            <div class="feld">
+                <label for="beschreibung_intern">Beschreibung (intern) <span class="text-sekundaer text-klein">– nicht öffentlich</span></label>
+                <textarea id="beschreibung_intern" name="beschreibung_intern" rows="3" maxlength="5000"><?= Helpers::e((string) ($eingabe['beschreibung_intern'] ?? '')) ?></textarea>
+            </div>
+            <div class="feldreihe">
+                <?php $feld('herkunft', 'Herkunft', (string) ($eingabe['herkunft'] ?? ''), 'maxlength="500"'); ?>
+                <?php $feld('copyright', 'Bildrechte / Copyright-Vermerk', (string) ($eingabe['copyright'] ?? ''), 'maxlength="500"'); ?>
+            </div>
+            <div class="feld">
+                <label>
+                    <input type="checkbox" name="web_freigabe" value="1" <?= !empty($eingabe['web_freigabe']) ? 'checked' : '' ?>>
+                    Für Web freigegeben
+                </label>
+            </div>
         </div>
 
         <div class="karte">

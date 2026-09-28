@@ -108,7 +108,7 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
             'uebersprungen' => $gelesen['uebersprungen'],
             'ungueltigeDateinamen' => $gelesen['ungueltigeDateinamen'],
             'aliasErsetzt' => $aliasErsetzt,
-            'nichtZugeordnet' => array_diff(array_keys(array_filter(TabellenImport::ZIELFELDER, static fn($k) => $k !== '', ARRAY_FILTER_USE_KEY)), $gemappt),
+            'nichtZugeordnet' => array_diff(array_keys(array_filter(TabellenImport::zielfelder(), static fn($k) => $k !== '', ARRAY_FILTER_USE_KEY)), $gemappt),
         ]);
         exit;
     }

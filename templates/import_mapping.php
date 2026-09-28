@@ -45,7 +45,7 @@ require __DIR__ . '/_import_reiter.php';
                 <th>
                     <div class="text-klein text-sekundaer"><?= Helpers::e($spalte !== '' ? $spalte : '(ohne Überschrift)') ?></div>
                     <select name="mapping[<?= (int) $i ?>]" aria-label="Zuordnung für Spalte <?= (int) $i + 1 ?>">
-                        <?php foreach (TabellenImport::ZIELFELDER as $wert => $label): ?>
+                        <?php foreach (TabellenImport::zielfelder() as $wert => $label): ?>
                             <option value="<?= Helpers::e($wert) ?>" <?= ($mapping[$i] ?? '') === $wert ? 'selected' : '' ?>><?= Helpers::e($label) ?></option>
                         <?php endforeach; ?>
                     </select>

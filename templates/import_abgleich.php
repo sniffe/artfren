@@ -18,7 +18,7 @@ $zeigeListe = static function (array $eintraege, int $max = 15, bool $mitUntersc
         $text = trim(($d['ort'] ?? '') . ' – ' . ($d['maler'] ?? '') . ' – ' . ($d['titel'] ?? ''), ' –');
         echo '<li>Zeile ' . (int) $eintrag['zeilennummer'] . ': ' . Helpers::e($text);
         if ($mitUnterschieden && !empty($eintrag['unterschiede'])) {
-            $felder = array_map(static fn($f) => TabellenImport::ZIELFELDER[$f] ?? $f, $eintrag['unterschiede']);
+            $felder = array_map(static fn($f) => TabellenImport::zielfelder()[$f] ?? $f, $eintrag['unterschiede']);
             echo ' <span class="text-sekundaer">(' . Helpers::e(implode(', ', $felder)) . ')</span>';
         }
         if (isset($d['bild_dateiname']) && $d['bild_dateiname'] !== null && !$mitUnterschieden) {
@@ -49,7 +49,7 @@ require __DIR__ . '/_import_reiter.php';
 </div>
 
 <?php if ($nichtZugeordnet): ?>
-    <div class="flash flash--hinweis mt-m">Nicht zugeordnete Felder bleiben bei bestehenden Werken unverändert: <?= Helpers::e(implode(', ', array_map(static fn($f) => TabellenImport::ZIELFELDER[$f], $nichtZugeordnet))) ?>.</div>
+    <div class="flash flash--hinweis mt-m">Nicht zugeordnete Felder bleiben bei bestehenden Werken unverändert: <?= Helpers::e(implode(', ', array_map(static fn($f) => TabellenImport::zielfelder()[$f] ?? $f, $nichtZugeordnet))) ?>.</div>
 <?php endif; ?>
 
 <div class="feldreihe mt-l">
