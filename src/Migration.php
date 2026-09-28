@@ -50,6 +50,8 @@ final class Migration
             return 0;
         }
 
+        self::erstelleVorMigration($pdo);
+
         // Fremdschlüssel müssen außerhalb der Transaktion abgeschaltet werden,
         // sonst lösen Tabellen-Neuaufbauten (DROP TABLE) Kaskaden-Löschungen aus.
         $pdo->exec('PRAGMA foreign_keys = OFF');
@@ -87,5 +89,45 @@ final class Migration
 
         $pdo->exec('PRAGMA foreign_keys = ON');
         return $angewandt;
+    }
+
+    /**
+     * Erstellt vor einer Migration einen konsistenten Schnappschuss der Datenbank.
+     * Bricht ab und wirft eine Exception, wenn kein Schnappschuss angelegt werden kann.
+     * Behält die letzten 3 Schnappschüsse und löscht ältere.
+     */
+    private static function erstelleVorMigration(PDO $pdo): void
+    {
+        $von = self::aktuelleVersion($pdo);
+        $bis = self::zielVersion();
+        $zeitstempel = date('Y-m-d_His');
+        $ziel = DATA_PATH . "/pre-migration-{$von}-to-{$bis}-{$zeitstempel}.sqlite";
+
+        $ok = false;
+        try {
+            $pdo->exec('VACUUM INTO ' . $pdo->quote($ziel));
+            $ok = is_file($ziel) && filesize($ziel) > 0;
+        } catch (\Throwable) {
+            $ok = false;
+        }
+
+        if (!$ok) {
+            $ok = @copy(DB_PATH, $ziel);
+        }
+
+        if (!$ok) {
+            throw new \RuntimeException(
+                'Vor der Migration konnte kein Sicherungs-Schnappschuss angelegt werden. '
+                . 'Die Migration wurde nicht ausgeführt. '
+                . 'Bitte stellen Sie sicher, dass der Ordner data/ schreibbar ist.'
+            );
+        }
+
+        // Maximal 3 Schnappschüsse behalten – ältere löschen.
+        $alle = glob(DATA_PATH . '/pre-migration-*.sqlite') ?: [];
+        usort($alle, static fn(string $a, string $b): int => filemtime($a) <=> filemtime($b));
+        foreach (array_slice($alle, 0, max(0, count($alle) - 3)) as $alt) {
+            @unlink($alt);
+        }
     }
 }

@@ -78,10 +78,39 @@ final class Helpers
 
     public static function formatGroesse(int $bytes): string
     {
+        if ($bytes >= 1024 * 1024 * 1024) {
+            return number_format($bytes / (1024 * 1024 * 1024), 2, ',', '.') . ' GB';
+        }
         if ($bytes >= 1024 * 1024) {
             return number_format($bytes / (1024 * 1024), 1, ',', '.') . ' MB';
         }
         return number_format($bytes / 1024, 0, ',', '.') . ' KB';
+    }
+
+    /** Wandelt PHP-INI-Größenangaben wie "32M", "1G" in Bytes um. */
+    public static function iniGroesseZuBytes(string $wert): int
+    {
+        $wert = trim($wert);
+        $zahl = (int) $wert;
+        $einheit = strtolower($wert[strlen($wert) - 1] ?? '');
+        return match ($einheit) {
+            'g' => $zahl * 1024 * 1024 * 1024,
+            'm' => $zahl * 1024 * 1024,
+            'k' => $zahl * 1024,
+            default => $zahl,
+        };
+    }
+
+    /** Berechnet die Gesamtgröße aller Dateien in einem Verzeichnis (nicht rekursiv). */
+    public static function ordnerGroesse(string $pfad): int
+    {
+        $groesse = 0;
+        foreach (new \DirectoryIterator($pfad) as $datei) {
+            if ($datei->isFile()) {
+                $groesse += $datei->getSize();
+            }
+        }
+        return $groesse;
     }
 
     public static function flashSet(string $typ, string $nachricht): void

@@ -1,6 +1,7 @@
 <?php
 /** @var array|null $pruefung */
 /** @var array<string, string> $info */
+/** @var array<int, string> $warnungen */
 /** @var bool $httpsAktiv */
 /** @var string $appName */
 /** @var bool $httpsErzwingen */
@@ -100,6 +101,11 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
 
     <div class="karte" style="flex:1;min-width:320px;">
         <h3>Server</h3>
+        <?php if ($warnungen): ?>
+            <?php foreach ($warnungen as $warnung): ?>
+                <div class="flash flash--fehler"><?= Helpers::e($warnung) ?></div>
+            <?php endforeach; ?>
+        <?php endif; ?>
         <table class="liste">
             <?php foreach ($info as $name => $wert): ?>
                 <tr><td class="text-klein text-sekundaer"><?= Helpers::e($name) ?></td><td class="text-klein"><?= Helpers::e($wert) ?></td></tr>

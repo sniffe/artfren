@@ -54,22 +54,48 @@ $proSeite = 100;
 $seite = max(1, (int) ($_GET['seite'] ?? 1));
 $pdo = Database::get();
 
+$gdInfo = function_exists('gd_info') ? gd_info() : [];
+$webpUnterstuetzt = ($gdInfo['WebP Support'] ?? false) === true;
+$zipUnterstuetzt = class_exists('ZipArchive');
+$postMaxBytes = Helpers::iniGroesseZuBytes((string) ini_get('post_max_size'));
+$freierSpeicher = disk_free_space(DATA_PATH);
+
+$warnungen = [];
+if ($postMaxBytes > 0 && $postMaxBytes < 32 * 1024 * 1024) {
+    $warnungen[] = 'post_max_size ist kleiner als 32 MB – der Upload größerer Bilder oder ZIP-Dateien kann fehlschlagen.';
+}
+if (!$webpUnterstuetzt) {
+    $warnungen[] = 'GD unterstützt kein WebP – WebP-Bilder können nicht verarbeitet werden.';
+}
+
 render('system', [
     'titel' => 'System',
     'aktuelleSeite' => 'system',
     'breit' => true,
     'pruefung' => $_SESSION['sicherheitscheck'] ?? null,
     'info' => [
+        'Anwendungsversion' => APP_VERSION,
         'PHP-Version' => PHP_VERSION,
         'Speicherlimit (memory_limit)' => ini_get('memory_limit') === '-1' ? 'unbegrenzt' : (string) ini_get('memory_limit'),
         'Max. Laufzeit (max_execution_time)' => ini_get('max_execution_time') . ' s',
-        'Max. Upload je Datei' => (string) ini_get('upload_max_filesize'),
+        'Max. Upload je Datei (upload_max_filesize)' => (string) ini_get('upload_max_filesize'),
         'Max. Upload gesamt (post_max_size)' => (string) ini_get('post_max_size'),
+        'Max. Dateien je Upload (max_file_uploads)' => (string) ini_get('max_file_uploads'),
+        'GD-Bildverarbeitung' => function_exists('gd_info')
+            ? 'vorhanden' . ($webpUnterstuetzt ? ', WebP: ja' : ', WebP: nein')
+            : 'nicht vorhanden',
+        'ZipArchive' => $zipUnterstuetzt ? 'vorhanden' : 'nicht vorhanden',
         'Datenbankgröße' => Helpers::formatGroesse((int) filesize(DB_PATH)),
-        'Schema-Version' => Migration::aktuelleVersion($pdo) . ' / ' . Migration::zielVersion(),
+        'Schema-Version (DB user_version)' => Migration::aktuelleVersion($pdo) . ' / ' . Migration::zielVersion(),
+        'Ordner bilder/' => Helpers::formatGroesse(Helpers::ordnerGroesse(BILDER_PATH)),
+        'Ordner backups/' => Helpers::formatGroesse(Helpers::ordnerGroesse(BACKUPS_PATH)),
+        'Freier Speicher (data/)' => $freierSpeicher !== false
+            ? Helpers::formatGroesse((int) $freierSpeicher)
+            : 'unbekannt',
         'Verbindung' => $https ? 'HTTPS (verschlüsselt)' : 'HTTP (unverschlüsselt)',
         'HTTPS erzwingen' => Einstellungen::httpsErzwingen() ? 'ja' : 'nein',
     ],
+    'warnungen' => $warnungen,
     'httpsAktiv' => $https,
     'appName' => Einstellungen::appName(),
     'httpsErzwingen' => Einstellungen::httpsErzwingen(),
