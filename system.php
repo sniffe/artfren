@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
@@ -74,6 +75,8 @@ render('system', [
     'appName' => Einstellungen::appName(),
     'httpsErzwingen' => Einstellungen::httpsErzwingen(),
     'veraltet' => Wartung::veralteteDateien(),
+    'vollstaendigkeit' => Wartung::fehlendeProgrammdateien(),
+    'fehlendeSchutzdateien' => Wartung::fehlendeSchutzdateien(),
     'protokoll' => Protokoll::letzte($proSeite + 1, ($seite - 1) * $proSeite),
     'proSeite' => $proSeite,
     'seite' => $seite,

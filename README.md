@@ -50,6 +50,17 @@ Abhängigkeiten ist bereits Teil dieses Repositories.
 4. Bleiben Dateien früherer Versionen liegen, weist ein Hinweis darauf hin;
    unter **System** lassen sie sich mit einem Klick löschen.
 
+Ist der Upload unvollständig (abgebrochene Übertragung, `vendor/` noch nicht
+fertig, Ordner eine Ebene zu tief), zeigt jede Seite statt eines PHP-Fehlers
+eine Hinweisseite mit den betroffenen Ordnern (`upload_pruefung.php`).
+Unter **System → Vollständigkeit des Programms** werden alle Programmdateien
+mit der Dateiliste der Version (`src/dateiliste.txt`) verglichen; fehlende
+`.htaccess`-Schutzdateien werden Administratoren zusätzlich auf jeder Seite
+gemeldet.
+
+Für Entwickler: Vor jeder neuen Version `php scripts/dateiliste.php`
+ausführen, damit die Dateiliste aktuell ist.
+
 ### Alternative mit Shell-Zugriff (lokale Entwicklung)
 
 `composer install`, dann `php scripts/migrate.php` und

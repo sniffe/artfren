@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Liefert Bilder nur an angemeldete Benutzer aus, die das zugehörige Werk
 // sehen dürfen. Der Ordner bilder/ selbst ist von außen gesperrt.
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;

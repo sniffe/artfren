@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Gruppenexport: Excel-Tabelle (format=xlsx) bzw. Bilder-ZIP (format=bilder).
 // Das PDF liefert export_gruppe_pdf.php.
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
