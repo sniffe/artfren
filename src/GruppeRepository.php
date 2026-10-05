@@ -27,7 +27,7 @@ final class GruppeRepository
     /** Alle Gruppen, die der Benutzer sehen darf, mit Anzahl Werke. */
     public function sichtbarFuer(array $benutzer): array
     {
-        $sql = 'SELECT g.*, (SELECT COUNT(*) FROM gruppe_kunstwerk gk WHERE gk.gruppe_id = g.id) AS anzahl_werke FROM gruppen g';
+        $sql = 'SELECT g.*, (SELECT COUNT(*) FROM gruppe_kunstwerk gk JOIN kunstwerke k ON k.id = gk.kunstwerk_id WHERE gk.gruppe_id = g.id AND k.geloescht_am IS NULL) AS anzahl_werke FROM gruppen g';
         if (Auth::isAdmin($benutzer)) {
             return $this->pdo->query($sql . ' ORDER BY g.name COLLATE NOCASE')->fetchAll();
         }
@@ -107,5 +107,211 @@ final class GruppeRepository
         );
         $stmt->execute(['id' => $gruppeId]);
         return $stmt->fetchAll();
+    }
+
+    /** Sucht eine Gruppe anhand ihres öffentlichen Web-Tokens. */
+    public function findePerToken(string $token): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM gruppen WHERE web_token = :t');
+        $stmt->execute(['t' => $token]);
+        $row = $stmt->fetch();
+        return $row === false ? null : $row;
+    }
+
+    /**
+     * Speichert die Web-Einstellungen einer Gruppe (ohne Aktivierung/Deaktivierung
+     * und ohne Link-Erneuerung – diese laufen über eigene Methoden).
+     */
+    public function webEinstellungenSpeichern(int $gruppeId, array $einstellungen): void
+    {
+        $erlaubt = ['web_titel', 'web_einleitung', 'web_felder', 'web_bilder_modus',
+                    'web_passwort_hash', 'web_ablauf', 'web_einbetten_von', 'web_look'];
+        $teile = [];
+        $params = ['id' => $gruppeId];
+        foreach ($erlaubt as $schluessel) {
+            if (array_key_exists($schluessel, $einstellungen)) {
+                $teile[] = "{$schluessel} = :{$schluessel}";
+                $params[$schluessel] = $einstellungen[$schluessel];
+            }
+        }
+        if ($teile === []) {
+            return;
+        }
+        $this->pdo->prepare("UPDATE gruppen SET " . implode(', ', $teile) . " WHERE id = :id")
+            ->execute($params);
+    }
+
+    /** Aktiviert die öffentliche Galerie und generiert bei Bedarf einen Token. */
+    public function webAktivieren(int $gruppeId): void
+    {
+        // Generiert einen Token, falls noch keiner vorhanden.
+        $gruppe = $this->finde($gruppeId);
+        $token = ($gruppe['web_token'] ?? null) ?: bin2hex(random_bytes(16));
+        $this->pdo->prepare(
+            "UPDATE gruppen SET web_aktiv = 1, web_token = :t, web_veroeffentlicht_am = COALESCE(web_veroeffentlicht_am, datetime('now')) WHERE id = :id"
+        )->execute(['t' => $token, 'id' => $gruppeId]);
+    }
+
+    /** Deaktiviert die öffentliche Galerie (Token bleibt erhalten). */
+    public function webDeaktivieren(int $gruppeId): void
+    {
+        $this->pdo->prepare('UPDATE gruppen SET web_aktiv = 0 WHERE id = :id')
+            ->execute(['id' => $gruppeId]);
+    }
+
+    /** Erzeugt einen neuen Token; der alte Link wird damit ungültig. */
+    public function webLinkErneuern(int $gruppeId): string
+    {
+        $token = bin2hex(random_bytes(16));
+        $this->pdo->prepare("UPDATE gruppen SET web_token = :t, web_veroeffentlicht_am = datetime('now') WHERE id = :id")
+            ->execute(['t' => $token, 'id' => $gruppeId]);
+        return $token;
+    }
+
+    /** Zählt web_aufrufe hoch und aktualisiert web_letzter_aufruf. */
+    public function webAufrufErfassen(int $gruppeId): void
+    {
+        $this->pdo->prepare(
+            "UPDATE gruppen SET web_aufrufe = web_aufrufe + 1, web_letzter_aufruf = datetime('now') WHERE id = :id"
+        )->execute(['id' => $gruppeId]);
+    }
+
+    /**
+     * Liefert alle für Web freigegebenen, nicht gelöschten Werke der Gruppe
+     * in der gespeicherten Sortierreihenfolge.
+     */
+    public function werkeOeffentlich(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT k.*, hb.id AS bild_id, hb.dateiname AS bild_dateiname,
+                    (SELECT COUNT(*) FROM bilder WHERE kunstwerk_id = k.id) AS bild_anzahl
+             FROM kunstwerke k
+             JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+             LEFT JOIN bilder hb ON hb.id = (
+                 SELECT b.id FROM bilder b WHERE b.kunstwerk_id = k.id
+                 ORDER BY b.ist_hauptbild DESC, b.sortierung, b.id LIMIT 1
+             )
+             WHERE gk.gruppe_id = :gid AND k.web_freigabe = 1 AND k.geloescht_am IS NULL
+             ORDER BY gk.sortierung, k.ort, k.maler, k.titel'
+        );
+        $stmt->execute(['gid' => $gruppeId]);
+        return $stmt->fetchAll();
+    }
+
+    /** Einzelnes öffentliches Werk einer Gruppe (Sicherheitsprüfung: muss zur Gruppe gehören). */
+    public function werkOeffentlich(int $gruppeId, int $werkId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT k.*, hb.id AS bild_id, hb.dateiname AS bild_dateiname,
+                    (SELECT COUNT(*) FROM bilder WHERE kunstwerk_id = k.id) AS bild_anzahl
+             FROM kunstwerke k
+             JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id AND gk.gruppe_id = :gid
+             LEFT JOIN bilder hb ON hb.id = (
+                 SELECT b.id FROM bilder b WHERE b.kunstwerk_id = k.id
+                 ORDER BY b.ist_hauptbild DESC, b.sortierung, b.id LIMIT 1
+             )
+             WHERE k.id = :kid AND k.web_freigabe = 1 AND k.geloescht_am IS NULL'
+        );
+        $stmt->execute(['gid' => $gruppeId, 'kid' => $werkId]);
+        $row = $stmt->fetch();
+        return $row === false ? null : $row;
+    }
+
+    /** Alle Bilder eines öffentlichen Werks (Sicherheitsprüfung: Werk in der Gruppe). */
+    public function bilderOeffentlich(int $gruppeId, int $werkId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT b.* FROM bilder b
+             JOIN kunstwerke k ON k.id = b.kunstwerk_id
+             JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id AND gk.gruppe_id = :gid
+             WHERE b.kunstwerk_id = :kid AND k.web_freigabe = 1 AND k.geloescht_am IS NULL
+             ORDER BY b.ist_hauptbild DESC, b.sortierung, b.id'
+        );
+        $stmt->execute(['gid' => $gruppeId, 'kid' => $werkId]);
+        return $stmt->fetchAll();
+    }
+
+    /** Gibt die Anzahl aller Werke und der freigegebenen Werke in der Gruppe zurück. */
+    public function webWerkStats(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT
+                COUNT(*) AS gesamt,
+                SUM(CASE WHEN k.web_freigabe = 1 THEN 1 ELSE 0 END) AS freigegeben
+             FROM gruppe_kunstwerk gk
+             JOIN kunstwerke k ON k.id = gk.kunstwerk_id
+             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL'
+        );
+        $stmt->execute(['id' => $gruppeId]);
+        return $stmt->fetch();
+    }
+
+    /** Gibt alle Werke mit Sortierung für die Admin-Ansicht zurück. */
+    public function fuerGruppeSortiert(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT k.*, hb.id AS bild_id, hb.dateiname AS bild_dateiname, gk.sortierung AS gruppen_sortierung
+             FROM kunstwerke k
+             JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+             LEFT JOIN bilder hb ON hb.id = (
+                 SELECT b.id FROM bilder b WHERE b.kunstwerk_id = k.id
+                 ORDER BY b.ist_hauptbild DESC, b.sortierung, b.id LIMIT 1
+             )
+             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL
+             ORDER BY gk.sortierung, k.ort, k.maler, k.titel'
+        );
+        $stmt->execute(['id' => $gruppeId]);
+        return $stmt->fetchAll();
+    }
+
+    /** Setzt die Sortierreihenfolge der Werke in einer Gruppe. */
+    public function setzeWerkReihenfolge(int $gruppeId, array $sortierteWerkIds): void
+    {
+        $update = $this->pdo->prepare(
+            'UPDATE gruppe_kunstwerk SET sortierung = :s WHERE gruppe_id = :g AND kunstwerk_id = :k'
+        );
+        $this->pdo->beginTransaction();
+        foreach (array_values($sortierteWerkIds) as $pos => $werkId) {
+            $update->execute(['s' => $pos, 'g' => $gruppeId, 'k' => (int) $werkId]);
+        }
+        $this->pdo->commit();
+    }
+
+    /** Verschiebt ein Werk um eine Position nach oben in der Gruppenreihenfolge. */
+    public function werkNachOben(int $gruppeId, int $werkId): void
+    {
+        $werke = $this->fuerGruppeSortiert($gruppeId);
+        $ids = array_column($werke, 'id');
+        $pos = array_search($werkId, $ids, true);
+        if ($pos === false || $pos === 0) {
+            return;
+        }
+        [$ids[(int) $pos - 1], $ids[(int) $pos]] = [$ids[(int) $pos], $ids[(int) $pos - 1]];
+        $this->setzeWerkReihenfolge($gruppeId, $ids);
+    }
+
+    /** Verschiebt ein Werk um eine Position nach unten in der Gruppenreihenfolge. */
+    public function werkNachUnten(int $gruppeId, int $werkId): void
+    {
+        $werke = $this->fuerGruppeSortiert($gruppeId);
+        $ids = array_column($werke, 'id');
+        $pos = array_search($werkId, $ids, true);
+        if ($pos === false || $pos === count($ids) - 1) {
+            return;
+        }
+        [$ids[(int) $pos + 1], $ids[(int) $pos]] = [$ids[(int) $pos], $ids[(int) $pos + 1]];
+        $this->setzeWerkReihenfolge($gruppeId, $ids);
+    }
+
+    /** Gibt alle Werke frei (web_freigabe=1) für eine bestimmte Gruppe. */
+    public function alleWerkeFreigeben(int $gruppeId): int
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE kunstwerke SET web_freigabe = 1
+             WHERE id IN (SELECT kunstwerk_id FROM gruppe_kunstwerk WHERE gruppe_id = :g)
+               AND geloescht_am IS NULL AND web_freigabe = 0'
+        );
+        $stmt->execute(['g' => $gruppeId]);
+        return $stmt->rowCount();
     }
 }

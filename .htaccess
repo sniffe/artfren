@@ -10,3 +10,13 @@
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Öffentliche Galerie-Routen:
+    # /w/TOKEN        → web.php?t=TOKEN
+    # /w/TOKEN/rest/… → web.php?t=TOKEN&rest=rest/…
+    RewriteRule ^w/([^/]+)/?$ /web.php?t=$1 [L,QSA]
+    RewriteRule ^w/([^/]+)/(.+)$ /web.php?t=$1&rest=$2 [L,QSA]
+</IfModule>

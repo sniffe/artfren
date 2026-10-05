@@ -1,0 +1,213 @@
+/*
+ * Öffentliche Galerie – minimales Layout ohne Admin-Navigation.
+ * Setzt voraus dass tokens.css bereits geladen ist.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: var(--schrift-sans);
+    font-size: var(--schrift-groesse-basis);
+    background: var(--farbe-hintergrund);
+    color: var(--farbe-text);
+    line-height: 1.5;
+}
+
+a { color: var(--farbe-akzent); }
+
+/* ---------- Vorschau-Banner ---------- */
+.web-vorschau-banner {
+    background: var(--farbe-akzent);
+    color: #fff;
+    text-align: center;
+    padding: 6px var(--abstand-m);
+    font-size: var(--schrift-groesse-klein);
+}
+
+/* ---------- Header ---------- */
+.web-header {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--abstand-xl) var(--abstand-m) var(--abstand-m);
+}
+
+.web-header h1 {
+    font-family: var(--schrift-serif);
+    font-size: 2rem;
+    margin: 0 0 var(--abstand-s);
+}
+
+.web-einleitung {
+    color: var(--farbe-text-sekundaer);
+    max-width: 680px;
+}
+
+/* ---------- Karten-Raster ---------- */
+.web-karten {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--abstand-m) var(--abstand-xl);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--abstand-m);
+}
+
+.web-karte {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.web-karte:hover .web-karte__titel { text-decoration: underline; }
+
+.web-karte__bild {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--farbe-flaeche);
+    border: 1px solid var(--farbe-linie);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.web-karte__bild img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.web-karte__kein-bild {
+    width: 100%;
+    height: 100%;
+    background: var(--farbe-flaeche);
+}
+
+.web-karte__etikett { padding: var(--abstand-s) 0 0; }
+.web-karte__maler { font-variant: small-caps; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); }
+.web-karte__titel { font-family: var(--schrift-serif); font-style: italic; margin: 2px 0; }
+.web-karte__meta { font-size: 12px; color: var(--farbe-text-sekundaer); }
+
+/* ---------- Detail ---------- */
+.web-detail-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--abstand-m) var(--abstand-m) 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.web-detail-nav__prev-next { display: flex; gap: var(--abstand-m); font-size: 1.2rem; }
+.web-detail-nav__leer { color: var(--farbe-linie); }
+
+.web-detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--abstand-m);
+    display: flex;
+    gap: var(--abstand-xl);
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.web-detail__bild-bereich { flex: 1 1 400px; }
+
+.web-passepartout {
+    background: var(--farbe-flaeche);
+    border: 1px solid var(--farbe-linie);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+    overflow: hidden;
+}
+
+.web-passepartout img { max-width: 100%; max-height: 70vh; object-fit: contain; display: block; margin: auto; }
+
+.web-galerie-streifen {
+    display: flex;
+    gap: var(--abstand-xs);
+    flex-wrap: wrap;
+    margin-top: var(--abstand-s);
+}
+
+.web-thumb {
+    width: 70px;
+    height: 52px;
+    background: var(--farbe-flaeche);
+    border: 2px solid var(--farbe-linie);
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.web-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.web-thumb--aktiv { border-color: var(--farbe-akzent); }
+.web-thumb:hover { border-color: var(--farbe-akzent); }
+
+.web-copyright { font-size: 11px; color: var(--farbe-text-sekundaer); margin-top: var(--abstand-xs); }
+
+.web-detail__info { flex: 1 1 280px; }
+.web-detail__maler { font-variant: small-caps; color: var(--farbe-text-sekundaer); }
+.web-detail__titel { font-family: var(--schrift-serif); font-style: italic; font-size: 1.5rem; margin: 4px 0; }
+.web-detail__meta { font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); margin-bottom: var(--abstand-m); }
+
+.web-detail__felder { margin: var(--abstand-m) 0 0; }
+.web-detail__felder dt { font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); margin-top: var(--abstand-s); }
+.web-detail__felder dd { margin: 0; }
+
+/* ---------- Passwort-Tor ---------- */
+.web-passwort {
+    max-width: 400px;
+    margin: var(--abstand-xl) auto;
+    padding: var(--abstand-l);
+    background: var(--farbe-flaeche);
+    border: 1px solid var(--farbe-linie);
+}
+
+.web-passwort h1 { font-size: 1.3rem; margin: 0 0 var(--abstand-m); }
+.web-passwort label { display: block; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); margin-bottom: 4px; }
+.web-passwort input[type=password] { width: 100%; padding: 8px; border: 1px solid var(--farbe-linie); background: var(--farbe-hintergrund); color: var(--farbe-text); margin-bottom: var(--abstand-m); font-size: inherit; }
+.web-fehler-inline { background: color-mix(in srgb, var(--farbe-status-rot) 15%, transparent); border: 1px solid var(--farbe-status-rot); padding: var(--abstand-s) var(--abstand-m); margin-bottom: var(--abstand-m); font-size: var(--schrift-groesse-klein); }
+
+.web-btn { padding: 8px 20px; background: var(--farbe-akzent); color: #fff; border: none; cursor: pointer; font-size: inherit; }
+.web-btn:hover { opacity: .9; }
+
+/* ---------- Fehler / Leer ---------- */
+.web-fehler, .web-leer {
+    max-width: 600px;
+    margin: var(--abstand-xl) auto;
+    padding: var(--abstand-l);
+    text-align: center;
+    color: var(--farbe-text-sekundaer);
+}
+
+/* ---------- Footer ---------- */
+.web-footer {
+    text-align: center;
+    padding: var(--abstand-xl) var(--abstand-m) var(--abstand-m);
+    font-size: var(--schrift-groesse-klein);
+    color: var(--farbe-text-sekundaer);
+    border-top: 1px solid var(--farbe-linie);
+    margin-top: var(--abstand-xl);
+}
+
+.web-footer a { color: inherit; }
+
+/* ---------- Rechtliche Seiten ---------- */
+.web-legal {
+    max-width: 700px;
+    margin: var(--abstand-xl) auto;
+    padding: 0 var(--abstand-m) var(--abstand-xl);
+}
+
+.web-legal h1 { font-family: var(--schrift-serif); margin-bottom: var(--abstand-m); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+    .web-header h1 { font-size: 1.5rem; }
+    .web-karten { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--abstand-s); }
+    .web-detail { flex-direction: column; }
+    .web-detail-nav { padding: var(--abstand-s) var(--abstand-s) 0; }
+}
