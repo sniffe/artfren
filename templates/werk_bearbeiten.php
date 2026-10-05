@@ -3,7 +3,7 @@
 /** @var array $eingabe */
 /** @var string[] $fehler */
 /** @var string $zurueck */
-/** @var array|null $hauptbild */
+/** @var array[] $bilder */
 /** @var string[] $orte */
 /** @var string[] $malerListe */
 /** @var string[] $freieBilder */
@@ -14,7 +14,6 @@ use App\Helpers;
 
 $id = (int) $werk['id'];
 $betrag = static fn($w): string => $w === null ? '' : number_format((float) $w, 2, ',', '.');
-$bildUrl = $hauptbild ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'm') : null;
 $feld = static function (string $name, string $label, string $wert, string $extra = '') : void {
     echo '<div class="feld"><label for="' . $name . '">' . $label . '</label>'
         . '<input type="text" id="' . $name . '" name="' . $name . '" value="' . Helpers::e($wert) . '" ' . $extra . '></div>';
@@ -97,34 +96,70 @@ $feld = static function (string $name, string $label, string $wert, string $extr
             </div>
         </div>
 
-        <div class="karte">
-            <h3>Bild</h3>
-            <div class="passepartout">
-                <?php if ($bildUrl): ?>
-                    <img src="<?= Helpers::e($bildUrl) ?>" alt="">
-                <?php elseif ($hauptbild): ?>
-                    <span class="passepartout--leer">Datei „<?= Helpers::e($hauptbild['dateiname']) ?>“ fehlt</span>
-                <?php else: ?>
-                    <span class="passepartout--leer">Kein Bild</span>
-                <?php endif; ?>
-            </div>
-            <?php if ($hauptbild): ?>
-                <p class="text-klein text-sekundaer"><?= Helpers::e($hauptbild['dateiname']) ?></p>
+        <div class=”karte”>
+            <h3>Bilder</h3>
+
+            <?php if ($bilder !== []): ?>
+                <div class=”bild-liste” id=”bild-reihenfolge-liste”>
+                    <?php foreach ($bilder as $bild): ?>
+                        <?php
+                        $bId = (int) $bild['id'];
+                        $bUrl = Helpers::bildUrl($bId, $bild['dateiname'], 'm');
+                        ?>
+                        <div class=”bild-karte” data-bild-id=”<?= $bId ?>”>
+                            <input type=”hidden” name=”bild_reihenfolge[]” value=”<?= $bId ?>”>
+                            <div class=”passepartout bild-karte__vorschau”>
+                                <?php if ($bUrl): ?>
+                                    <img src=”<?= Helpers::e($bUrl) ?>” alt=””>
+                                <?php else: ?>
+                                    <span class=”passepartout--leer”>fehlt</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class=”bild-karte__meta”>
+                                <?php if ($bild['ist_hauptbild']): ?>
+                                    <span class=”badge”>Hauptbild</span>
+                                <?php endif; ?>
+                                <p class=”text-klein text-sekundaer”><?= Helpers::e($bild['dateiname']) ?></p>
+                                <div class=”feld”>
+                                    <label for=”bbs-<?= $bId ?>”>Beschriftung</label>
+                                    <input type=”text” id=”bbs-<?= $bId ?>” name=”bild_beschriftung[<?= $bId ?>]”
+                                           value=”<?= Helpers::e((string) ($bild['beschriftung'] ?? '')) ?>” maxlength=”500”>
+                                </div>
+                                <label class=”text-klein” style=”display:flex;gap:4px;align-items:center;margin-top:6px;”>
+                                    <input type=”checkbox” name=”bild_entfernen[]” value=”<?= $bId ?>”>
+                                    Bild entfernen
+                                </label>
+                            </div>
+                            <div class=”bild-karte__reihenfolge”>
+                                <button type=”submit” name=”bild_verschieben_oben[<?= $bId ?>]” value=”1” class=”btn btn--klein” title=”Nach oben”>↑</button>
+                                <button type=”submit” name=”bild_verschieben_unten[<?= $bId ?>]” value=”1” class=”btn btn--klein” title=”Nach unten”>↓</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <p class=”text-klein text-sekundaer mt-m”><?= count($bilder) ?>/<?= MAX_BILDER_PRO_WERK ?> Bilder</p>
+            <?php elseif (!$neu): ?>
+                <p class=”text-sekundaer”>Noch kein Bild zugeordnet.</p>
             <?php endif; ?>
 
-            <div class="feld mt-m">
-                <label for="bild">Neues Bild hochladen</label>
-                <input type="file" id="bild" name="bild" accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
-            </div>
-            <div class="feld">
-                <label for="vorhandenes_bild">… oder Datei aus dem Bilder-Ordner zuweisen</label>
-                <input type="text" id="vorhandenes_bild" name="vorhandenes_bild" list="liste-bilder" autocomplete="off"
-                       placeholder="<?= $freieBilder ? count($freieBilder) . ' noch nicht zugeordnete Bilder – Namen tippen' : 'Dateiname' ?>">
-            </div>
-            <?php if ($hauptbild): ?>
-                <label style="display:inline-flex;gap:6px;align-items:center;">
-                    <input type="checkbox" name="bild_entfernen" value="1"> Bildzuordnung entfernen
-                </label>
+            <?php if (count($bilder) < MAX_BILDER_PRO_WERK): ?>
+                <div class=”mt-m”>
+                    <?php if ($neu): ?>
+                        <div class=”feld”>
+                            <label for=”bild”>Hauptbild hochladen</label>
+                            <input type=”file” id=”bild” name=”bild” accept=”.jpg,.jpeg,.png,.gif,.webp,image/*”>
+                        </div>
+                    <?php endif; ?>
+                    <div class=”feld”>
+                        <label for=”bilder_neu”><?= $neu ? 'Weitere Bilder hochladen' : 'Bilder hinzufügen' ?></label>
+                        <input type=”file” id=”bilder_neu” name=”bilder_neu[]” accept=”.jpg,.jpeg,.png,.gif,.webp,image/*” multiple>
+                    </div>
+                    <div class=”feld”>
+                        <label for=”vorhandenes_bild”>… oder Datei aus dem Bilder-Ordner hinzufügen</label>
+                        <input type=”text” id=”vorhandenes_bild” name=”vorhandenes_bild” list=”liste-bilder” autocomplete=”off”
+                               placeholder=”<?= $freieBilder ? count($freieBilder) . ' noch nicht zugeordnete Bilder – Namen tippen' : 'Dateiname' ?>”>
+                    </div>
+                </div>
             <?php endif; ?>
         </div>
     </div>

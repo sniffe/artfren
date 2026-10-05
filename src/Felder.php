@@ -319,6 +319,9 @@ final class Felder
             $ergebnis[$feld['key']] = $feld['label'];
         }
         $ergebnis['bild_dateiname'] = 'Bild-Dateiname';
+        for ($n = 2; $n <= 8; $n++) {
+            $ergebnis["bild_dateiname_{$n}"] = "Bild-Dateiname {$n}";
+        }
         return $ergebnis;
     }
 
@@ -347,6 +350,10 @@ final class Felder
         // bild_dateiname ist kein regulaeres Werkfeld, wird aber im Import behandelt.
         $ergebnis['dateiname']     = 'bild_dateiname';
         $ergebnis['bilddateiname'] = 'bild_dateiname';
+        for ($n = 2; $n <= 8; $n++) {
+            $ergebnis["dateiname{$n}"]     = "bild_dateiname_{$n}";
+            $ergebnis["bilddateiname{$n}"] = "bild_dateiname_{$n}";
+        }
         return $ergebnis;
     }
 
@@ -391,6 +398,14 @@ final class Felder
             'herkunft'               => $lbl('herkunft'),
             'copyright'              => $lbl('copyright'),
             'web_freigabe'           => $lbl('web_freigabe'),
+            // Mehrere Bilder (Paket 4)
+            'bild_dateiname_2'       => 'Dateiname 2',
+            'bild_dateiname_3'       => 'Dateiname 3',
+            'bild_dateiname_4'       => 'Dateiname 4',
+            'bild_dateiname_5'       => 'Dateiname 5',
+            'bild_dateiname_6'       => 'Dateiname 6',
+            'bild_dateiname_7'       => 'Dateiname 7',
+            'bild_dateiname_8'       => 'Dateiname 8',
         ];
     }
 }

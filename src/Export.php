@@ -46,6 +46,7 @@ final class Export
             } elseif (in_array($feld, $zahlen, true) && $wert !== null) {
                 $wert = str_contains((string) $wert, '.') ? (float) $wert : (int) $wert;
             }
+            // bild_dateiname_2..8 sind null wenn aus einer Abfrage ohne Extra-Bilder
             $zeile[] = $wert;
         }
         return $zeile;
@@ -125,16 +126,22 @@ final class Export
         $fehlend = [];
         $groesse = 0;
         foreach ($werke as $werk) {
-            $name = $werk['bild_dateiname'] ?? null;
-            if (!$name || isset($dateien[$name]) || isset($fehlend[$name])) {
-                continue;
+            // Hauptbild + eventuelle Extra-Bilder aus dem Export-Query
+            $kandidaten = [$werk['bild_dateiname'] ?? null];
+            for ($n = 2; $n <= 8; $n++) {
+                $kandidaten[] = $werk["bild_dateiname_{$n}"] ?? null;
             }
-            $pfad = Bilder::originalPfad($name);
-            if (is_file($pfad)) {
-                $dateien[$name] = $name;
-                $groesse += (int) filesize($pfad);
-            } else {
-                $fehlend[$name] = $name;
+            foreach ($kandidaten as $name) {
+                if (!$name || isset($dateien[$name]) || isset($fehlend[$name])) {
+                    continue;
+                }
+                $pfad = Bilder::originalPfad($name);
+                if (is_file($pfad)) {
+                    $dateien[$name] = $name;
+                    $groesse += (int) filesize($pfad);
+                } else {
+                    $fehlend[$name] = $name;
+                }
             }
         }
         return ['dateien' => array_values($dateien), 'fehlend' => array_values($fehlend), 'groesse' => $groesse];

@@ -25,7 +25,8 @@ Protokoll::schreibe('export_gruppe', ($format === 'bilder' ? 'Bilder-ZIP' : 'Exc
 session_write_close();
 @set_time_limit(0);
 
-$werke = WerkRepository::neu()->fuerGruppe($id);
+$repo = WerkRepository::neu();
+$werke = $repo->fuerGruppeExport($id);
 if ($format === 'bilder') {
     Export::sendeBilderZip($werke, Export::dateiname($gruppe['name'] . '_bilder', 'zip'));
 } else {

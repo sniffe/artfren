@@ -262,6 +262,13 @@ table.werkliste th a.sortiert { color: var(--farbe-akzent); }
 .vitrine-detail .passepartout { flex: 1 1 420px; aspect-ratio: auto; min-height: 340px; }
 .vitrine-detail .werk-etikett { flex: 1 1 280px; text-align: left; margin-top: 0; }
 .vitrine-detail .werk-etikett .titel { font-size: var(--schrift-groesse-titel-vitrine); }
+
+.galerie-streifen { display: flex; gap: var(--abstand-s); flex-wrap: wrap; }
+.galerie-streifen__thumb.passepartout { width: 100px; height: 75px; flex-shrink: 0; aspect-ratio: auto; text-decoration: none; }
+.galerie-streifen__thumb.passepartout:hover { opacity: .85; }
+
+.thumb-wrapper { position: relative; display: inline-block; }
+.bild-anzahl-badge { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,.55); color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; line-height: 1.4; pointer-events: none; }
 .vitrine-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--abstand-m); margin-top: var(--abstand-l); }
 .vitrine-detail dt { color: var(--farbe-text-sekundaer); font-size: var(--schrift-groesse-klein); }
 .vitrine-detail dd { margin: 0; }
@@ -321,6 +328,13 @@ code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, tra
 .bearbeiten-raster { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--abstand-m); align-items: start; }
 .bearbeiten-raster .karte + .karte { margin-top: 0; }
 
+.bild-liste { display: flex; flex-direction: column; gap: var(--abstand-m); }
+.bild-karte { display: flex; gap: var(--abstand-m); align-items: flex-start; padding-bottom: var(--abstand-m); border-bottom: 1px solid var(--farbe-linie); }
+.bild-karte:last-child { border-bottom: 0; padding-bottom: 0; }
+.bild-karte .passepartout.bild-karte__vorschau { width: 100px; height: 80px; flex-shrink: 0; aspect-ratio: auto; }
+.bild-karte__meta { flex: 1; min-width: 0; }
+.bild-karte__reihenfolge { display: flex; flex-direction: column; gap: var(--abstand-xs); flex-shrink: 0; }
+
 .dialog {
     border: 1px solid var(--farbe-linie);
     border-radius: var(--radius);
@@ -377,4 +391,7 @@ svg { fill: currentColor; }
     .auswahl-leiste .btn { padding: 5px 10px; }
     table.liste .aktionen { flex-wrap: wrap; }
     .bearbeiten-raster { grid-template-columns: 1fr; }
+    .bild-karte { flex-wrap: wrap; }
+
+    .bild-karte .passepartout.bild-karte__vorschau { width: 80px; height: 60px; }
 }

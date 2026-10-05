@@ -82,4 +82,46 @@
             hamburger.setAttribute('aria-expanded', 'false');
         }
     });
+
+    // In die Zwischenablage kopieren: <button type="button" data-kopieren="element-id">
+    document.addEventListener('click', function (ereignis) {
+        var taste = ereignis.target.closest('[data-kopieren]');
+        if (!taste || !navigator.clipboard) { return; }
+        var ziel = document.getElementById(taste.getAttribute('data-kopieren') || '');
+        var text = ziel ? ziel.textContent.trim() : '';
+        if (!text) { return; }
+        navigator.clipboard.writeText(text).then(function () {
+            var original = taste.textContent;
+            taste.textContent = 'Kopiert!';
+            setTimeout(function () { taste.textContent = original; }, 1500);
+        });
+    });
+
+    // Bild-Reihenfolge: Up/Down-Klick im JS abfangen, DOM umsortieren.
+    // Non-JS-Fallback: Buttons sind type="submit" und lösen Seiten-POST aus.
+    var bildListe = document.getElementById('bild-reihenfolge-liste');
+    if (bildListe) {
+        bildListe.addEventListener('click', function (ereignis) {
+            var taste = ereignis.target.closest('button[name]');
+            if (!taste) { return; }
+            var nameAttr = taste.getAttribute('name') || '';
+            var nachOben = nameAttr.indexOf('bild_verschieben_oben') === 0;
+            var nachUnten = nameAttr.indexOf('bild_verschieben_unten') === 0;
+            if (!nachOben && !nachUnten) { return; }
+            ereignis.preventDefault();
+            var karte = taste.closest('[data-bild-id]');
+            if (!karte) { return; }
+            if (nachOben) {
+                var vorher = karte.previousElementSibling;
+                if (vorher) { bildListe.insertBefore(karte, vorher); }
+            } else {
+                var nachher = karte.nextElementSibling;
+                if (nachher) { nachher.insertAdjacentElement('afterend', karte); }
+            }
+            bildListe.querySelectorAll('[data-bild-id]').forEach(function (k) {
+                var hidden = k.querySelector('input[name="bild_reihenfolge[]"]');
+                if (hidden) { hidden.value = k.getAttribute('data-bild-id'); }
+            });
+        });
+    }
 })();

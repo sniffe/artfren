@@ -17,7 +17,7 @@ if (!in_array($format, ['xlsx', 'bilder', 'csv'], true)) {
         'titel' => 'Gesamtexport',
         'aktuelleSeite' => 'export',
         'anzahlWerke' => $repo->zaehle([]),
-        'bilder' => Export::bilderZuWerken($repo->alle()),
+        'bilder' => Export::bilderZuWerken($repo->alleExport()),
     ]);
     exit;
 }
@@ -27,7 +27,7 @@ session_write_close();
 @set_time_limit(0);
 
 if ($format === 'bilder') {
-    Export::sendeBilderZip($repo->alle(), Export::dateiname('kunstwerke_bilder', 'zip'));
+    Export::sendeBilderZip($repo->alleExport(), Export::dateiname('kunstwerke_bilder', 'zip'));
 } else {
-    Export::sendeTabelle($repo->alle(), $format, 'kunstwerke_gesamt');
+    Export::sendeTabelle($repo->alleExport(), $format, 'kunstwerke_gesamt');
 }
