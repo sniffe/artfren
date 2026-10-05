@@ -117,9 +117,10 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
     TabellenImport::uebernehmen($pdo, $abgleich, $gemappt, $ueberschreiben);
     @unlink($pfad);
 
-    $zusammenfassung = sprintf('%d neu, %d aktualisiert, %d unverändert, %d ohne Bilddatei, %d bearbeitete Werke %s',
+    $zusammenfassung = sprintf('%d neu, %d aktualisiert, %d unverändert, %d ohne Bilddatei, %d bearbeitete Werke %s, %d im Papierkorb übersprungen',
         count($abgleich['neu']), count($abgleich['geaendert']), $abgleich['unveraendert'], count($abgleich['fehlerBild']),
-        count($abgleich['geschuetzt']), $ueberschreiben ? 'überschrieben' : 'beibehalten');
+        count($abgleich['geschuetzt']), $ueberschreiben ? 'überschrieben' : 'beibehalten',
+        count($abgleich['imPapierkorb']));
     Protokoll::schreibe('import', $zusammenfassung);
 
     render('import_ergebnis', [

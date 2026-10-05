@@ -49,7 +49,16 @@ $sichtbareFelder = array_filter(
 <div class="toolbar">
     <p class="text-klein" style="margin:0;"><a href="/" data-zurueck>← zurück</a></p>
     <?php if ($istAdmin): ?>
-        <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--primaer">Bearbeiten</a>
+        <div class="toolbar-aktionen">
+            <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--primaer">Bearbeiten</a>
+            <form method="post" action="/papierkorb.php"
+                  data-bestaetigen="Werk „<?= Helpers::e($werk['titel'] ?? 'Unbenannt') ?>" in den Papierkorb verschieben?">
+                <?= Helpers::csrfField() ?>
+                <input type="hidden" name="aktion" value="bulk_papierkorb">
+                <input type="hidden" name="werk_ids[]" value="<?= (int) $werk['id'] ?>">
+                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> In den Papierkorb</button>
+            </form>
+        </div>
     <?php endif; ?>
 </div>
 <div class="vitrine-detail">
@@ -94,3 +103,22 @@ $sichtbareFelder = array_filter(
         <?php endif; ?>
     </div>
 </div>
+
+<?php if (count($bilder) > 1): ?>
+<div class="galerie-streifen mt-m">
+    <?php foreach (array_slice($bilder, 1) as $bild): ?>
+        <?php
+        $bThumbUrl = Helpers::bildUrl((int) $bild['id'], $bild['dateiname'], 't');
+        $bOrigUrl  = Helpers::bildUrl((int) $bild['id'], $bild['dateiname'], 'o');
+        ?>
+        <a href="<?= Helpers::e($bOrigUrl ?? '#') ?>" target="_blank" rel="noopener" class="galerie-streifen__thumb passepartout"
+           title="<?= Helpers::e((string) ($bild['beschriftung'] ?? $bild['dateiname'])) ?>">
+            <?php if ($bThumbUrl): ?>
+                <img src="<?= Helpers::e($bThumbUrl) ?>" alt="<?= Helpers::e((string) ($bild['beschriftung'] ?? '')) ?>">
+            <?php else: ?>
+                <span class="passepartout--leer">fehlt</span>
+            <?php endif; ?>
+        </a>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>

@@ -4,8 +4,8 @@ declare(strict_types=1);
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
+use App\Bilder;
 use App\BildUpload;
-use App\Database;
 use App\Helpers;
 use App\Protokoll;
 use App\WerkRepository;
@@ -35,6 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Helpers::redirect('/werk_bearbeiten.php' . ($neu ? '' : '?id=' . $id));
     }
     Helpers::checkCsrf();
+
+    // Bild-Reihenfolge: Up/Down-Buttons (Non-JS-Fallback) – sofort umleiten.
+    if (!$neu) {
+        $nachOben = array_keys((array) ($_POST['bild_verschieben_oben'] ?? []));
+        $nachUnten = array_keys((array) ($_POST['bild_verschieben_unten'] ?? []));
+        if ($nachOben !== []) {
+            $repo->bildNachOben((int) $nachOben[0], $id);
+            Helpers::redirect('/werk_bearbeiten.php?id=' . $id . '&zurueck=' . rawurlencode($zurueck));
+        }
+        if ($nachUnten !== []) {
+            $repo->bildNachUnten((int) $nachUnten[0], $id);
+            Helpers::redirect('/werk_bearbeiten.php?id=' . $id . '&zurueck=' . rawurlencode($zurueck));
+        }
+    }
 
     // Einzeilige Textfelder: Whitespace kollabieren
     $text = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\s+/u', ' ', (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
@@ -80,14 +94,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $neueId = $repo->anlegen($eingabe);
         $details = trim(($eingabe['maler'] ?? '') . ' – ' . ($eingabe['titel'] ?? ''), ' –');
         [$bildName, $bildFehler] = BildUpload::zuweisenAusFormular($repo, $neueId, $_FILES['bild'] ?? null, (string) ($_POST['vorhandenes_bild'] ?? ''));
-        Protokoll::schreibe('werk_angelegt', $details . ($bildName !== null ? " · Bild „{$bildName}“" : ''));
+        $extraAnzahl = 0;
+        foreach ((array) (($_FILES['bilder_neu'] ?? [])['name'] ?? []) as $i => $name) {
+            if ((int) ($_FILES['bilder_neu']['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            [$fn, $fe] = BildUpload::speichereEinzeln([
+                'name'     => $name,
+                'tmp_name' => $_FILES['bilder_neu']['tmp_name'][$i],
+                'error'    => $_FILES['bilder_neu']['error'][$i],
+                'size'     => $_FILES['bilder_neu']['size'][$i],
+            ]);
+            if ($fn !== null) {
+                $repo->bildHinzufuegen($neueId, $fn, null, $extraAnzahl + 1);
+                $extraAnzahl++;
+            }
+            $bildFehler ??= $fe;
+        }
+        Protokoll::schreibe('werk_angelegt', $details . ($bildName !== null ? “ · Bild „{$bildName}”” : '') . ($extraAnzahl > 0 ? “ · {$extraAnzahl} weitere Bilder” : ''));
 
         if ($bildFehler !== null) {
             // Das Werk ist gespeichert – nur das Bild nicht. Direkt zum Nachreichen.
-            Helpers::flashSet('fehler', "Das Werk wurde angelegt, das Bild aber nicht gespeichert: {$bildFehler}");
+            Helpers::flashSet('fehler', “Das Werk wurde angelegt, ein Bild aber nicht gespeichert: {$bildFehler}”);
             Helpers::redirect('/werk_bearbeiten.php?id=' . $neueId);
         }
-        Helpers::flashSet('erfolg', "Das Werk „{$details}“ wurde angelegt.");
+        Helpers::flashSet('erfolg', “Das Werk „{$details}” wurde angelegt.”);
         Helpers::redirect('/werk.php?id=' . $neueId);
     }
 
@@ -100,16 +131,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $repo->aktualisieren($werk, $eingabe);
         }
 
-        $bildMeldung = null;
-        if (!empty($_POST['bild_entfernen'])) {
-            $repo->setzeHauptbild($id, null);
-            $bildMeldung = 'Bildzuordnung entfernt (die Datei bleibt im Bilder-Ordner).';
-        } else {
-            [$bildName, $bildFehler] = BildUpload::zuweisenAusFormular($repo, $id, $_FILES['bild'] ?? null, (string) ($_POST['vorhandenes_bild'] ?? ''));
-            if ($bildFehler !== null) {
-                $fehler[] = $bildFehler;
-            } elseif ($bildName !== null) {
-                $bildMeldung = "Bild „{$bildName}“ zugewiesen.";
+        // Bilder entfernen
+        foreach (Helpers::idListe($_POST['bild_entfernen'] ?? []) as $bildId) {
+            $repo->bildEntfernen($bildId, $id);
+        }
+
+        // Beschriftungen aktualisieren
+        foreach ((array) ($_POST['bild_beschriftung'] ?? []) as $bildId => $beschriftung) {
+            $beschriftung = trim((string) preg_replace('/\s+/u', ' ', (string) $beschriftung));
+            $repo->bildBeschriftung((int) $bildId, $id, $beschriftung === '' ? null : $beschriftung);
+        }
+
+        // Reihenfolge (JS-Pfad: bild_reihenfolge[] enthält sortierte IDs)
+        if (!empty($_POST['bild_reihenfolge'])) {
+            $repo->bildReihenfolge($id, array_map('intval', (array) $_POST['bild_reihenfolge']));
+        }
+
+        // Neue Bilder hochladen (Multi-Upload)
+        $extraAnzahl = 0;
+        foreach ((array) (($_FILES['bilder_neu'] ?? [])['name'] ?? []) as $i => $name) {
+            if ((int) ($_FILES['bilder_neu']['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            [$fn, $fe] = BildUpload::speichereEinzeln([
+                'name'     => $name,
+                'tmp_name' => $_FILES['bilder_neu']['tmp_name'][$i],
+                'error'    => $_FILES['bilder_neu']['error'][$i],
+                'size'     => $_FILES['bilder_neu']['size'][$i],
+            ]);
+            if ($fn !== null) {
+                $repo->bildHinzufuegen($id, $fn, null, 100 + $extraAnzahl);
+                $extraAnzahl++;
+            } elseif ($fe !== null) {
+                $fehler[] = $fe;
+            }
+        }
+
+        // Vorhandenes Bild aus freien Bildern hinzufügen
+        $vorhanden = trim((string) ($_POST['vorhandenes_bild'] ?? ''));
+        if ($vorhanden !== '') {
+            $vName = Bilder::gueltigerDateiname($vorhanden);
+            if ($vName !== $vorhanden || !is_file(BILDER_PATH . '/' . $vName)) {
+                $fehler[] = “Die Bilddatei „{$vorhanden}” gibt es im Bilder-Ordner nicht.”;
+            } else {
+                $repo->bildHinzufuegen($id, $vName, null, 100 + $extraAnzahl);
+                $extraAnzahl++;
             }
         }
 
@@ -118,18 +184,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($geaendert !== []) {
                 $details .= ' (' . implode(', ', $geaendert) . ')';
             }
-            if ($bildMeldung !== null) {
-                $details .= ' · ' . $bildMeldung;
+            if ($extraAnzahl > 0) {
+                $details .= “ · {$extraAnzahl} Bild” . ($extraAnzahl > 1 ? 'er' : '') . ' hinzugefügt';
             }
             Protokoll::schreibe('werk_bearbeitet', $details);
-            Helpers::flashSet('erfolg', ($geaendert !== [] || $bildMeldung !== null) ? 'Änderungen wurden gespeichert.' : 'Es gab keine Änderungen.');
+            $geaendertGesamt = $geaendert !== [] || $extraAnzahl > 0 || !empty($_POST['bild_entfernen']) || !empty($_POST['bild_beschriftung']);
+            Helpers::flashSet('erfolg', $geaendertGesamt ? 'Änderungen wurden gespeichert.' : 'Es gab keine Änderungen.');
             Helpers::redirect($zurueck);
         }
     }
 }
 
-$bilder = Database::get()->prepare('SELECT * FROM bilder WHERE kunstwerk_id = :id AND ist_hauptbild = 1 ORDER BY sortierung, id LIMIT 1');
-$bilder->execute(['id' => $id]);
+$bilder = $neu ? [] : $repo->bilder($id);
 
 render('werk_bearbeiten', [
     'titel' => $neu ? 'Neues Werk' : 'Werk bearbeiten',
@@ -139,7 +205,7 @@ render('werk_bearbeiten', [
     'eingabe' => $eingabe,
     'fehler' => $fehler,
     'zurueck' => $zurueck,
-    'hauptbild' => $bilder->fetch() ?: null,
+    'bilder' => $bilder,
     'orte' => $repo->orte(),
     'malerListe' => $repo->maler(),
     'freieBilder' => BildUpload::unzugeordnet(),

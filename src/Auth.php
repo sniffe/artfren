@@ -229,7 +229,9 @@ final class Auth
     /** Liefert den Bild-Datensatz, wenn der Benutzer ihn sehen darf, sonst null. */
     public static function erlaubtesBild(array $benutzer, int $bildId): ?array
     {
-        $stmt = Database::get()->prepare('SELECT * FROM bilder WHERE id = :id');
+        $stmt = Database::get()->prepare(
+            'SELECT b.* FROM bilder b JOIN kunstwerke k ON k.id = b.kunstwerk_id WHERE b.id = :id AND k.geloescht_am IS NULL'
+        );
         $stmt->execute(['id' => $bildId]);
         $bild = $stmt->fetch();
         if ($bild === false || !self::darfWerkSehen($benutzer, (int) $bild['kunstwerk_id'])) {

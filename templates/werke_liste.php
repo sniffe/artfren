@@ -140,7 +140,12 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
             <td data-label="Auswahl"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="Auswählen"></td>
             <td data-label="Bild">
                 <?php if ($thumb): ?>
-                    <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
+                    <div class="thumb-wrapper">
+                        <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
+                        <?php if (($w['bild_anzahl'] ?? 1) > 1): ?>
+                            <span class="bild-anzahl-badge">+<?= (int) $w['bild_anzahl'] - 1 ?></span>
+                        <?php endif; ?>
+                    </div>
                 <?php else: ?>
                     <button type="button" class="platzhalter-thumb platzhalter-thumb--aktiv"
                             data-bild-zuweisen="<?= (int) $w['id'] ?>"
@@ -191,6 +196,12 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
             <a href="/gruppe.php?id=<?= $gruppeId ?>" class="btn">Abbrechen</a>
         <?php else: ?>
             <a href="/gruppe_neu.php" class="btn btn--primaer">Weiter: Gruppe anlegen</a>
+            <form method="post" action="/papierkorb.php" data-auswahl-formular
+                  data-bestaetigen="Alle ausgewählten Werke in den Papierkorb verschieben?">
+                <?= Helpers::csrfField() ?>
+                <input type="hidden" name="aktion" value="bulk_papierkorb">
+                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> In den Papierkorb</button>
+            </form>
         <?php endif; ?>
     </div>
 </div>

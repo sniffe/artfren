@@ -14,6 +14,7 @@ require __DIR__ . '/_import_reiter.php';
     <?php if ($abgleich['geschuetzt'] && !$bearbeiteteUeberschrieben): ?><div class="karte"><strong><?= count($abgleich['geschuetzt']) ?></strong><span class="text-klein text-sekundaer">bearbeitete Werke beibehalten</span></div><?php endif; ?>
     <div class="karte"><strong><?= $abgleich['unveraendert'] ?></strong><span class="text-klein text-sekundaer">unverändert</span></div>
     <div class="karte"><strong><?= count($abgleich['fehlerBild']) ?></strong><span class="text-klein text-sekundaer">Bilddatei fehlt noch</span></div>
+    <?php if ($abgleich['imPapierkorb']): ?><div class="karte"><strong><?= count($abgleich['imPapierkorb']) ?></strong><span class="text-klein text-sekundaer">im Papierkorb übersprungen</span></div><?php endif; ?>
 </div>
 
 <div class="mt-l toolbar-aktionen">

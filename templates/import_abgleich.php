@@ -46,6 +46,7 @@ require __DIR__ . '/_import_reiter.php';
     <div class="karte"><strong><?= $abgleich['unveraendert'] ?></strong><span class="text-klein text-sekundaer">unverändert</span></div>
     <?php if ($abgleich['geschuetzt']): ?><div class="karte"><strong><?= count($abgleich['geschuetzt']) ?></strong><span class="text-klein text-sekundaer">im Programm bearbeitet</span></div><?php endif; ?>
     <div class="karte"><strong><?= count($abgleich['fehlerBild']) ?></strong><span class="text-klein text-sekundaer">Bilddatei fehlt noch</span></div>
+    <?php if ($abgleich['imPapierkorb']): ?><div class="karte"><strong><?= count($abgleich['imPapierkorb']) ?></strong><span class="text-klein text-sekundaer">im Papierkorb</span></div><?php endif; ?>
 </div>
 
 <?php if ($nichtZugeordnet): ?>
@@ -84,6 +85,14 @@ require __DIR__ . '/_import_reiter.php';
     <h3>Ungültige Bild-Dateinamen</h3>
     <p class="text-klein text-sekundaer">Erlaubt sind nur Namen ohne Ordnerangabe mit Endung <?= Helpers::e(implode(', ', BILD_ENDUNGEN)) ?>. Diese Werke werden ohne Bild importiert.</p>
     <ul class="text-klein"><?php $zeigeListe($ungueltigeDateinamen, 50); ?></ul>
+</div>
+<?php endif; ?>
+
+<?php if ($abgleich['imPapierkorb']): ?>
+<div class="karte mt-m">
+    <h3>Im Papierkorb (<?= count($abgleich['imPapierkorb']) ?>)</h3>
+    <p class="text-klein text-sekundaer">Diese Zeilen entsprechen Werken, die sich im Papierkorb befinden, und werden übersprungen. Werk wiederherstellen oder endgültig löschen unter <a href="/papierkorb.php">Papierkorb</a>.</p>
+    <ul class="text-klein"><?php $zeigeListe($abgleich['imPapierkorb'], 25); ?></ul>
 </div>
 <?php endif; ?>
 

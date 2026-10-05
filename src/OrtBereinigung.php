@@ -21,7 +21,7 @@ final class OrtBereinigung
     public function orte(): array
     {
         return $this->pdo->query(
-            "SELECT ort, COUNT(*) FROM kunstwerke WHERE ort IS NOT NULL AND ort <> '' GROUP BY ort ORDER BY ort COLLATE NOCASE"
+            "SELECT ort, COUNT(*) FROM kunstwerke WHERE ort IS NOT NULL AND ort <> '' AND geloescht_am IS NULL GROUP BY ort ORDER BY ort COLLATE NOCASE"
         )->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 

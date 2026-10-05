@@ -345,6 +345,9 @@ final class TabellenImport
             $nummer++;
             $daten = array_fill_keys(self::felder(), null);
             $daten['bild_dateiname'] = null;
+            for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                $daten["bild_dateiname_{$n}"] = null;
+            }
 
             foreach ($mapping as $index => $ziel) {
                 if ($ziel === '' || !array_key_exists($index, $zeile)) {
@@ -375,6 +378,16 @@ final class TabellenImport
                     $ungueltig[] = ['zeilennummer' => $nummer, 'daten' => $daten];
                 }
                 $daten['bild_dateiname'] = $gueltig;
+            }
+            for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                $feld = "bild_dateiname_{$n}";
+                if ($daten[$feld] !== null) {
+                    $gueltig = Bilder::gueltigerDateiname($daten[$feld]);
+                    if ($gueltig === null) {
+                        $ungueltig[] = ['zeilennummer' => $nummer, 'daten' => $daten];
+                    }
+                    $daten[$feld] = $gueltig;
+                }
             }
 
             $zeilen[] = ['zeilennummer' => $nummer, 'daten' => $daten];
@@ -427,7 +440,12 @@ final class TabellenImport
     {
         $bestand = [];
         $nachId = [];
-        $sql = "SELECT k.*, (SELECT b.dateiname FROM bilder b WHERE b.kunstwerk_id = k.id AND b.ist_hauptbild = 1 ORDER BY b.sortierung, b.id LIMIT 1) AS bild_dateiname
+        $extraBilderSql = '';
+        for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+            $offset = $n - 2;
+            $extraBilderSql .= ", (SELECT b.dateiname FROM bilder b WHERE b.kunstwerk_id = k.id AND b.ist_hauptbild = 0 ORDER BY b.sortierung, b.id LIMIT 1 OFFSET {$offset}) AS bild_dateiname_{$n}";
+        }
+        $sql = "SELECT k.*, (SELECT b.dateiname FROM bilder b WHERE b.kunstwerk_id = k.id AND b.ist_hauptbild = 1 ORDER BY b.sortierung, b.id LIMIT 1) AS bild_dateiname{$extraBilderSql}
                 FROM kunstwerke k ORDER BY k.id";
         foreach ($pdo->query($sql) as $row) {
             $bestand[self::abgleichsschluessel($row)][] = $row;
@@ -438,9 +456,20 @@ final class TabellenImport
             $aliase[$a['schluessel']][] = (int) $a['kunstwerk_id'];
         }
 
-        $vergleich = array_values(array_intersect(array_merge(self::felder(), ['bild_dateiname']), $gemappt));
+        $extraBildfelder = [];
+        for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+            $extraBildfelder[] = "bild_dateiname_{$n}";
+        }
+        $vergleich = array_values(array_intersect(array_merge(self::felder(), ['bild_dateiname'], $extraBildfelder), $gemappt));
 
-        $ergebnis = ['neu' => [], 'geaendert' => [], 'geschuetzt' => [], 'unveraendert' => 0, 'fehlerBild' => [], 'duplikate' => []];
+        // Tombstones: endgültig gelöschte Schlüssel – absorbieren neue Zeilen.
+        $grabsteine = [];
+        foreach ($pdo->query("SELECT schluessel, COUNT(*) AS anzahl FROM werk_tombstone GROUP BY schluessel") as $g) {
+            $grabsteine[$g['schluessel']] = (int) $g['anzahl'];
+        }
+        $grabsteineVerwendet = [];
+
+        $ergebnis = ['neu' => [], 'geaendert' => [], 'geschuetzt' => [], 'unveraendert' => 0, 'fehlerBild' => [], 'duplikate' => [], 'imPapierkorb' => []];
         $vorkommen = [];
         $verwendet = [];
 
@@ -452,7 +481,17 @@ final class TabellenImport
                 $ergebnis['duplikate'][] = $eintrag;
             }
 
-            if ($daten['bild_dateiname'] !== null && !is_file(Bilder::originalPfad($daten['bild_dateiname']))) {
+            $bildFehler = $daten['bild_dateiname'] !== null && !is_file(Bilder::originalPfad($daten['bild_dateiname']));
+            if (!$bildFehler) {
+                for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                    $fn = $daten["bild_dateiname_{$n}"] ?? null;
+                    if ($fn !== null && !is_file(Bilder::originalPfad($fn))) {
+                        $bildFehler = true;
+                        break;
+                    }
+                }
+            }
+            if ($bildFehler) {
                 $ergebnis['fehlerBild'][] = $eintrag;
             }
 
@@ -474,10 +513,23 @@ final class TabellenImport
                 }
             }
             if ($vorhanden === null) {
+                // Tombstone vorhanden? Dann diese Zeile überspringen (nicht neu anlegen).
+                $grabVorhanden = ($grabsteine[$schluessel] ?? 0) - ($grabsteineVerwendet[$schluessel] ?? 0);
+                if ($grabVorhanden > 0) {
+                    $grabsteineVerwendet[$schluessel] = ($grabsteineVerwendet[$schluessel] ?? 0) + 1;
+                    continue;
+                }
                 $ergebnis['neu'][] = $eintrag;
                 continue;
             }
             $verwendet[(int) $vorhanden['id']] = true;
+
+            // Im Papierkorb – nicht importieren, aber Zeile als Hinweis merken.
+            if ($vorhanden['geloescht_am'] !== null) {
+                $eintrag['kunstwerk_id'] = (int) $vorhanden['id'];
+                $ergebnis['imPapierkorb'][] = $eintrag;
+                continue;
+            }
 
             $unterschiede = [];
             foreach ($vergleich as $feld) {
@@ -537,12 +589,28 @@ final class TabellenImport
         // Die Verknüpfung wird auch gespeichert, wenn die Datei noch fehlt: wird
         // das Bild später hochgeladen, erscheint es automatisch beim Werk.
         $bildEinfuegen = $pdo->prepare('INSERT INTO bilder (kunstwerk_id, dateiname, ist_hauptbild, sortierung) VALUES (:id, :d, 1, 0)');
+        $bildEinfuegenExtra = $pdo->prepare('INSERT INTO bilder (kunstwerk_id, dateiname, ist_hauptbild, sortierung) VALUES (:id, :d, 0, :sort)');
+        $extraBilderLoeschen = $pdo->prepare('DELETE FROM bilder WHERE kunstwerk_id = :id AND ist_hauptbild = 0');
+        $extraBilderGemappt = false;
+        for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+            if (in_array("bild_dateiname_{$n}", $gemappt, true)) {
+                $extraBilderGemappt = true;
+                break;
+            }
+        }
 
         foreach ($abgleich['neu'] as $eintrag) {
             $daten = $eintrag['daten'];
             $insert->execute(array_intersect_key($daten, array_flip($insertFelder)));
+            $neuId = (int) $pdo->lastInsertId();
             if ($daten['bild_dateiname'] !== null) {
-                $bildEinfuegen->execute(['id' => (int) $pdo->lastInsertId(), 'd' => $daten['bild_dateiname']]);
+                $bildEinfuegen->execute(['id' => $neuId, 'd' => $daten['bild_dateiname']]);
+            }
+            for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                $fn = $daten["bild_dateiname_{$n}"] ?? null;
+                if ($fn !== null) {
+                    $bildEinfuegenExtra->execute(['id' => $neuId, 'd' => $fn, 'sort' => $n - 1]);
+                }
             }
         }
 
@@ -563,6 +631,24 @@ final class TabellenImport
                 $bildLoeschen->execute(['id' => $id]);
                 if ($daten['bild_dateiname'] !== null) {
                     $bildEinfuegen->execute(['id' => $id, 'd' => $daten['bild_dateiname']]);
+                }
+            }
+            if ($extraBilderGemappt) {
+                $extraGeaendert = false;
+                for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                    if (in_array("bild_dateiname_{$n}", $eintrag['unterschiede'], true)) {
+                        $extraGeaendert = true;
+                        break;
+                    }
+                }
+                if ($extraGeaendert) {
+                    $extraBilderLoeschen->execute(['id' => $id]);
+                    for ($n = 2; $n <= MAX_BILDER_PRO_WERK; $n++) {
+                        $fn = $daten["bild_dateiname_{$n}"] ?? null;
+                        if ($fn !== null) {
+                            $bildEinfuegenExtra->execute(['id' => $id, 'd' => $fn, 'sort' => $n - 1]);
+                        }
+                    }
                 }
             }
         }
