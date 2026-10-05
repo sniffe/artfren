@@ -1,8 +1,219 @@
+*This README is available in two languages: [English](#kunstverwaltung) · [Deutsch](#kunstverwaltung-deutsch)*
+
+*Diese README ist in zwei Sprachen verfügbar: [English](#kunstverwaltung) · [Deutsch](#kunstverwaltung-deutsch)*
+
+---
+
 # Kunstverwaltung
 
-Web-Anwendung (PHP 8.1+, SQLite) zur Verwaltung von Kunstwerken mit frei
+Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
+groups, two user roles, export and backup functions. Version 1.1.0.
+
+The application name displayed in the UI is configurable: change it as an admin
+under **System → Settings** (affects page title, header and login page). The value
+is stored in the database and survives updates; `APP_NAME` in `src/config.php` is
+only the default.
+
+## Setup (shared hosting, no shell/SSH access required)
+
+No Composer, no terminal, no cron job needed – the complete installation runs in
+the browser. The `vendor/` directory with all dependencies is already part of this
+repository.
+
+1. Upload the entire directory (including `vendor/`) to your web space, e.g. via
+   FTP or the host's file manager. The document root must point directly to this
+   directory.
+2. Open `https://your-domain.tld/install.php` in a browser and follow the two steps:
+   - **Set up database** (creates the SQLite file with a random, non-guessable name
+     and all tables),
+   - **Create administrator**.
+   If the installer reports missing write permissions, make `data/`, `bilder/` and
+   `backups/` writable on your host (e.g. permissions 755).
+3. The installer automatically checks whether the protected folders (`data/`,
+   `backups/`, `bilder/`, `src/`) are actually blocked from outside access. If a
+   warning appears, the web server is not processing `.htaccess` – ask your host to
+   enable it **before importing real data**. The check can be repeated at any time
+   under "System".
+4. `install.php` locks itself after setup and can also be deleted.
+5. Once an SSL certificate is active: open the site via `https://` and enable
+   "Force HTTPS" under **System → Settings**.
+
+### Applying updates
+
+1. Create a backup under "Backup" and download it.
+2. Upload the new version completely and let it overwrite everything. Works, users,
+   images, backups and settings are not affected – they live in `data/`, `bilder/`
+   and `backups/`, and the new version only brings these folders with their
+   `.htaccess` protection. Enable hidden files in your FTP client so that `.htaccess`
+   files are included.
+3. Open any page: required database changes run automatically
+   (`migrations/NNN_*.sql`, version tracked via `PRAGMA user_version`). Before the
+   first migration run, a consistent snapshot of the database is saved automatically
+   under `data/`.
+4. If files from older versions remain, a notice appears; they can be removed with
+   one click under **System**.
+
+### Updating to 1.1
+
+1. **Create a backup** – in the admin area under **Backup** → "Create backup",
+   download the file and keep it locally.
+2. **Upload files** – upload all version 1.1 files via FTP and overwrite everything.
+   Enable **hidden files** in your FTP client so that `.htaccess` files in `data/`,
+   `bilder/`, `backups/` and `src/` are included.
+3. **Open any page** – database migrations run automatically. A snapshot of the old
+   database is saved beforehand under `data/` (`pre-migration-*-to-8-*.sqlite`).
+4. **Verify** – under **System**: application version `1.1.0`, schema version `8 / 8`,
+   snapshot file present.
+
+Works, images, backups and settings are not affected.
+
+**Rollback:** re-upload the v1.0 files (the schema is backwards-compatible; v1.0
+code runs on a v1.1 schema). To also roll back data: use the snapshot file as the
+new database (rename to `kv_*.sqlite`, delete the current DB) or restore the backup
+ZIP as described in `LIESMICH.txt` inside the archive.
+
+The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1.md`.
+
+### Alternative with shell access (local development)
+
+`composer install`, then `php scripts/migrate.php` and
+`php scripts/seed_admin.php <username> <password>`. The scripts are only executable
+from the command line.
+
+## Import
+
+The Excel file can be **uploaded directly** (first worksheet): the header row is
+found automatically, legend and sum rows are skipped, colour-coded rows are mapped
+to status (red, orange, green); other colours are ignored. CSV (UTF-8 or
+Windows-1252, `;`/`,`/tab) also works.
+
+- On re-import, works are matched by Location + Artist + Title; identical
+  combinations (e.g. multiple "o.T.") are assigned in order of age. Only mapped
+  columns are updated.
+- **Clean up locations** suggests spelling variants ("Top 17"/"Tio 17") and
+  remembers merged spellings for future imports.
+- **Upload images** (individually or as a ZIP): the filename must match the
+  "Dateiname" column. Assignments are also saved when the file is missing – it
+  appears automatically once uploaded.
+
+## Export
+
+The full export and group export each produce **two files** that belong together:
+
+- **Excel** with all fields; the "Dateiname" column names the image file.
+- **Images ZIP** with exactly those files (flat, no subdirectories). Missing files
+  are listed in `FEHLENDE_BILDER.txt`.
+
+Both can be re-imported unchanged: ZIP under "Upload images" (or via FTP to
+`bilder/`), Excel under "Import table" – in any order. Each group also has a PDF
+(one work per page). Groups, users and settings are only included in the backup.
+
+## Editing works
+
+Use "+ New work" in the work list to create works without a spreadsheet (blank
+form, image can be uploaded directly).
+
+Admins can edit any work from the work list ("edit") or the detail view ("Edit"),
+including the image (upload, assign from the image folder or remove the assignment).
+In the work list, clicking the image placeholder opens an upload/assign dialog
+directly.
+
+Works edited in the application are protected before the next table import: the
+preview lists them separately and they are only overwritten with an explicit
+checkbox. If Location, Artist or Title is changed, the import still recognises the
+work by its old name (no duplicate).
+
+## Security
+
+- Passwords with bcrypt; account lockout after 4 failed attempts (15 min.) plus
+  throttling per IP address (20 failed attempts across all accounts).
+- Sessions: HttpOnly/SameSite cookie, expiry after 60 min. of inactivity, password
+  change logs out all other devices.
+- CSRF protection for all forms, Content-Security-Policy without inline scripts.
+- Images are only served through `bild.php` with permission checks.
+- Exports are protected against formula injection in Excel.
+- Fonts bundled locally (no data transfer to Google).
+- Audit log of all important actions under "System".
+
+## Structure
+
+- `*.php` in root directory – entry points (controllers).
+- `src/` – classes (PSR-4 `App\`): `Auth`, `Database`, `Migration`, repositories,
+  `TabellenImport`, `Export`, `Bilder`, `Backup`, `Protokoll`, `Sicherheitscheck`,
+  `OrtBereinigung`.
+- `templates/` – pure output templates, no business logic/SQL.
+- `assets/tokens.css` – all design tokens; `assets/style.css` uses only these
+  variables. `assets/fonts/` – fonts (SIL Open Font License).
+- `migrations/` – numbered schema migrations.
+- `data/` – database, image cache (`cache/`), error log (`logs/`).
+- `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.1
+
+### Trash
+
+Works can be moved to the trash instead of being deleted immediately. The trash is
+accessible under **Administration → Trash**. From there, admins can restore works or
+delete them permanently (image files are only removed if no other work references
+them). The import recognises trash entries and does not create duplicates; permanently
+deleted works leave a tombstone entry that also prevents the work from being
+re-created on the next import.
+
+### Multiple images per work
+
+Each work can have up to 8 images. The order can be changed via drag-and-drop or
+arrow buttons; the first image is the main image. On export, all images are included
+in the ZIP and listed as `Dateiname`, `Dateiname 2` through `Dateiname 8` in the
+Excel file.
+
+### Publishing groups on the web
+
+Admins can publish individual groups as a publicly accessible gallery:
+
+- Each group receives a random, non-guessable link (`/w/<token>`).
+- Individual works must be separately marked for web release (`web_freigabe = 1`).
+- Configurable: page title, intro text, image mode (all images or main image only),
+  which fields are visible, optional password, optional expiry date.
+- Sensitive fields (location, purchase data, value, provenance) are off by default
+  and marked with a warning.
+- The link can be renewed at any time (invalidating the old one) or the group can be
+  withdrawn.
+- No login required; no cookie for open galleries. Password-protected galleries set
+  a strictly necessary session cookie (HttpOnly, SameSite=Lax).
+- Public pages carry `noindex` metadata.
+- `robots.txt` excludes `/w/` from indexing.
+
+Imprint and privacy policy can be entered under **Administration → Legal notices** as
+text and/or an external link; the links appear in the footer of every public page.
+
+### Appearance
+
+Under **Administration → Appearance**:
+
+- **Look** (separately for internal area and public galleries): "Gallery" (default),
+  "Archive" (compact, cool tones) or "Contrast" (high contrast, larger text).
+- **Accent colour**: any hex value; text colour on the accent is calculated
+  automatically for good contrast (WCAG AA).
+- **Font**: serif, grotesque or system font stack.
+- **Icon weight**: regular, light or bold.
+- **Logo**: PNG, JPG, WebP or SVG (max. 1 MB). SVG logos are served with an isolated
+  Content-Security-Policy so that embedded scripts can never execute. Without a logo,
+  the application name is shown as text.
+
+### Data check
+
+The page **Administration → Data check** shows statistics and links to filtered lists
+for: works without an image, implausible years, empty/invalid technique, missing
+value, duplicate key combinations, missing location, missing image files and
+unassigned files in the images folder.
+
+---
+
+# Kunstverwaltung (Deutsch)
+
+Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Umsetzung gemäß dem übergebenen technischen Konzept-Dokument.
+Version 1.1.0.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -29,15 +240,15 @@ Abhängigkeiten ist bereits Teil dieses Repositories.
    (`data/`, `backups/`, `bilder/`, `src/`) wirklich von außen gesperrt sind.
    Erscheint eine Warnung, wertet der Webserver `.htaccess` nicht aus – dann
    beim Hoster aktivieren lassen, **bevor echte Daten importiert werden**.
-   Die Prüfung lässt sich jederzeit unter „System“ wiederholen.
+   Die Prüfung lässt sich jederzeit unter „System" wiederholen.
 4. `install.php` sperrt sich nach der Einrichtung selbst und kann zusätzlich
    gelöscht werden.
 5. Sobald ein SSL-Zertifikat aktiv ist: die Seite über `https://` aufrufen
-   und unter **System → Einstellungen** „HTTPS erzwingen“ einschalten.
+   und unter **System → Einstellungen** „HTTPS erzwingen" einschalten.
 
 ### Updates einspielen
 
-1. Unter „Backup“ ein Backup erstellen und herunterladen.
+1. Unter „Backup" ein Backup erstellen und herunterladen.
 2. Die neue Version komplett hochladen und alles überschreiben lassen.
    Werke, Benutzer, Bilder, Backups und Einstellungen sind nicht betroffen:
    Sie liegen in `data/`, `bilder/` und `backups/`, und die neue Version
@@ -46,9 +257,33 @@ Abhängigkeiten ist bereits Teil dieses Repositories.
    mitkommen.
 3. Irgendeine Seite aufrufen: Nötige Datenbank-Änderungen laufen dabei
    automatisch (`migrations/NNN_*.sql`, Versionsstand über
-   `PRAGMA user_version`).
+   `PRAGMA user_version`). Vor dem ersten Migrationslauf wird automatisch ein
+   konsistenter Snapshot der Datenbank unter `data/` gespeichert.
 4. Bleiben Dateien früherer Versionen liegen, weist ein Hinweis darauf hin;
    unter **System** lassen sie sich mit einem Klick löschen.
+
+### Update auf 1.1
+
+1. **Backup erstellen** – im Admin-Bereich unter **Backup** → „Backup erstellen",
+   Datei herunterladen und lokal aufbewahren.
+2. **Dateien hochladen** – alle Dateien der Version 1.1 per FTP hochladen und
+   alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**, damit
+   die `.htaccess`-Dateien in `data/`, `bilder/`, `backups/` und `src/` mitkommen.
+3. **Erste Seite aufrufen** – die Datenbank-Migrationen laufen automatisch.
+   Vorher wird ein Snapshot der alten Datenbank unter `data/` gespeichert
+   (`pre-migration-*-to-8-*.sqlite`).
+4. **Prüfen** – unter **System**: Anwendungsversion `1.1.0`, Schema-Version `8 / 8`,
+   Snapshot-Datei vorhanden.
+
+Werke, Bilder, Backups und Einstellungen bleiben unberührt.
+
+**Rollback:** v1.0-Dateien erneut hochladen (das Schema ist rückwärtskompatibel).
+Wenn auch die Daten zurückgesetzt werden sollen: Snapshot-Datei als neue DB
+einsetzen (umbenennen auf `kv_*.sqlite`, alte DB löschen) oder das Backup-ZIP
+gemäß `LIESMICH.txt` im Archiv einspielen.
+
+Die vollständige Checkliste für Staging- und Live-Deployment liegt in
+`RELEASE_CHECKLIST_V1_1.md`.
 
 ### Alternative mit Shell-Zugriff (lokale Entwicklung)
 
@@ -64,12 +299,12 @@ Die Kopfzeile wird automatisch gefunden, Legenden- und Summenzeilen werden
 Orange, Grün); andere Farben werden ignoriert. CSV (UTF-8 oder Windows-1252, `;`/`,`/Tab) funktioniert ebenfalls.
 
 - Beim erneuten Import werden Werke über Ort + Maler + Titel wiedererkannt;
-  gleiche Kombinationen (z. B. mehrere „o.T.“) werden der Reihe nach
+  gleiche Kombinationen (z. B. mehrere „o.T.") werden der Reihe nach
   zugeordnet. Nur zugeordnete Spalten werden aktualisiert.
-- **Orte bereinigen** schlägt Tippvarianten vor („Top 17“/„Tio 17“) und merkt
+- **Orte bereinigen** schlägt Tippvarianten vor („Top 17"/„Tio 17") und merkt
   sich zusammengeführte Schreibweisen für künftige Importe.
 - **Bilder hochladen** (einzeln oder als ZIP): Der Dateiname muss der Spalte
-  „Dateiname“ entsprechen. Verknüpfungen werden auch gespeichert, wenn das
+  „Dateiname" entsprechen. Verknüpfungen werden auch gespeichert, wenn das
   Bild noch fehlt – es erscheint automatisch, sobald es hochgeladen ist.
 
 ## Export
@@ -77,22 +312,22 @@ Orange, Grün); andere Farben werden ignoriert. CSV (UTF-8 oder Windows-1252, `;
 Gesamtexport und Gruppenexport liefern jeweils **zwei Dateien**, die
 zusammengehören:
 
-- **Excel** mit allen Feldern; die Spalte „Dateiname“ nennt die Bilddatei.
+- **Excel** mit allen Feldern; die Spalte „Dateiname" nennt die Bilddatei.
 - **Bilder-ZIP** mit genau diesen Dateien (flach, ohne Unterordner). Fehlende
   Dateien stehen in `FEHLENDE_BILDER.txt`.
 
-Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen“
-(oder per FTP nach `bilder/`), Excel unter „Tabelle importieren“ – in
+Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen"
+(oder per FTP nach `bilder/`), Excel unter „Tabelle importieren" – in
 beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro
 Seite). Gruppen, Benutzer und Einstellungen enthält nur das Backup.
 
 ## Werke bearbeiten
 
-Über „+ Neues Werk anlegen“ in der Werkliste lassen sich Werke auch ohne
+Über „+ Neues Werk anlegen" in der Werkliste lassen sich Werke auch ohne
 Tabelle erfassen (leeres Formular, Bild direkt mit hochladbar).
 
-Admins können jedes Werk aus der Werkliste („bearbeiten“) oder der
-Detailansicht („Bearbeiten“) ändern, inklusive Bild (hochladen, aus dem
+Admins können jedes Werk aus der Werkliste („bearbeiten") oder der
+Detailansicht („Bearbeiten") ändern, inklusive Bild (hochladen, aus dem
 Bilder-Ordner zuweisen oder Zuordnung entfernen). In der Werkliste öffnet ein
 Klick auf den Bild-Platzhalter direkt einen Dialog zum Hochladen/Zuweisen.
 
@@ -111,7 +346,7 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - Bilder werden nur über `bild.php` mit Rechteprüfung ausgeliefert.
 - Exporte sind gegen Formel-Injection in Excel geschützt.
 - Schriften lokal eingebunden (keine Datenübertragung an Google).
-- Protokoll aller wichtigen Aktionen unter „System“.
+- Protokoll aller wichtigen Aktionen unter „System".
 
 ## Struktur
 
@@ -126,7 +361,65 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `data/` – Datenbank, Bild-Cache (`cache/`), Fehlerprotokoll (`logs/`).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 
-## Weiterentwicklung laut Konzept (vorbereitet, nicht in V1)
+## Neu in Version 1.1
 
-- Mehrere Bilder je Kunstwerk (Tabelle `bilder` ist bereits 1:n ausgelegt).
-- Admin-Regler für Akzentfarbe/Logo sowie mehrere Themes.
+### Papierkorb
+
+Werke lassen sich in den Papierkorb verschieben statt sofort zu löschen.
+Der Papierkorb ist unter **Verwaltung → Papierkorb** zugänglich. Von dort können
+Admins Werke wiederherstellen oder endgültig löschen (dabei werden Bilddateien
+nur entfernt, wenn kein anderes Werk sie referenziert). Der Import erkennt
+Papierkorb-Einträge und erstellt keine Duplikate; endgültig gelöschte Werke
+hinterlassen einen Tombstone-Eintrag, der ebenfalls verhindert, dass das Werk
+beim nächsten Import neu angelegt wird.
+
+### Mehrere Bilder je Werk
+
+Jedes Werk kann bis zu 8 Bilder haben. Die Reihenfolge ist per Drag-and-Drop
+oder Pfeiltasten änderbar; das erste Bild gilt als Hauptbild. Beim Export
+werden alle Bilder in die ZIP aufgenommen und als `Dateiname`, `Dateiname 2`
+bis `Dateiname 8` in der Excel-Datei aufgeführt.
+
+### Gruppen im Web veröffentlichen
+
+Admins können einzelne Gruppen als öffentlich zugängliche Galerie freischalten:
+
+- Jede Gruppe erhält einen zufälligen, nicht erratbaren Link (`/w/<token>`).
+- Einzelne Werke müssen gesondert für die Web-Freigabe markiert werden
+  (`web_freigabe = 1`).
+- Wählbar: Seiten-Titel, Einleitungstext, Bildmodus (alle oder nur Hauptbild),
+  welche Felder sichtbar sind, optionales Passwort, optionales Ablaufdatum.
+- Sensible Felder (Ort, Ankaufsdaten, Wert, Herkunft) sind standardmäßig
+  abgewählt und mit einem Hinweis versehen.
+- Der Link lässt sich jederzeit erneuern (invalidiert den alten) oder die
+  Gruppe wieder zurückgezogen werden.
+- Kein Login nötig; kein Cookie für offene Galerien. Passwortgeschützte
+  Galerien setzen ein strikt notwendiges Session-Cookie (HttpOnly, SameSite=Lax).
+- Die öffentlichen Seiten sind mit `noindex`-Metadaten versehen.
+- `robots.txt` schließt `/w/` von der Indexierung aus.
+
+Impressum und Datenschutz lassen sich unter **Verwaltung → Rechtliche Angaben**
+als Text und/oder externer Link hinterlegen; die Links erscheinen im Footer
+jeder öffentlichen Seite.
+
+### Erscheinungsbild
+
+Unter **Verwaltung → Erscheinungsbild** lassen sich einstellen:
+
+- **Look** (getrennt für internen Bereich und öffentliche Galerien):
+  „Galerie" (Standard), „Archiv" (kompakt, kühl) oder „Kontrast" (hoher Kontrast,
+  größere Schrift).
+- **Akzentfarbe**: beliebiger Hex-Farbwert; Textfarbe wird automatisch für
+  guten Kontrast (WCAG AA) berechnet.
+- **Schrift**: Serif, Grotesque oder System-Schrift.
+- **Icon-Stärke**: Normal, Leicht oder Fett.
+- **Logo**: PNG, JPG, WebP oder SVG (max. 1 MB). SVG-Logos werden sicher mit
+  isolierter Content-Security-Policy ausgeliefert, sodass enthaltene Skripte
+  nie ausgeführt werden. Ohne Logo erscheint der App-Name als Text.
+
+### Datenprüfung
+
+Die Seite **Verwaltung → Datenprüfung** zeigt Statistiken und Links zu Filtern
+für: Werke ohne Bild, implausible Jahreszahlen, leere/ungültige Technik,
+fehlenden Wert, doppelte Schlüssel-Kombinationen, fehlenden Ort, fehlende
+Bilddateien und nicht zugeordnete Dateien im Bilder-Ordner.

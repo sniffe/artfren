@@ -22,6 +22,9 @@ define('IMPORT_TMP_PATH', DATA_PATH . '/import_tmp');
 define('BILD_GROESSEN', ['t' => 96, 'm' => 800, 'g' => 1600]);
 define('BILD_ENDUNGEN', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
+// Maximale Anzahl Bilder pro Werk (harter Grenzwert; Einstellung in Paket 6).
+define('MAX_BILDER_PRO_WERK', 8);
+
 define('LOGIN_MAX_FEHLVERSUCHE', 4);
 define('LOGIN_SPERR_MINUTEN', 15);
 // Fehlversuche je IP-Adresse (alle Konten zusammen) im selben Zeitfenster.
