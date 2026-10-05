@@ -11,6 +11,11 @@ use App\Helpers;
 $titel = $titel ?? \App\Einstellungen::appName();
 $aktuelleSeite = $aktuelleSeite ?? '';
 $istAdmin = $aktuellerBenutzer !== null && Auth::isAdmin($aktuellerBenutzer);
+$look = \App\Einstellungen::look('intern');
+$schrift = \App\Einstellungen::schrift();
+$iconStaerke = \App\Einstellungen::iconStaerke();
+$akzentfarbe = \App\Einstellungen::akzentfarbe();
+$hatLogo = \App\Einstellungen::logoPfad() !== null;
 
 /** Gibt einen Nav-Link-String zurück (aktiv-Klasse wenn Seite übereinstimmt). */
 $navLink = static function (string $url, string $seite, string $text) use ($aktuelleSeite): string {
@@ -40,21 +45,31 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-look="<?= Helpers::e($look) ?>" data-schrift="<?= Helpers::e($schrift) ?>" data-icon-weight="<?= Helpers::e($iconStaerke) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= Helpers::e($titel) ?> · <?= Helpers::e(\App\Einstellungen::appName()) ?></title>
 <link rel="stylesheet" href="/assets/fonts.css">
 <link rel="stylesheet" href="/assets/tokens.css">
+<link rel="stylesheet" href="/assets/looks.css">
 <link rel="stylesheet" href="/assets/style.css">
+<?php if ($akzentfarbe !== null): ?>
+<style>:root{--farbe-akzent:<?= Helpers::e($akzentfarbe) ?>;--farbe-akzent-text:<?= Helpers::e(\App\Einstellungen::akzentTextfarbe()) ?>}</style>
+<?php endif; ?>
 <script src="/assets/theme-init.js"></script>
 </head>
 <body>
 <?php readfile(APP_ROOT . '/assets/icons.svg'); ?>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
-    <a class="kopf__marke" href="<?= Helpers::e(Auth::startseite($aktuellerBenutzer)) ?>" title="Zur Startseite"><?= Helpers::e(\App\Einstellungen::appName()) ?></a>
+    <a class="kopf__marke" href="<?= Helpers::e(Auth::startseite($aktuellerBenutzer)) ?>" title="Zur Startseite">
+        <?php if ($hatLogo): ?>
+            <img src="/logo.php" alt="<?= Helpers::e(\App\Einstellungen::appName()) ?>" style="max-height:40px; max-width:180px; object-fit:contain; display:block;">
+        <?php else: ?>
+            <?= Helpers::e(\App\Einstellungen::appName()) ?>
+        <?php endif; ?>
+    </a>
     <button type="button" class="nav-hamburger" id="nav-hamburger"
             aria-expanded="false" aria-controls="nav-inhalt" aria-label="Navigation öffnen">
         <?= Helpers::icon('hamburger', 'nav-hamburger__icon') ?>
@@ -74,11 +89,14 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
                     <a href="/backup.php" class="<?= $aktuelleSeite === 'backup' ? 'aktiv' : '' ?>"><?= Helpers::icon('datenbank') ?> Backup</a>
                 </div>
             </details>
-            <details class="nav-klappe" <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'system']) ? 'open' : '' ?>>
-                <summary class="nav__link <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'system']) ? 'aktiv' : '' ?>">Verwaltung <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
+            <details class="nav-klappe" <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'papierkorb', 'erscheinungsbild', 'rechtliche_angaben', 'system']) ? 'open' : '' ?>>
+                <summary class="nav__link <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'papierkorb', 'erscheinungsbild', 'rechtliche_angaben', 'system']) ? 'aktiv' : '' ?>">Verwaltung <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
                 <div class="nav-klappe__inhalt">
                     <a href="/benutzer.php" class="<?= $aktuelleSeite === 'benutzer' ? 'aktiv' : '' ?>"><?= Helpers::icon('person') ?> Benutzer</a>
                     <a href="/datenpruefung.php" class="<?= $aktuelleSeite === 'datenpruefung' ? 'aktiv' : '' ?>"><?= Helpers::icon('haken') ?> Datenprüfung</a>
+                    <a href="/papierkorb.php" class="<?= $aktuelleSeite === 'papierkorb' ? 'aktiv' : '' ?>"><?= Helpers::icon('papierkorb') ?> Papierkorb</a>
+                    <a href="/erscheinungsbild.php" class="<?= $aktuelleSeite === 'erscheinungsbild' ? 'aktiv' : '' ?>"><?= Helpers::icon('palette') ?> Erscheinungsbild</a>
+                    <a href="/rechtliche_angaben.php" class="<?= $aktuelleSeite === 'rechtliche_angaben' ? 'aktiv' : '' ?>"><?= Helpers::icon('dokument') ?> Rechtliche Angaben</a>
                     <a href="/system.php" class="<?= $aktuelleSeite === 'system' ? 'aktiv' : '' ?>"><?= Helpers::icon('zahnrad') ?> System</a>
                 </div>
             </details>
@@ -110,6 +128,9 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
     <?php endforeach; ?>
     <?= $inhalt ?>
 </main>
+<footer class="app-footer">
+    <span class="text-sekundaer text-klein"><?= Helpers::e(\App\Einstellungen::appName()) ?> &middot; Version <?= Helpers::e(APP_VERSION) ?></span>
+</footer>
 <script src="/assets/app.js"></script>
 </body>
 </html>

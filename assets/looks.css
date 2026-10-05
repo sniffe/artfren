@@ -1,0 +1,103 @@
+/*
+ * Look-Varianten – ergänzende Token-Overrides pro data-look.
+ * "galerie" ist der Standard (keine Overrides nötig, tokens.css gilt direkt).
+ * Unabhängig von data-theme (hell/dunkel): beide Achsen kombinieren sich.
+ * Eingebunden nach tokens.css, vor style.css / web.css.
+ */
+
+/* ── Archiv ──────────────────────────────────────────────────────────────── */
+/* Neutraler Grotesque-Look, kühlere Grautöne, dichtere Typografie.          */
+
+:root[data-look="archiv"] {
+    --farbe-hintergrund:    #F3F4F6;
+    --farbe-flaeche:        #FFFFFF;
+    --farbe-linie:          #D8DCE0;
+    --farbe-text:           #1A1C20;
+    --farbe-text-sekundaer: #606470;
+
+    /* Überschriften wie Fließtext (kein Serif) */
+    --schrift-serif: var(--schrift-grotesk);
+
+    --schrift-groesse-basis: 14px;
+    --schrift-groesse-klein: 12px;
+
+    --radius: 2px;
+}
+
+:root[data-look="archiv"][data-theme="dunkel"] {
+    --farbe-hintergrund:    #18191C;
+    --farbe-flaeche:        #21222A;
+    --farbe-linie:          #32343C;
+    --farbe-text:           #E8E9EC;
+    --farbe-text-sekundaer: #8A8D96;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-look="archiv"]:not([data-theme="hell"]) {
+        --farbe-hintergrund:    #18191C;
+        --farbe-flaeche:        #21222A;
+        --farbe-linie:          #32343C;
+        --farbe-text:           #E8E9EC;
+        --farbe-text-sekundaer: #8A8D96;
+    }
+}
+
+/* ── Kontrast ─────────────────────────────────────────────────────────────── */
+/* Hoher Kontrast, größere Basisschrift, stärkere Fokusringe.                 */
+
+:root[data-look="kontrast"] {
+    --farbe-hintergrund:    #FFFFFF;
+    --farbe-flaeche:        #FFFFFF;
+    --farbe-linie:          #000000;
+    --farbe-text:           #000000;
+    --farbe-text-sekundaer: #333333;
+    --farbe-akzent:         #00508A;
+    --farbe-akzent-text:    #FFFFFF;
+
+    --schrift-groesse-basis: 17px;
+    --schrift-groesse-klein: 15px;
+    --schrift-groesse-gross: 1.8rem;
+
+    --radius: 0px;
+}
+
+:root[data-look="kontrast"][data-theme="dunkel"] {
+    --farbe-hintergrund:    #000000;
+    --farbe-flaeche:        #000000;
+    --farbe-linie:          #FFFFFF;
+    --farbe-text:           #FFFFFF;
+    --farbe-text-sekundaer: #CCCCCC;
+    --farbe-akzent:         #5BB8FF;
+    --farbe-akzent-text:    #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-look="kontrast"]:not([data-theme="hell"]) {
+        --farbe-hintergrund:    #000000;
+        --farbe-flaeche:        #000000;
+        --farbe-linie:          #FFFFFF;
+        --farbe-text:           #FFFFFF;
+        --farbe-text-sekundaer: #CCCCCC;
+        --farbe-akzent:         #5BB8FF;
+        --farbe-akzent-text:    #000000;
+    }
+}
+
+/* Stärkere Fokusringe im Kontrast-Look */
+:root[data-look="kontrast"] *:focus-visible {
+    outline: 3px solid var(--farbe-akzent);
+    outline-offset: 2px;
+}
+
+/* ── Schrift-Overrides (data-schrift) ────────────────────────────────────── */
+/* Wird direkt aus dem PHP-Layout als Attribut auf <html> gesetzt.            */
+
+:root[data-schrift="grotesk"] {
+    --schrift-serif: var(--schrift-grotesk);
+}
+
+:root[data-schrift="system"] {
+    --schrift-grotesk: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --schrift-serif:   system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --schrift-sans:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}

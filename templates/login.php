@@ -6,7 +6,11 @@ use App\Helpers;
 ?>
 <div class="login-seite">
     <div class="login-karte">
-        <h1><?= Helpers::e(\App\Einstellungen::appName()) ?></h1>
+        <?php if ($hatLogo ?? false): ?>
+            <img src="/logo.php" alt="<?= Helpers::e(\App\Einstellungen::appName()) ?>" style="max-height:60px; max-width:200px; object-fit:contain; display:block; margin:0 auto var(--abstand-m);">
+        <?php else: ?>
+            <h1><?= Helpers::e(\App\Einstellungen::appName()) ?></h1>
+        <?php endif; ?>
         <?php if ($fehler): ?>
             <div class="flash flash--fehler"><?= Helpers::e($fehler) ?></div>
         <?php endif; ?>

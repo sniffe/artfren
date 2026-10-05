@@ -21,6 +21,7 @@
     /* Typografie */
     --schrift-serif: 'Source Serif 4', 'Georgia', serif;
     --schrift-grotesk: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --schrift-sans: var(--schrift-grotesk);
 
     --schrift-groesse-basis: 15px;
     --schrift-groesse-klein: 13px;
