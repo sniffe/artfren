@@ -36,7 +36,7 @@ final class Helpers
     {
         $token = $_POST['csrf_token'] ?? '';
         if (!is_string($token) || $token === '' || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
-            self::abbrechen(400, 'Die Anfrage ist abgelaufen oder ungültig. Bitte die Seite neu laden und erneut versuchen.');
+            self::abbrechen(400, t('auth.csrf_fehler'));
         }
     }
 
@@ -44,27 +44,37 @@ final class Helpers
     public static function abbrechen(int $code, string $text): never
     {
         http_response_code($code);
-        render('fehler', ['titel' => $code === 403 ? 'Kein Zugriff' : 'Fehler', 'text' => $text]);
+        render('fehler', ['titel' => $code === 403 ? t('fehler.titel_403') : t('fehler.titel_allg'), 'text' => $text]);
         exit;
     }
 
-    public static function formatGeld(?float $wert): string
+    /**
+     * Formatiert einen Geldbetrag je nach Sprache.
+     * de: 1.200,50 €   en: €1,200.50
+     */
+    public static function formatGeld(?float $wert, ?string $sprache = null): string
     {
         if ($wert === null) {
             return '';
         }
-
+        $lang = $sprache ?? I18n::aktiv();
+        if ($lang === 'en') {
+            return '€' . number_format($wert, 2, '.', ',');
+        }
         return number_format($wert, 2, ',', '.') . ' €';
     }
 
     /**
      * Formatiert einen in der DB gespeicherten Zeitstempel (immer UTC) für die
-     * Anzeige in der App-Zeitzone.
+     * Anzeige in der App-Zeitzone. Ohne explizites Format: sprachabhängig.
      */
-    public static function formatDatum(?string $isoDatum, string $format = 'd.m.Y H:i'): string
+    public static function formatDatum(?string $isoDatum, ?string $format = null): string
     {
         if (!$isoDatum) {
             return '';
+        }
+        if ($format === null) {
+            $format = I18n::aktiv() === 'en' ? 'j M Y H:i' : 'd.m.Y H:i';
         }
 
         try {
@@ -184,7 +194,10 @@ final class Helpers
 
     public static function statusLabel(?string $status): string
     {
-        return self::STATUS_FARBEN[$status ?? ''] ?? '';
+        if ($status === null || !isset(self::STATUS_FARBEN[$status])) {
+            return '';
+        }
+        return t('status.' . $status);
     }
 
     /**
@@ -269,18 +282,54 @@ final class Helpers
         return (int) $m[0];
     }
 
-    /** "1.500,50 €", "1500.5", "1.500" (deutsch) → float */
-    public static function parseBetrag(?string $wert): ?float
+    /**
+     * Parst einen Betrag-String sprachbewusst zu float.
+     * $sprache = null → aktive Sprache; explizit 'de' für den Excel-Import.
+     *
+     * Regel: Der letzte Separator gefolgt von 1–2 Ziffern ist der Dezimaltrenner.
+     * Mehrdeutig (3 Ziffern nach letztem Separator): de = Tausender, en = Dezimal.
+     */
+    public static function parseBetrag(?string $wert, ?string $sprache = null): ?float
     {
         if ($wert === null) {
             return null;
         }
-        $w = str_replace([' ', "\u{00A0}", '€', 'EUR'], '', $wert);
-        if (str_contains($w, ',')) {
-            $w = str_replace(['.', ','], ['', '.'], $w);
-        } elseif (preg_match('/^-?\d{1,3}(\.\d{3})+$/', $w)) {
-            $w = str_replace('.', '', $w);
+        $lang = $sprache ?? I18n::aktiv();
+        $w = trim(str_replace([' ', "\u{00A0}", '€', 'EUR'], '', $wert));
+        if ($w === '') {
+            return null;
         }
+
+        if (str_contains($w, ',') && str_contains($w, '.')) {
+            // Beide Separatoren vorhanden: der spätere ist der Dezimaltrenner.
+            if (strrpos($w, '.') > strrpos($w, ',')) {
+                $w = str_replace(',', '', $w);           // 1,200.50 → 1200.50
+            } else {
+                $w = str_replace(['.', ','], ['', '.'], $w); // 1.200,50 → 1200.50
+            }
+        } elseif (str_contains($w, ',')) {
+            $nachKomma = strlen($w) - strrpos($w, ',') - 1;
+            if ($nachKomma <= 2) {
+                $w = str_replace(',', '.', $w);           // 1,50 → 1.50
+            } else {
+                // Mehrdeutig (z. B. 1,200): Sprache entscheidet
+                $w = $lang === 'en'
+                    ? str_replace(',', '', $w)            // en: Tausender → 1200
+                    : str_replace(',', '.', $w);          // de: Dezimal → 1.2
+            }
+        } elseif (str_contains($w, '.')) {
+            $nachPunkt = strlen($w) - strrpos($w, '.') - 1;
+            if ($nachPunkt !== 3) {
+                // 1.5 oder 1.50 → Dezimalpunkt, bereits korrekt
+            } else {
+                // Mehrdeutig (z. B. 1.200): Sprache entscheidet
+                if ($lang === 'de') {
+                    $w = str_replace('.', '', $w);        // de: Tausender → 1200
+                }
+                // en: Dezimalpunkt, bleibt wie es ist (1.200 = 1.2, aber ungewöhnlich)
+            }
+        }
+
         return is_numeric($w) ? (float) $w : null;
     }
 

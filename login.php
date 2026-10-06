@@ -26,4 +26,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fehler = $ergebnis['fehler'];
 }
 
-render('login', ['titel' => 'Anmelden', 'fehler' => $fehler]);
+render('login', ['titel' => t('login.titel'), 'fehler' => $fehler]);

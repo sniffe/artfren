@@ -17,18 +17,18 @@ $meta = Helpers::werkMeta($werk['technik'] ?? null, $werk['entstehungsjahr'] ?? 
 $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['name'];
 ?>
 <?php if ($adminVorschau): ?>
-<div class="web-vorschau-banner">Vorschau (Admin)</div>
+<div class="web-vorschau-banner"><?= Helpers::e(t('pubweb.vorschau_admin')) ?></div>
 <?php endif; ?>
 <div class="web-detail-nav">
     <a href="/w/<?= Helpers::e($token) ?>" class="web-detail-nav__zurueck">← <?= Helpers::e($gruppenTitel) ?></a>
     <div class="web-detail-nav__prev-next">
         <?php if ($prevId): ?>
-            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $prevId ?>" id="prev-link" title="Vorheriges Werk">←</a>
+            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $prevId ?>" id="prev-link" title="<?= Helpers::e(t('pubweb.vorheriges_werk')) ?>">←</a>
         <?php else: ?>
             <span class="web-detail-nav__leer">←</span>
         <?php endif; ?>
         <?php if ($nextId): ?>
-            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $nextId ?>" id="next-link" title="Nächstes Werk">→</a>
+            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $nextId ?>" id="next-link" title="<?= Helpers::e(t('pubweb.naechstes_werk')) ?>">→</a>
         <?php else: ?>
             <span class="web-detail-nav__leer">→</span>
         <?php endif; ?>
@@ -53,7 +53,7 @@ $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['n
                         class="web-thumb<?= $i === 0 ? ' web-thumb--aktiv' : '' ?>"
                         data-bild-url="<?= Helpers::e(\App\WebGruppe::webBildUrl($token, (int) $bild['id'], 'g') ?? '') ?>"
                         data-bild-alt="<?= Helpers::e((string) ($bild['beschriftung'] ?? ($werk['titel'] ?? ''))) ?>"
-                        aria-label="Bild <?= $i + 1 ?>">
+                        aria-label="<?= Helpers::e(t('pubweb.bild_n', ['n' => $i + 1])) ?>">
                     <?php if ($tUrl): ?>
                         <img src="<?= Helpers::e($tUrl) ?>" alt="" loading="lazy">
                     <?php endif; ?>
@@ -90,7 +90,7 @@ $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['n
                     default    => Helpers::e((string) $wert),
                 };
                 ?>
-                <dt><?= Helpers::e($feld['label']) ?></dt>
+                <dt><?= Helpers::e(t($feld['label'])) ?></dt>
                 <dd><?= $formatiert ?></dd>
             <?php endforeach; ?>
         </dl>

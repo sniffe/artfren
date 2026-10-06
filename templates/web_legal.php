@@ -12,7 +12,7 @@ use App\Helpers;
             <p><?= nl2br(Helpers::e(trim($absatz))) ?></p>
         <?php endforeach; ?>
     <?php else: ?>
-        <p class="web-leer">Kein Inhalt hinterlegt.</p>
+        <p class="web-leer"><?= Helpers::e(t('pubweb.kein_inhalt')) ?></p>
     <?php endif; ?>
-    <p><a href="/" data-zurueck>← Zurück</a></p>
+    <p><a href="/" data-zurueck><?= Helpers::e(t('pubweb.zurueck')) ?></a></p>
 </div>

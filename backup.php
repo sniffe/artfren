@@ -20,13 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mitBildern = ($_POST['umfang'] ?? '') !== 'nur_datenbank';
         $ergebnis = Backup::erstellen($mitBildern, $benutzer);
         Protokoll::schreibe('backup_erstellt', $ergebnis['dateiname'] . ' (' . Helpers::formatGroesse($ergebnis['groesse']) . ')');
-        Helpers::flashSet('erfolg', "Backup „{$ergebnis['dateiname']}“ wurde erstellt.");
+        Helpers::flashSet('erfolg', t('backup.erstellt_datei', ['name' => $ergebnis['dateiname']]));
     } elseif ($aktion === 'loeschen') {
         $backup = Backup::finde((int) ($_POST['id'] ?? 0));
         if ($backup !== null) {
             Backup::loeschen($backup);
             Protokoll::schreibe('backup_geloescht', $backup['dateiname']);
-            Helpers::flashSet('erfolg', 'Backup wurde gelöscht.');
+            Helpers::flashSet('erfolg', t('backup.geloescht'));
         }
     }
 
@@ -43,7 +43,7 @@ foreach (new DirectoryIterator(BILDER_PATH) as $datei) {
 }
 
 render('backup_liste', [
-    'titel' => 'Backup',
+    'titel' => t('backup.titel'),
     'aktuelleSeite' => 'backup',
     'backups' => Database::get()->query('SELECT * FROM backups ORDER BY id DESC')->fetchAll(),
     'bilderGroesse' => $bilderGroesse,

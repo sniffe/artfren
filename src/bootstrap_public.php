@@ -14,6 +14,7 @@ require APP_ROOT . '/vendor/autoload.php';
 
 use App\Database;
 use App\Einstellungen;
+use App\I18n;
 use App\Migration;
 
 ini_set('display_errors', '0');
@@ -54,6 +55,9 @@ if (!Database::existiert()) {
 }
 
 Migration::aktualisiere(Database::get());
+
+// Sprache erkennen (öffentliche Seiten: kein eingeloggter Benutzer)
+I18n::setze(I18n::erkennen(null, Einstellungen::standardSprache()));
 
 if (Einstellungen::httpsErzwingen() && !$https) {
     $host = (string) ($_SERVER['HTTP_HOST'] ?? '');

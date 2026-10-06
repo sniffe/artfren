@@ -13,7 +13,7 @@ $akzentfarbe = Einstellungen::akzentfarbe();
 $hatLogo     = Einstellungen::logoPfad() !== null;
 ?>
 <!DOCTYPE html>
-<html lang="de" data-look="<?= Helpers::e($lookWeb) ?>">
+<html lang="<?= \App\I18n::aktiv() ?>" data-look="<?= Helpers::e($lookWeb) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,11 +48,11 @@ if ($hatImpressum || $hatDatenschutz):
 ?>
 <footer class="web-footer">
     <?php if ($hatImpressum): ?>
-        <a href="<?= Helpers::e($linkImpressum) ?>"<?= $impressumUrl !== '' ? ' rel="noopener"' : '' ?>>Impressum</a>
+        <a href="<?= Helpers::e($linkImpressum) ?>"<?= $impressumUrl !== '' ? ' rel="noopener"' : '' ?>><?= Helpers::e(t('web.impressum')) ?></a>
     <?php endif; ?>
     <?php if ($hatImpressum && $hatDatenschutz): ?> · <?php endif; ?>
     <?php if ($hatDatenschutz): ?>
-        <a href="<?= Helpers::e($linkDatenschutz) ?>"<?= $datenschutzUrl !== '' ? ' rel="noopener"' : '' ?>>Datenschutz</a>
+        <a href="<?= Helpers::e($linkDatenschutz) ?>"<?= $datenschutzUrl !== '' ? ' rel="noopener"' : '' ?>><?= Helpers::e(t('web.datenschutz')) ?></a>
     <?php endif; ?>
 </footer>
 <?php endif; ?>

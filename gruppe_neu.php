@@ -9,6 +9,6 @@ use App\Auth;
 $aktuellerBenutzer = Auth::requireAdmin();
 
 render('gruppe_neu', [
-    'titel' => 'Neue Gruppe anlegen',
+    'titel' => t('gruppe_neu.titel'),
     'aktuelleSeite' => 'gruppen',
 ]);

@@ -31,7 +31,7 @@ final class BildUpload
                 continue;
             }
             if ($fehler !== UPLOAD_ERR_OK) {
-                $this->abgelehnt[] = [$name, $fehler === UPLOAD_ERR_INI_SIZE ? 'größer als vom Server erlaubt' : 'Upload fehlgeschlagen'];
+                $this->abgelehnt[] = [$name, $fehler === UPLOAD_ERR_INI_SIZE ? \t('bilder.grund_server_limit') : \t('bilder.grund_upload_fehler')];
                 continue;
             }
             $tmp = (string) $dateien['tmp_name'][$i];
@@ -47,7 +47,7 @@ final class BildUpload
     {
         $zip = new \ZipArchive();
         if ($zip->open($zipPfad) !== true) {
-            $this->abgelehnt[] = [$zipName, 'ZIP-Archiv konnte nicht geöffnet werden'];
+            $this->abgelehnt[] = [$zipName, \t('bilder.grund_zip_fehler')];
             return;
         }
 
@@ -61,11 +61,11 @@ final class BildUpload
             // Schutz vor "ZIP-Bomben": entpackte Größe begrenzen, bevor etwas geschrieben wird.
             $gesamt += (int) $eintrag['size'];
             if ((int) $eintrag['size'] > self::MAX_BILD) {
-                $this->abgelehnt[] = [$pfadImZip, 'größer als 50 MB'];
+                $this->abgelehnt[] = [$pfadImZip, \t('bilder.grund_zu_gross')];
                 continue;
             }
             if ($gesamt > self::MAX_ZIP_GESAMT) {
-                $this->abgelehnt[] = [$zipName, 'Archiv entpackt größer als 1 GB – Rest übersprungen'];
+                $this->abgelehnt[] = [$zipName, \t('bilder.grund_zip_bomb')];
                 break;
             }
 
@@ -73,7 +73,7 @@ final class BildUpload
             $quelle = $zip->getStream($pfadImZip);
             $ziel = fopen($tmp, 'w');
             if ($quelle === false || $ziel === false) {
-                $this->abgelehnt[] = [$pfadImZip, 'konnte nicht entpackt werden'];
+                $this->abgelehnt[] = [$pfadImZip, \t('bilder.grund_entpacken')];
                 @unlink($tmp);
                 continue;
             }
@@ -92,17 +92,17 @@ final class BildUpload
     {
         $name = Bilder::gueltigerDateiname($originalname);
         if ($name === null) {
-            $this->abgelehnt[] = [$originalname, 'kein erlaubter Bild-Dateiname (' . implode(', ', BILD_ENDUNGEN) . ')'];
+            $this->abgelehnt[] = [$originalname, \t('bilder.grund_dateiname', ['endungen' => implode(', ', BILD_ENDUNGEN)])];
             return;
         }
         if (filesize($tmp) > self::MAX_BILD) {
-            $this->abgelehnt[] = [$name, 'größer als 50 MB'];
+            $this->abgelehnt[] = [$name, \t('bilder.grund_zu_gross')];
             return;
         }
         // Inhalt prüfen, nicht nur die Endung: nur echte Bilder werden angenommen.
         $info = @getimagesize($tmp);
         if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
-            $this->abgelehnt[] = [$name, 'Inhalt ist kein JPEG/PNG/GIF/WebP-Bild'];
+            $this->abgelehnt[] = [$name, \t('bilder.grund_kein_bild')];
             return;
         }
 
@@ -117,7 +117,7 @@ final class BildUpload
             @chmod($ziel, 0644);
             $this->gespeichert[] = $name;
         } else {
-            $this->abgelehnt[] = [$name, 'konnte nicht gespeichert werden (Schreibrechte bilder/?)'];
+            $this->abgelehnt[] = [$name, \t('bilder.grund_speichern')];
         }
     }
 
@@ -133,19 +133,19 @@ final class BildUpload
         $fehler = (int) ($datei['error'] ?? UPLOAD_ERR_NO_FILE);
         if ($fehler !== UPLOAD_ERR_OK) {
             return [null, $fehler === UPLOAD_ERR_INI_SIZE || $fehler === UPLOAD_ERR_FORM_SIZE
-                ? 'Das Bild ist größer als vom Server erlaubt (' . ini_get('upload_max_filesize') . ').'
-                : 'Das Bild konnte nicht hochgeladen werden.'];
+                ? \t('bilder.einzeln_server_limit', ['limit' => ini_get('upload_max_filesize')])
+                : \t('bilder.einzeln_upload_fehler')];
         }
         $name = Bilder::gueltigerDateiname((string) $datei['name']);
         if ($name === null) {
-            return [null, 'Nur Bilder mit der Endung ' . implode(', ', BILD_ENDUNGEN) . ' sind erlaubt.'];
+            return [null, \t('bilder.einzeln_endung', ['endungen' => implode(', ', BILD_ENDUNGEN)])];
         }
         $info = @getimagesize((string) $datei['tmp_name']);
         if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP], true)) {
-            return [null, 'Die Datei ist kein JPEG-, PNG-, GIF- oder WebP-Bild.'];
+            return [null, \t('bilder.einzeln_kein_bild')];
         }
         if ((int) $datei['size'] > self::MAX_BILD) {
-            return [null, 'Das Bild ist größer als 50 MB.'];
+            return [null, \t('bilder.einzeln_zu_gross')];
         }
 
         $basis = pathinfo($name, PATHINFO_FILENAME);
@@ -154,7 +154,7 @@ final class BildUpload
             $name = "{$basis}_{$n}.{$endung}";
         }
         if (!move_uploaded_file((string) $datei['tmp_name'], BILDER_PATH . '/' . $name)) {
-            return [null, 'Das Bild konnte nicht gespeichert werden (Schreibrechte bilder/?).'];
+            return [null, \t('bilder.einzeln_speichern')];
         }
         @chmod(BILDER_PATH . '/' . $name, 0644);
         return [$name, null];

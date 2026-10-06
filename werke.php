@@ -28,7 +28,7 @@ $gruppe = null;
 if (($_GET['gruppe_id'] ?? '') !== '') {
     $gruppe = GruppeRepository::neu()->finde((int) $_GET['gruppe_id']);
     if ($gruppe === null) {
-        Helpers::flashSet('fehler', 'Gruppe wurde nicht gefunden.');
+        Helpers::flashSet('fehler', t('gruppen.nicht_gefunden'));
         Helpers::redirect('/gruppen.php');
     }
 }
@@ -38,7 +38,7 @@ $seitenAnzahl = max(1, (int) ceil($gesamtAnzahl / $proSeite));
 $seite = min(max(1, (int) ($_GET['seite'] ?? 1)), $seitenAnzahl);
 
 render('werke_liste', [
-    'titel' => $gruppe ? 'Werke für Gruppe „' . $gruppe['name'] . '“ auswählen' : 'Werke',
+    'titel' => $gruppe ? t('werke.fuer_gruppe', ['name' => $gruppe['name']]) : t('werke.titel'),
     'aktuelleSeite' => 'werke',
     'breit' => true,
     'werke' => $werkRepo->suche($filter, $sortierung, $absteigend, $proSeite, ($seite - 1) * $proSeite),

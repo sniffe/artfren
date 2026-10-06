@@ -23,7 +23,7 @@ if ($neu) {
 } else {
     $werk = $repo->finde($id);
     if ($werk === null) {
-        Helpers::abbrechen(404, 'Dieses Werk wurde nicht gefunden.');
+        Helpers::abbrechen(404, t('fehler.nicht_gefunden'));
     }
 }
 $zurueck = Helpers::ruecksprung($_GET['zurueck'] ?? $_POST['zurueck'] ?? null, $neu ? '/werke.php' : '/werk.php?id=' . $id);
@@ -32,7 +32,7 @@ $eingabe = $werk;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-        Helpers::flashSet('fehler', 'Das Bild ist größer als vom Server erlaubt (' . ini_get('post_max_size') . '). Die Änderungen wurden nicht gespeichert.');
+        Helpers::flashSet('fehler', t('werk_bearb.ueberschreitung', ['max' => ini_get('post_max_size')]));
         Helpers::redirect('/werk_bearbeiten.php' . ($neu ? '' : '?id=' . $id));
     }
     Helpers::checkCsrf();
@@ -59,31 +59,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach (['ort', 'maler', 'titel', 'format', 'technik', 'ankauf', 'herkunft', 'copyright'] as $feld) {
         $eingabe[$feld] = $text($feld);
         if ($eingabe[$feld] !== null && mb_strlen($eingabe[$feld]) > 500) {
-            $fehler[] = “„{$feld}” ist zu lang (höchstens 500 Zeichen).”;
+            $fehler[] = t('werk_bearb.zu_lang', ['feld' => $feld, 'max' => 500]);
         }
     }
     foreach (['beschreibung_oeffentlich', 'beschreibung_intern'] as $feld) {
         $eingabe[$feld] = $langtext($feld);
         if ($eingabe[$feld] !== null && mb_strlen($eingabe[$feld]) > 5000) {
-            $fehler[] = “„{$feld}” ist zu lang (höchstens 5000 Zeichen).”;
+            $fehler[] = t('werk_bearb.zu_lang', ['feld' => $feld, 'max' => 5000]);
         }
     }
     if ($eingabe['maler'] === null && $eingabe['titel'] === null) {
-        $fehler[] = 'Bitte mindestens Maler oder Titel angeben.';
+        $fehler[] = t('werk_bearb.maler_titel');
     }
 
-    foreach (['entstehungsjahr' => 'Entstehungsjahr', 'ankaufjahr' => 'Ankaufjahr'] as $feld => $label) {
+    foreach (['entstehungsjahr' => t('feld.entstehungsjahr'), 'ankaufjahr' => t('feld.ankaufjahr')] as $feld => $label) {
         $roh = $text($feld);
         $eingabe[$feld] = Helpers::parseJahr($roh);
         if ($roh !== null && ($eingabe[$feld] === null || $eingabe[$feld] < 1000 || $eingabe[$feld] > 2200)) {
-            $fehler[] = “{$label}: bitte eine vierstellige Jahreszahl angeben.”;
+            $fehler[] = t('werk_bearb.jahr_ungueltig', ['label' => $label]);
         }
     }
-    foreach (['ankaufswert' => 'Ankaufswert', 'wert' => 'Wert'] as $feld => $label) {
+    foreach (['ankaufswert' => t('feld.ankaufswert'), 'wert' => t('feld.wert')] as $feld => $label) {
         $roh = $text($feld);
         $eingabe[$feld] = Helpers::parseBetrag($roh);
         if ($roh !== null && $eingabe[$feld] === null) {
-            $fehler[] = “{$label}: bitte einen Betrag angeben (z. B. 1.500 oder 1500,50).”;
+            $fehler[] = t('werk_bearb.betrag_ungueltig', ['label' => $label]);
         }
     }
     $eingabe['werktyp'] = ($_POST['werktyp'] ?? '') === 'Objekt' ? 'Objekt' : 'Bild';
@@ -116,10 +116,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($bildFehler !== null) {
             // Das Werk ist gespeichert – nur das Bild nicht. Direkt zum Nachreichen.
-            Helpers::flashSet('fehler', “Das Werk wurde angelegt, ein Bild aber nicht gespeichert: {$bildFehler}”);
+            Helpers::flashSet('fehler', t('werk_bearb.bild_nicht_gespeichert', ['fehler' => $bildFehler]));
             Helpers::redirect('/werk_bearbeiten.php?id=' . $neueId);
         }
-        Helpers::flashSet('erfolg', “Das Werk „{$details}” wurde angelegt.”);
+        Helpers::flashSet('erfolg', t('werk_bearb.angelegt'));
         Helpers::redirect('/werk.php?id=' . $neueId);
     }
 
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($vorhanden !== '') {
             $vName = Bilder::gueltigerDateiname($vorhanden);
             if ($vName !== $vorhanden || !is_file(BILDER_PATH . '/' . $vName)) {
-                $fehler[] = “Die Bilddatei „{$vorhanden}” gibt es im Bilder-Ordner nicht.”;
+                $fehler[] = t('werk_bearb.bild_nicht_gefunden', ['name' => $vorhanden]);
             } else {
                 $repo->bildHinzufuegen($id, $vName, null, 100 + $extraAnzahl);
                 $extraAnzahl++;
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             Protokoll::schreibe('werk_bearbeitet', $details);
             $geaendertGesamt = $geaendert !== [] || $extraAnzahl > 0 || !empty($_POST['bild_entfernen']) || !empty($_POST['bild_beschriftung']);
-            Helpers::flashSet('erfolg', $geaendertGesamt ? 'Änderungen wurden gespeichert.' : 'Es gab keine Änderungen.');
+            Helpers::flashSet('erfolg', $geaendertGesamt ? t('werk_bearb.gespeichert') : t('werk_bearb.keine_aenderungen'));
             Helpers::redirect($zurueck);
         }
     }
@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $bilder = $neu ? [] : $repo->bilder($id);
 
 render('werk_bearbeiten', [
-    'titel' => $neu ? 'Neues Werk' : 'Werk bearbeiten',
+    'titel' => $neu ? t('werk_bearb.neu_titel') : t('werk_bearb.bearb_titel'),
     'neu' => $neu,
     'aktuelleSeite' => 'werke',
     'werk' => $werk,

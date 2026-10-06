@@ -22,21 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ziel = trim((string) ($_POST['ziel_neu'] ?? '')) ?: trim((string) ($_POST['ziel'] ?? ''));
 
         if ($quellen === [] || $ziel === '' || mb_strlen($ziel) > 200) {
-            Helpers::flashSet('fehler', 'Bitte Orte auswählen und einen Zielnamen angeben.');
+            Helpers::flashSet('fehler', t('orte.keine_auswahl'));
         } else {
             $anzahl = $bereinigung->zusammenfuehren($quellen, $ziel);
-            Protokoll::schreibe('orte_zusammengefuehrt', implode(', ', $quellen) . " → {$ziel} ({$anzahl} Werke)");
-            Helpers::flashSet('erfolg', "{$anzahl} Werke auf „{$ziel}“ gesetzt. Die alten Schreibweisen werden bei künftigen Importen automatisch umgesetzt.");
+            Protokoll::schreibe('orte_zusammengefuehrt', implode(', ', $quellen) . “ → {$ziel} ({$anzahl} Werke)”);
+            Helpers::flashSet('erfolg', t('orte.zusammengefuehrt', ['n' => $anzahl, 'ziel' => $ziel]));
         }
     } elseif ($aktion === 'alias_loeschen') {
         $bereinigung->aliasLoeschen((string) ($_POST['alias'] ?? ''));
-        Helpers::flashSet('erfolg', 'Zuordnung entfernt.');
+        Helpers::flashSet('erfolg', t('orte.alias_entfernt'));
     }
     Helpers::redirect('/orte.php');
 }
 
 render('orte', [
-    'titel' => 'Orte bereinigen',
+    'titel' => t('orte.titel'),
     'aktuelleSeite' => 'import',
     'orte' => $bereinigung->orte(),
     'vorschlaege' => $bereinigung->vorschlaege(),

@@ -10,6 +10,7 @@ use App\Auth;
 use App\Database;
 use App\Einstellungen;
 use App\Helpers;
+use App\I18n;
 use App\Migration;
 
 // Fehler nie im Browser anzeigen (Pfade, SQL, Stacktraces), sondern protokollieren.
@@ -81,6 +82,9 @@ session_set_cookie_params([
 session_name('kv_sid');
 ini_set('session.use_strict_mode', '1');
 session_start();
+
+// Sprache erkennen und setzen (Prio: Benutzer → ?lang= / Cookie → Accept-Language → Admin-Standard → de)
+I18n::setze(I18n::erkennen($_SESSION['sprache'] ?? null, Einstellungen::standardSprache()));
 
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');

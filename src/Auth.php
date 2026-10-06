@@ -47,11 +47,11 @@ final class Auth
      */
     public static function login(string $benutzername, string $passwort): array
     {
-        $allgemein = 'Benutzername oder Passwort ist falsch.';
+        $allgemein = t('auth.login_falsch');
 
         if (self::ipGedrosselt()) {
             // Nicht protokollieren: sonst könnte ein Angreifer das Protokoll fluten.
-            return ['ok' => false, 'fehler' => 'Zu viele fehlgeschlagene Anmeldungen von dieser Adresse. Bitte in ' . LOGIN_SPERR_MINUTEN . ' Minuten erneut versuchen.'];
+            return ['ok' => false, 'fehler' => t('auth.ip_gedrosselt', ['min' => LOGIN_SPERR_MINUTEN])];
         }
 
         $pdo = Database::get();
@@ -68,7 +68,7 @@ final class Auth
 
         if (!empty($benutzer['gesperrt_bis']) && $benutzer['gesperrt_bis'] > self::jetztUtc()) {
             $bis = Helpers::formatDatum($benutzer['gesperrt_bis'], 'H:i \U\h\r');
-            return ['ok' => false, 'fehler' => "Konto ist gesperrt bis {$bis}. Bitte später erneut versuchen oder einen Admin um Entsperrung bitten."];
+            return ['ok' => false, 'fehler' => t('auth.gesperrt', ['zeit' => $bis])];
         }
 
         if (!password_verify($passwort, $benutzer['passwort_hash'])) {
@@ -83,7 +83,7 @@ final class Auth
 
             if ($gesperrtBis !== null) {
                 Protokoll::schreibe('konto_gesperrt', "Nach {$fehlversuche} Fehlversuchen", $benutzer);
-                return ['ok' => false, 'fehler' => 'Zu viele Fehlversuche. Das Konto ist jetzt für ' . LOGIN_SPERR_MINUTEN . ' Minuten gesperrt.'];
+                return ['ok' => false, 'fehler' => t('auth.gesperrt_nach_versuchen', ['min' => LOGIN_SPERR_MINUTEN])];
             }
             Protokoll::schreibe('login_fehlgeschlagen', 'Falsches Passwort', $benutzer);
             return ['ok' => false, 'fehler' => $allgemein];
@@ -101,6 +101,7 @@ final class Auth
         $_SESSION['benutzer_id'] = (int) $benutzer['id'];
         $_SESSION['sitzung_version'] = (int) $benutzer['sitzung_version'];
         $_SESSION['letzte_aktivitaet'] = time();
+        $_SESSION['sprache'] = $benutzer['sprache'] ?? null;
         self::$geladen = false;
 
         Protokoll::schreibe('login', '', $benutzer);
@@ -143,7 +144,7 @@ final class Auth
         }
 
         if (time() - (int) ($_SESSION['letzte_aktivitaet'] ?? 0) > SITZUNG_LEERLAUF_MINUTEN * 60) {
-            self::beendeAnmeldung('Die Sitzung wurde wegen Inaktivität beendet. Bitte erneut anmelden.');
+            self::beendeAnmeldung(t('auth.sitzung_inaktiv'));
             return null;
         }
 
@@ -153,7 +154,7 @@ final class Auth
 
         // Gelöschter Benutzer oder Passwort inzwischen geändert → Sitzung ungültig.
         if ($row === false || (int) $row['sitzung_version'] !== (int) ($_SESSION['sitzung_version'] ?? 0)) {
-            self::beendeAnmeldung('Bitte erneut anmelden.');
+            self::beendeAnmeldung(t('auth.bitte_anmelden'));
             return null;
         }
 
@@ -176,7 +177,7 @@ final class Auth
     {
         $benutzer = self::requireLogin();
         if (!self::isAdmin($benutzer)) {
-            Helpers::abbrechen(403, 'Diese Funktion ist nur für Administratoren verfügbar.');
+            Helpers::abbrechen(403, t('auth.kein_zugriff'));
         }
 
         return $benutzer;
@@ -257,14 +258,14 @@ final class Auth
     public static function passwortFehler(string $passwort, string $wiederholung): ?string
     {
         if (mb_strlen($passwort) < 8) {
-            return 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+            return t('auth.passwort_zu_kurz');
         }
         // bcrypt berücksichtigt nur die ersten 72 Bytes.
         if (strlen($passwort) > 72) {
-            return 'Das Passwort darf höchstens 72 Bytes lang sein (Umlaute zählen doppelt).';
+            return t('auth.passwort_zu_lang');
         }
         if ($passwort !== $wiederholung) {
-            return 'Die beiden Passwörter stimmen nicht überein.';
+            return t('auth.passwort_stimmt_nicht');
         }
         return null;
     }

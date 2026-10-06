@@ -59,13 +59,18 @@ final class Einstellungen
         return $wert !== null ? $wert === '1' : HTTPS_ERZWINGEN;
     }
 
+    public static function standardSprache(): string
+    {
+        return self::hol('standard_sprache', 'de');
+    }
+
     public static function appNameFehler(string $name): ?string
     {
         if (trim($name) === '') {
-            return 'Bitte einen Namen angeben.';
+            return t('einst.name_leer');
         }
         if (mb_strlen($name) > 80) {
-            return 'Der Name darf höchstens 80 Zeichen lang sein.';
+            return t('einst.name_zu_lang');
         }
         return null;
     }

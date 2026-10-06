@@ -39,6 +39,8 @@ import.php
 index.php
 install.php
 konto.php
+lang/de.php
+lang/en.php
 login.php
 logo.php
 logout.php
@@ -70,6 +72,7 @@ src/Export.php
 src/Felder.php
 src/GruppeRepository.php
 src/Helpers.php
+src/I18n.php
 src/ImportFehler.php
 src/Migration.php
 src/OrtBereinigung.php

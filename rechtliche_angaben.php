@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $fehler = null;
     if ($impressumUrl !== '' && !preg_match('~^https?://~i', $impressumUrl)) {
-        $fehler = 'Impressum-URL muss mit http:// oder https:// beginnen.';
+        $fehler = t('recht.impressum_url_fehler');
     } elseif ($datenschutzUrl !== '' && !preg_match('~^https?://~i', $datenschutzUrl)) {
-        $fehler = 'Datenschutz-URL muss mit http:// oder https:// beginnen.';
+        $fehler = t('recht.datenschutz_url_fehler');
     }
 
     if ($fehler !== null) {
@@ -33,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Einstellungen::setze('datenschutz_url', $datenschutzUrl);
         Einstellungen::setze('datenschutz_text', $datenschutzText);
         Protokoll::schreibe('rechtliche_angaben', 'Impressum/Datenschutz aktualisiert');
-        Helpers::flashSet('erfolg', 'Rechtliche Angaben gespeichert.');
+        Helpers::flashSet('erfolg', t('recht.gespeichert'));
     }
     Helpers::redirect('/rechtliche_angaben.php');
 }
 
 render('rechtliche_angaben', [
-    'titel'          => 'Rechtliche Angaben',
+    'titel'          => t('recht.titel'),
     'aktuelleSeite'  => 'rechtliche_angaben',
     'impressumUrl'   => Einstellungen::hol('impressum_url'),
     'impressumText'  => Einstellungen::hol('impressum_text'),

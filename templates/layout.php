@@ -45,7 +45,7 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="de" data-look="<?= Helpers::e($look) ?>" data-schrift="<?= Helpers::e($schrift) ?>" data-icon-weight="<?= Helpers::e($iconStaerke) ?>">
+<html lang="<?= Helpers::e(\App\I18n::aktiv()) ?>" data-look="<?= Helpers::e($look) ?>" data-schrift="<?= Helpers::e($schrift) ?>" data-icon-weight="<?= Helpers::e($iconStaerke) ?>">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -63,7 +63,7 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 <?php readfile(APP_ROOT . '/assets/icons.svg'); ?>
 <?php if ($aktuellerBenutzer !== null): ?>
 <header class="kopf">
-    <a class="kopf__marke" href="<?= Helpers::e(Auth::startseite($aktuellerBenutzer)) ?>" title="Zur Startseite">
+    <a class="kopf__marke" href="<?= Helpers::e(Auth::startseite($aktuellerBenutzer)) ?>" title="<?= Helpers::e(t('nav.startseite_title')) ?>">
         <?php if ($hatLogo): ?>
             <img src="/logo.php" alt="<?= Helpers::e(\App\Einstellungen::appName()) ?>" style="max-height:40px; max-width:180px; object-fit:contain; display:block;">
         <?php else: ?>
@@ -71,33 +71,33 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
         <?php endif; ?>
     </a>
     <button type="button" class="nav-hamburger" id="nav-hamburger"
-            aria-expanded="false" aria-controls="nav-inhalt" aria-label="Navigation öffnen">
+            aria-expanded="false" aria-controls="nav-inhalt" aria-label="<?= Helpers::e(t('nav.navigation_oeffnen')) ?>">
         <?= Helpers::icon('hamburger', 'nav-hamburger__icon') ?>
     </button>
     <div class="nav-inhalt" id="nav-inhalt">
         <nav class="nav">
-            <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', 'Werke') ?><?php endif; ?>
-            <?= $navLink('/gruppen.php', 'gruppen', 'Gruppen') ?>
+            <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', t('nav.werke')) ?><?php endif; ?>
+            <?= $navLink('/gruppen.php', 'gruppen', t('nav.gruppen')) ?>
             <?php if ($istAdmin): ?>
             <details class="nav-klappe" <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'open' : '' ?>>
-                <summary class="nav__link <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'aktiv' : '' ?>">Daten <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
+                <summary class="nav__link <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'aktiv' : '' ?>"><?= Helpers::e(t('nav.daten')) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
                 <div class="nav-klappe__inhalt">
-                    <a href="/import.php" class="<?= $aktuelleSeite === 'import' ? 'aktiv' : '' ?>"><?= Helpers::icon('hochladen') ?> Import</a>
-                    <a href="/export_gesamt.php" class="<?= $aktuelleSeite === 'export' ? 'aktiv' : '' ?>"><?= Helpers::icon('herunterladen') ?> Export</a>
-                    <a href="/bilder_upload.php" class="<?= $aktuelleSeite === 'bilder' ? 'aktiv' : '' ?>"><?= Helpers::icon('bild') ?> Bilder hochladen</a>
-                    <a href="/orte.php" class="<?= $aktuelleSeite === 'orte' ? 'aktiv' : '' ?>"><?= Helpers::icon('lupe') ?> Orte bereinigen</a>
-                    <a href="/backup.php" class="<?= $aktuelleSeite === 'backup' ? 'aktiv' : '' ?>"><?= Helpers::icon('datenbank') ?> Backup</a>
+                    <a href="/import.php" class="<?= $aktuelleSeite === 'import' ? 'aktiv' : '' ?>"><?= Helpers::icon('hochladen') ?> <?= Helpers::e(t('nav.import')) ?></a>
+                    <a href="/export_gesamt.php" class="<?= $aktuelleSeite === 'export' ? 'aktiv' : '' ?>"><?= Helpers::icon('herunterladen') ?> <?= Helpers::e(t('nav.export')) ?></a>
+                    <a href="/bilder_upload.php" class="<?= $aktuelleSeite === 'bilder' ? 'aktiv' : '' ?>"><?= Helpers::icon('bild') ?> <?= Helpers::e(t('nav.bilder_hochladen')) ?></a>
+                    <a href="/orte.php" class="<?= $aktuelleSeite === 'orte' ? 'aktiv' : '' ?>"><?= Helpers::icon('lupe') ?> <?= Helpers::e(t('nav.orte_bereinigen')) ?></a>
+                    <a href="/backup.php" class="<?= $aktuelleSeite === 'backup' ? 'aktiv' : '' ?>"><?= Helpers::icon('datenbank') ?> <?= Helpers::e(t('nav.backup')) ?></a>
                 </div>
             </details>
             <details class="nav-klappe" <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'papierkorb', 'erscheinungsbild', 'rechtliche_angaben', 'system']) ? 'open' : '' ?>>
-                <summary class="nav__link <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'papierkorb', 'erscheinungsbild', 'rechtliche_angaben', 'system']) ? 'aktiv' : '' ?>">Verwaltung <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
+                <summary class="nav__link <?= $gruppeAktiv(['benutzer', 'datenpruefung', 'papierkorb', 'erscheinungsbild', 'rechtliche_angaben', 'system']) ? 'aktiv' : '' ?>"><?= Helpers::e(t('nav.verwaltung')) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
                 <div class="nav-klappe__inhalt">
-                    <a href="/benutzer.php" class="<?= $aktuelleSeite === 'benutzer' ? 'aktiv' : '' ?>"><?= Helpers::icon('person') ?> Benutzer</a>
-                    <a href="/datenpruefung.php" class="<?= $aktuelleSeite === 'datenpruefung' ? 'aktiv' : '' ?>"><?= Helpers::icon('haken') ?> Datenprüfung</a>
-                    <a href="/papierkorb.php" class="<?= $aktuelleSeite === 'papierkorb' ? 'aktiv' : '' ?>"><?= Helpers::icon('papierkorb') ?> Papierkorb</a>
-                    <a href="/erscheinungsbild.php" class="<?= $aktuelleSeite === 'erscheinungsbild' ? 'aktiv' : '' ?>"><?= Helpers::icon('palette') ?> Erscheinungsbild</a>
-                    <a href="/rechtliche_angaben.php" class="<?= $aktuelleSeite === 'rechtliche_angaben' ? 'aktiv' : '' ?>"><?= Helpers::icon('dokument') ?> Rechtliche Angaben</a>
-                    <a href="/system.php" class="<?= $aktuelleSeite === 'system' ? 'aktiv' : '' ?>"><?= Helpers::icon('zahnrad') ?> System</a>
+                    <a href="/benutzer.php" class="<?= $aktuelleSeite === 'benutzer' ? 'aktiv' : '' ?>"><?= Helpers::icon('person') ?> <?= Helpers::e(t('nav.benutzer')) ?></a>
+                    <a href="/datenpruefung.php" class="<?= $aktuelleSeite === 'datenpruefung' ? 'aktiv' : '' ?>"><?= Helpers::icon('haken') ?> <?= Helpers::e(t('nav.datenpruefung')) ?></a>
+                    <a href="/papierkorb.php" class="<?= $aktuelleSeite === 'papierkorb' ? 'aktiv' : '' ?>"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('nav.papierkorb')) ?></a>
+                    <a href="/erscheinungsbild.php" class="<?= $aktuelleSeite === 'erscheinungsbild' ? 'aktiv' : '' ?>"><?= Helpers::icon('palette') ?> <?= Helpers::e(t('nav.erscheinungsbild')) ?></a>
+                    <a href="/rechtliche_angaben.php" class="<?= $aktuelleSeite === 'rechtliche_angaben' ? 'aktiv' : '' ?>"><?= Helpers::icon('dokument') ?> <?= Helpers::e(t('nav.rechtliche_angaben')) ?></a>
+                    <a href="/system.php" class="<?= $aktuelleSeite === 'system' ? 'aktiv' : '' ?>"><?= Helpers::icon('zahnrad') ?> <?= Helpers::e(t('nav.system')) ?></a>
                 </div>
             </details>
             <?php endif; ?>
@@ -105,11 +105,11 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
         <details class="nav-klappe nav-klappe--benutzer">
             <summary class="nav__link nav__link--benutzer"><?= Helpers::icon('person', 'nav-klappe__person-icon') ?> <?= Helpers::e($aktuellerBenutzer['echter_name'] ?: $aktuellerBenutzer['benutzername']) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
             <div class="nav-klappe__inhalt nav-klappe__inhalt--rechts">
-                <a href="/konto.php"><?= Helpers::icon('person') ?> Mein Konto</a>
-                <button type="button" class="nav-klappe__btn" id="theme-schalter"><?= Helpers::icon('sonne') ?> Hell/Dunkel</button>
+                <a href="/konto.php"><?= Helpers::icon('person') ?> <?= Helpers::e(t('nav.mein_konto')) ?></a>
+                <button type="button" class="nav-klappe__btn" id="theme-schalter"><?= Helpers::icon('sonne') ?> <?= Helpers::e(t('nav.hell_dunkel')) ?></button>
                 <form method="post" action="/logout.php">
                     <?= Helpers::csrfField() ?>
-                    <button type="submit" class="nav-klappe__btn"><?= Helpers::icon('abmelden') ?> Abmelden</button>
+                    <button type="submit" class="nav-klappe__btn"><?= Helpers::icon('abmelden') ?> <?= Helpers::e(t('nav.abmelden')) ?></button>
                 </form>
             </div>
         </details>
@@ -118,13 +118,13 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 <?php endif; ?>
 <main class="hauptinhalt <?= !empty($breit) ? 'hauptinhalt--breit' : '' ?>">
     <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::fehlendeSchutzdateien() !== []): ?>
-        <div class="flash flash--fehler">Nach dem Update fehlen Schutzdateien (.htaccess) – private Ordner könnten von außen abrufbar sein. <a href="/system.php">Details unter „System“</a></div>
+        <div class=”flash flash--fehler”><?= Helpers::e(t('layout.schutzdateien_fehlen')) ?> <a href=”/system.php”><?= Helpers::e(t('layout.schutzdateien_link')) ?></a></div>
     <?php endif; ?>
     <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::veralteteDateien() !== []): ?>
-        <div class="flash flash--hinweis">Nach dem Update liegen noch veraltete Dateien auf dem Server. <a href="/system.php">Unter „System" aufräumen</a></div>
+        <div class=”flash flash--hinweis”><?= Helpers::e(t('layout.veraltete_dateien')) ?> <a href=”/system.php”><?= Helpers::e(t('layout.veraltete_dateien_link')) ?></a></div>
     <?php endif; ?>
     <?php if ($backupErinnerung): ?>
-        <div class="flash flash--hinweis">Kein aktuelles Backup vorhanden. <a href="/backup.php">Jetzt Backup erstellen</a></div>
+        <div class=”flash flash--hinweis”><?= Helpers::e(t('layout.backup_fehlt')) ?> <a href=”/backup.php”><?= Helpers::e(t('layout.backup_link')) ?></a></div>
     <?php endif; ?>
     <?php foreach ($flashes as $flash): ?>
         <div class="flash flash--<?= Helpers::e($flash['typ']) ?>"><?= Helpers::e($flash['nachricht']) ?></div>
@@ -132,7 +132,7 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
     <?= $inhalt ?>
 </main>
 <footer class="app-footer">
-    <span class="text-sekundaer text-klein"><?= Helpers::e(\App\Einstellungen::appName()) ?> &middot; Version <?= Helpers::e(APP_VERSION) ?></span>
+    <span class="text-sekundaer text-klein"><?= Helpers::e(\App\Einstellungen::appName()) ?> &middot; <?= Helpers::e(t('layout.version', ['v' => APP_VERSION])) ?></span>
 </footer>
 <script src="/assets/app.js"></script>
 </body>

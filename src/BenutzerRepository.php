@@ -93,6 +93,18 @@ final class BenutzerRepository
             ->execute(['n' => $echterName, 'e' => $email, 'id' => $id]);
     }
 
+    public function aktualisiereSprache(int $id, ?string $sprache): void
+    {
+        $this->pdo->prepare('UPDATE benutzer SET sprache = :s WHERE id = :id')
+            ->execute(['s' => $sprache, 'id' => $id]);
+    }
+
+    public function aktualisiereExportRechte(int $id, int $darfExcel, int $darfBilderExport): void
+    {
+        $this->pdo->prepare('UPDATE benutzer SET darf_excel = :e, darf_bilder_export = :b WHERE id = :id')
+            ->execute(['e' => $darfExcel, 'b' => $darfBilderExport, 'id' => $id]);
+    }
+
     private function schreibeGruppen(int $benutzerId, array $gruppenIds): void
     {
         $this->pdo->prepare('DELETE FROM benutzer_gruppe WHERE benutzer_id = :id')->execute(['id' => $benutzerId]);
@@ -111,10 +123,10 @@ final class BenutzerRepository
     public static function stammdatenFehler(string $echterName, string $email): ?string
     {
         if (mb_strlen($echterName) > 100) {
-            return 'Der Name darf höchstens 100 Zeichen lang sein.';
+            return \t('benutzer.name_zu_lang');
         }
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return 'Die E-Mail-Adresse ist ungültig.';
+            return \t('benutzer.email_ungueltig');
         }
         return null;
     }
@@ -122,7 +134,7 @@ final class BenutzerRepository
     public static function benutzernameFehler(string $benutzername): ?string
     {
         if (!preg_match('/^[\p{L}\p{N}._@-]{3,50}$/u', $benutzername)) {
-            return 'Benutzername: 3–50 Zeichen, nur Buchstaben, Ziffern und . _ - @.';
+            return \t('benutzer.name_ungueltig');
         }
         return null;
     }

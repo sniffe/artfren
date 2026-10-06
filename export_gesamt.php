@@ -15,7 +15,7 @@ $repo = WerkRepository::neu();
 
 if (!in_array($format, ['xlsx', 'bilder', 'csv'], true)) {
     render('export_gesamt', [
-        'titel' => 'Gesamtexport',
+        'titel' => t('export.titel'),
         'aktuelleSeite' => 'export',
         'anzahlWerke' => $repo->zaehle([]),
         'bilder' => Export::bilderZuWerken($repo->alleExport()),

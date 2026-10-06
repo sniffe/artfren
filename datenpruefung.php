@@ -59,7 +59,7 @@ $duplikateStmt = $pdo->query(
 $duplikate = $duplikateStmt->fetchAll();
 
 render('datenpruefung', [
-    'titel' => 'Datenprüfung',
+    'titel' => t('datenpruef.titel'),
     'aktuelleSeite' => 'datenpruefung',
     'werkOhneBild' => $werkOhneBild,
     'anzahlOhneBild' => $anzahlOhneBild,

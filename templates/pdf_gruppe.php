@@ -33,12 +33,12 @@ $pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pd
 <body>
 <?php foreach ($werke as $i => $w): ?>
 <div class="seite">
-    <div class="kopf"><?= Helpers::e($gruppe['name']) ?> · Werk <?= $i + 1 ?> von <?= count($werke) ?></div>
+    <div class="kopf"><?= Helpers::e($gruppe['name']) ?> · <?= Helpers::e(t('pdf.werk_n_von_m', ['n' => $i + 1, 'm' => count($werke)])) ?></div>
     <div class="bild-rahmen">
         <?php if ($w['bild_data_uri']): ?>
             <img src="<?= $w['bild_data_uri'] ?>">
         <?php else: ?>
-            <div class="kein-bild">Kein Bild hinterlegt</div>
+            <div class="kein-bild"><?= Helpers::e(t('pdf.kein_bild')) ?></div>
         <?php endif; ?>
     </div>
     <div class="etikett">
@@ -61,7 +61,7 @@ $pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pd
             };
             if ($anzeige === '') continue;
         ?>
-        <tr><td class="label"><?= Helpers::e($feld['label']) ?></td><td><?= $anzeige ?></td></tr>
+        <tr><td class="label"><?= Helpers::e(t($feld['label'])) ?></td><td><?= $anzeige ?></td></tr>
         <?php endforeach; ?>
     </table>
     <?php
@@ -74,7 +74,7 @@ $pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pd
 </div>
 <?php endforeach; ?>
 <?php if (!$werke): ?>
-<div class="seite"><p>Diese Gruppe enthält keine Werke.</p></div>
+<div class="seite"><p><?= Helpers::e(t('pdf.gruppe_leer')) ?></p></div>
 <?php endif; ?>
 </body>
 </html>

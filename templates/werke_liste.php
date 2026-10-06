@@ -42,92 +42,92 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
      data-treffer-ids="<?= Helpers::e(json_encode($trefferIds)) ?>">
 
 <?php if ($gruppe): ?>
-    <h2>Werke für Gruppe „<?= Helpers::e($gruppe['name']) ?>“ auswählen</h2>
-    <p class="text-sekundaer">Aktuelle Mitglieder sind bereits angehakt. Auswahl anpassen und unten speichern.</p>
+    <h2><?= Helpers::e(t('werke.fuer_gruppe', ['name' => $gruppe['name']])) ?></h2>
+    <p class=”text-sekundaer”><?= Helpers::e(t('werke.gruppe_hinweis')) ?></p>
 <?php else: ?>
-    <div class="toolbar">
-        <h2 style="margin:0;">Werke</h2>
-        <a href="/werk_bearbeiten.php" class="btn btn--primaer">+ Neues Werk anlegen</a>
+    <div class=”toolbar”>
+        <h2 style=”margin:0;”><?= Helpers::e(t('werke.titel')) ?></h2>
+        <a href=”/werk_bearbeiten.php” class=”btn btn--primaer”><?= Helpers::e(t('werke.neu_anlegen')) ?></a>
     </div>
 <?php endif; ?>
 
-<form method="get" action="/werke.php" class="werkstatt-leiste">
-    <?php if ($gruppeId !== null): ?><input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>"><?php endif; ?>
-    <input type="hidden" name="sort" value="<?= Helpers::e($sortierung) ?>">
-    <?php if ($absteigend): ?><input type="hidden" name="richtung" value="ab"><?php endif; ?>
-    <div class="feld">
-        <label for="q">Suche (Maler, Titel, Ort, Technik)</label>
-        <input type="search" id="q" name="q" value="<?= Helpers::e($filter['q']) ?>" placeholder="z. B. Zens, Madeira, öl …">
+<form method=”get” action=”/werke.php” class=”werkstatt-leiste”>
+    <?php if ($gruppeId !== null): ?><input type=”hidden” name=”gruppe_id” value=”<?= $gruppeId ?>”><?php endif; ?>
+    <input type=”hidden” name=”sort” value=”<?= Helpers::e($sortierung) ?>”>
+    <?php if ($absteigend): ?><input type=”hidden” name=”richtung” value=”ab”><?php endif; ?>
+    <div class=”feld”>
+        <label for=”q”><?= Helpers::e(t('werke.suche_label')) ?></label>
+        <input type=”search” id=”q” name=”q” value=”<?= Helpers::e($filter['q']) ?>” placeholder=”<?= Helpers::e(t('werke.suche_placeholder')) ?>”>
     </div>
-    <div class="feld">
-        <label for="ort">Ort</label>
-        <select id="ort" name="ort">
-            <option value="">alle Orte</option>
+    <div class=”feld”>
+        <label for=”ort”><?= Helpers::e(t('werke.spalte_ort')) ?></label>
+        <select id=”ort” name=”ort”>
+            <option value=””><?= Helpers::e(t('werke.alle_orte')) ?></option>
             <?php foreach ($orte as $ort): ?>
-                <option value="<?= Helpers::e($ort) ?>" <?= $filter['ort'] === $ort ? 'selected' : '' ?>><?= Helpers::e($ort) ?></option>
+                <option value=”<?= Helpers::e($ort) ?>” <?= $filter['ort'] === $ort ? 'selected' : '' ?>><?= Helpers::e($ort) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="feld" style="min-width:150px;">
-        <label for="maler">Maler</label>
-        <select id="maler" name="maler">
-            <option value="">alle Maler</option>
+    <div class=”feld” style=”min-width:150px;”>
+        <label for=”maler”><?= Helpers::e(t('feld.maler')) ?></label>
+        <select id=”maler” name=”maler”>
+            <option value=””><?= Helpers::e(t('werke.alle_kuenstler')) ?></option>
             <?php foreach ($malerListe as $m): ?>
-                <option value="<?= Helpers::e($m) ?>" <?= $filter['maler'] === $m ? 'selected' : '' ?>><?= Helpers::e($m) ?></option>
+                <option value=”<?= Helpers::e($m) ?>” <?= $filter['maler'] === $m ? 'selected' : '' ?>><?= Helpers::e($m) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="feld" style="min-width:150px;">
-        <label for="status">Status</label>
-        <select id="status" name="status">
-            <option value="">alle</option>
-            <option value="ohne" <?= $filter['status'] === 'ohne' ? 'selected' : '' ?>>ohne Markierung</option>
+    <div class=”feld” style=”min-width:150px;”>
+        <label for=”status”><?= Helpers::e(t('feld.status_farbe')) ?></label>
+        <select id=”status” name=”status”>
+            <option value=””><?= Helpers::e(t('werke.alle_status')) ?></option>
+            <option value=”ohne” <?= $filter['status'] === 'ohne' ? 'selected' : '' ?>><?= Helpers::e(t('werke.ohne_markierung')) ?></option>
             <?php foreach (Helpers::STATUS_FARBEN as $wert => $label): ?>
-                <option value="<?= $wert ?>" <?= $filter['status'] === $wert ? 'selected' : '' ?>><?= $label ?></option>
+                <option value=”<?= $wert ?>” <?= $filter['status'] === $wert ? 'selected' : '' ?>><?= Helpers::e(t('status.' . $wert)) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="feld" style="min-width:150px;">
-        <label for="web_freigabe">Web-Freigabe</label>
-        <select id="web_freigabe" name="web_freigabe">
-            <option value="">alle</option>
-            <option value="ja" <?= $filter['web_freigabe'] === 'ja' ? 'selected' : '' ?>>freigegeben</option>
-            <option value="nein" <?= $filter['web_freigabe'] === 'nein' ? 'selected' : '' ?>>nicht freigegeben</option>
+    <div class=”feld” style=”min-width:150px;”>
+        <label for=”web_freigabe”><?= Helpers::e(t('werke.web_freigabe_label')) ?></label>
+        <select id=”web_freigabe” name=”web_freigabe”>
+            <option value=””><?= Helpers::e(t('werke.alle_status')) ?></option>
+            <option value=”ja” <?= $filter['web_freigabe'] === 'ja' ? 'selected' : '' ?>><?= Helpers::e(t('werke.freigegeben')) ?></option>
+            <option value=”nein” <?= $filter['web_freigabe'] === 'nein' ? 'selected' : '' ?>><?= Helpers::e(t('werke.nicht_freigegeben')) ?></option>
         </select>
     </div>
-    <div class="feld" style="min-width:130px;justify-content:flex-end;">
+    <div class=”feld” style=”min-width:130px;justify-content:flex-end;”>
         <label>&nbsp;</label>
-        <label style="display:inline-flex;align-items:center;gap:6px;color:var(--farbe-text);font-size:var(--schrift-groesse-basis);">
-            <input type="checkbox" name="ohne_bild" value="1" <?= $filter['ohne_bild'] ? 'checked' : '' ?>>
-            Ohne Bild
+        <label style=”display:inline-flex;align-items:center;gap:6px;color:var(--farbe-text);font-size:var(--schrift-groesse-basis);”>
+            <input type=”checkbox” name=”ohne_bild” value=”1” <?= $filter['ohne_bild'] ? 'checked' : '' ?>>
+            <?= Helpers::e(t('werke.ohne_bild')) ?>
         </label>
     </div>
-    <button type="submit" class="btn">Filtern</button>
+    <button type=”submit” class=”btn”><?= Helpers::e(t('werke.filtern')) ?></button>
     <?php if ($filterAktiv): ?>
-        <a href="<?= Helpers::e($url(['q' => null, 'ort' => null, 'maler' => null, 'status' => null, 'web_freigabe' => null, 'ohne_bild' => null, 'seite' => null])) ?>" class="btn">Filter zurücksetzen</a>
+        <a href=”<?= Helpers::e($url(['q' => null, 'ort' => null, 'maler' => null, 'status' => null, 'web_freigabe' => null, 'ohne_bild' => null, 'seite' => null])) ?>” class=”btn”><?= Helpers::e(t('werke.filter_zuruecksetzen')) ?></a>
     <?php endif; ?>
 </form>
 
-<div class="treffer-auswahl text-klein">
-    <span class="text-sekundaer"><?= $gesamtAnzahl ?> Werke gefunden · Seite <?= $seite ?> von <?= $seitenAnzahl ?></span>
+<div class=”treffer-auswahl text-klein”>
+    <span class=”text-sekundaer”><?= Helpers::e(t('werke.treffer_info', ['n' => $gesamtAnzahl, 'seite' => $seite, 'gesamt' => $seitenAnzahl])) ?></span>
     <?php if ($gesamtAnzahl > 0): ?>
-        <button type="button" class="btn btn--klein" data-treffer-auswaehlen>Alle <?= $gesamtAnzahl ?> Treffer auswählen</button>
-        <button type="button" class="btn btn--klein" data-treffer-abwaehlen>Treffer abwählen</button>
+        <button type=”button” class=”btn btn--klein” data-treffer-auswaehlen><?= Helpers::e(t('werke.alle_auswaehlen', ['n' => $gesamtAnzahl])) ?></button>
+        <button type=”button” class=”btn btn--klein” data-treffer-abwaehlen><?= Helpers::e(t('werke.abwaehlen')) ?></button>
     <?php endif; ?>
 </div>
 
-<table class="werkliste">
+<table class=”werkliste”>
     <thead>
         <tr>
             <th></th>
-            <th>Bild</th>
-            <?= $kopf('ort', 'Ort') ?>
-            <?= $kopf('maler', 'Maler') ?>
-            <?= $kopf('titel', 'Titel') ?>
-            <th>Format</th>
-            <th>Technik</th>
-            <?= $kopf('jahr', 'Jahr', true) ?>
-            <?= $kopf('wert', 'Wert', true) ?>
+            <th><?= Helpers::e(t('werke.spalte_bild')) ?></th>
+            <?= $kopf('ort', t('werke.spalte_ort')) ?>
+            <?= $kopf('maler', t('feld.maler')) ?>
+            <?= $kopf('titel', t('feld.titel')) ?>
+            <th><?= Helpers::e(t('feld.format')) ?></th>
+            <th><?= Helpers::e(t('feld.technik')) ?></th>
+            <?= $kopf('jahr', t('werke.spalte_jahr'), true) ?>
+            <?= $kopf('wert', t('feld.wert'), true) ?>
             <th></th>
         </tr>
     </thead>
@@ -136,71 +136,71 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
         $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't');
         $zeilenUrl = $url() . '#werk-' . (int) $w['id'];
         $werkText = trim(($w['maler'] ?? '') . ' – ' . ($w['titel'] ?? ''), ' –'); ?>
-        <tr id="werk-<?= (int) $w['id'] ?>">
-            <td data-label="Auswahl"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="Auswählen"></td>
-            <td data-label="Bild">
+        <tr id=”werk-<?= (int) $w['id'] ?>”>
+            <td data-label=”<?= Helpers::e(t('werke.auswahl_label')) ?>”><input type=”checkbox” data-werk-id=”<?= (int) $w['id'] ?>” aria-label=”<?= Helpers::e(t('werke.auswahl_aria')) ?>”></td>
+            <td data-label=”<?= Helpers::e(t('werke.spalte_bild')) ?>”>
                 <?php if ($thumb): ?>
-                    <div class="thumb-wrapper">
-                        <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
+                    <div class=”thumb-wrapper”>
+                        <img class=”thumb” src=”<?= Helpers::e($thumb) ?>” alt=”” loading=”lazy”>
                         <?php if (($w['bild_anzahl'] ?? 1) > 1): ?>
-                            <span class="bild-anzahl-badge">+<?= (int) $w['bild_anzahl'] - 1 ?></span>
+                            <span class=”bild-anzahl-badge”>+<?= (int) $w['bild_anzahl'] - 1 ?></span>
                         <?php endif; ?>
                     </div>
                 <?php else: ?>
-                    <button type="button" class="platzhalter-thumb platzhalter-thumb--aktiv"
-                            data-bild-zuweisen="<?= (int) $w['id'] ?>"
-                            data-werk-text="<?= Helpers::e($werkText) ?>"
-                            data-erwartet="<?= Helpers::e((string) $w['bild_dateiname']) ?>"
-                            data-ruecksprung="<?= Helpers::e($zeilenUrl) ?>"
-                            title="<?= $w['bild_dateiname'] ? 'Bilddatei „' . Helpers::e($w['bild_dateiname']) . '“ fehlt – klicken zum Hochladen' : 'Bild hochladen oder zuweisen' ?>"
-                            aria-label="Bild hochladen oder zuweisen">+</button>
+                    <button type=”button” class=”platzhalter-thumb platzhalter-thumb--aktiv”
+                            data-bild-zuweisen=”<?= (int) $w['id'] ?>”
+                            data-werk-text=”<?= Helpers::e($werkText) ?>”
+                            data-erwartet=”<?= Helpers::e((string) $w['bild_dateiname']) ?>”
+                            data-ruecksprung=”<?= Helpers::e($zeilenUrl) ?>”
+                            title=”<?= $w['bild_dateiname'] ? Helpers::e(t('werke.bild_fehlt', ['name' => $w['bild_dateiname']])) : Helpers::e(t('werke.bild_hochladen')) ?>”
+                            aria-label=”<?= Helpers::e(t('werke.bild_hochladen')) ?>”>+</button>
                 <?php endif; ?>
             </td>
-            <td data-label="Ort"><?= Helpers::e($w['ort']) ?></td>
-            <td data-label="Maler"><?= Helpers::e($w['maler']) ?></td>
-            <td data-label="Titel"><?= Helpers::e($w['titel']) ?></td>
-            <td data-label="Format"><?= Helpers::e($w['format']) ?></td>
-            <td data-label="Technik"><?= Helpers::e($w['technik']) ?></td>
-            <td data-label="Jahr" class="num"><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
-            <td data-label="Wert" class="num"><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
-            <td data-label="" style="white-space:nowrap;">
-                <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>"></span><?php endif; ?>
-                <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="ikon-link" title="Ansehen" aria-label="Werk ansehen"><?= Helpers::icon('auge') ?></a>
-                <a href="/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>" class="ikon-link" title="Bearbeiten" aria-label="Werk bearbeiten"><?= Helpers::icon('stift') ?></a>
+            <td data-label=”<?= Helpers::e(t('werke.spalte_ort')) ?>”><?= Helpers::e($w['ort']) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.maler')) ?>”><?= Helpers::e($w['maler']) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.titel')) ?>”><?= Helpers::e($w['titel']) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.format')) ?>”><?= Helpers::e($w['format']) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.technik')) ?>”><?= Helpers::e($w['technik']) ?></td>
+            <td data-label=”<?= Helpers::e(t('werke.spalte_jahr')) ?>” class=”num”><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.wert')) ?>” class=”num”><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
+            <td data-label=”” style=”white-space:nowrap;”>
+                <?php if ($w['status_farbe']): ?><span class=”status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>” title=”<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>”></span><?php endif; ?>
+                <a href=”/werk.php?id=<?= (int) $w['id'] ?>” class=”ikon-link” title=”<?= Helpers::e(t('werk.ansehen')) ?>” aria-label=”<?= Helpers::e(t('werk.ansehen')) ?>”><?= Helpers::icon('auge') ?></a>
+                <a href=”/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>” class=”ikon-link” title=”<?= Helpers::e(t('allg.bearbeiten')) ?>” aria-label=”<?= Helpers::e(t('allg.bearbeiten')) ?>”><?= Helpers::icon('stift') ?></a>
             </td>
         </tr>
     <?php endforeach; ?>
     <?php if (!$werke): ?>
-        <tr><td colspan="10" class="text-sekundaer">Keine Werke gefunden.</td></tr>
+        <tr><td colspan=”10” class=”text-sekundaer”><?= Helpers::e(t('werke.leer')) ?></td></tr>
     <?php endif; ?>
     </tbody>
 </table>
 
-<div class="seiten-nav">
-    <?php if ($seite > 1): ?><a href="<?= Helpers::e($url(['seite' => $seite - 1])) ?>" class="btn btn--klein">← zurück</a><?php endif; ?>
-    <span>Seite <?= $seite ?> / <?= $seitenAnzahl ?></span>
-    <?php if ($seite < $seitenAnzahl): ?><a href="<?= Helpers::e($url(['seite' => $seite + 1])) ?>" class="btn btn--klein">weiter →</a><?php endif; ?>
+<div class=”seiten-nav”>
+    <?php if ($seite > 1): ?><a href=”<?= Helpers::e($url(['seite' => $seite - 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.zurueck_seite')) ?></a><?php endif; ?>
+    <span><?= Helpers::e(t('allg.seite_x_von_y', ['x' => $seite, 'y' => $seitenAnzahl])) ?></span>
+    <?php if ($seite < $seitenAnzahl): ?><a href=”<?= Helpers::e($url(['seite' => $seite + 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.weiter_seite')) ?></a><?php endif; ?>
 </div>
 
-<div class="auswahl-leiste">
-    <span><strong data-auswahl-zaehler>0</strong> Werke ausgewählt</span>
-    <div class="toolbar-aktionen">
-        <button type="button" class="btn" data-auswahl-leeren>Auswahl leeren</button>
+<div class=”auswahl-leiste”>
+    <span><strong data-auswahl-zaehler>0</strong> <?= Helpers::e(t('gruppe_neu.zaehler_suffix')) ?></span>
+    <div class=”toolbar-aktionen”>
+        <button type=”button” class=”btn” data-auswahl-leeren><?= Helpers::e(t('werke.auswahl_leeren')) ?></button>
         <?php if ($gruppe): ?>
-            <form method="post" action="/gruppe.php" data-auswahl-formular>
+            <form method=”post” action=”/gruppe.php” data-auswahl-formular>
                 <?= Helpers::csrfField() ?>
-                <input type="hidden" name="aktion" value="mitglieder_speichern">
-                <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
-                <button type="submit" class="btn btn--primaer">Auswahl als Mitglieder speichern</button>
+                <input type=”hidden” name=”aktion” value=”mitglieder_speichern”>
+                <input type=”hidden” name=”gruppe_id” value=”<?= $gruppeId ?>”>
+                <button type=”submit” class=”btn btn--primaer”><?= Helpers::e(t('werke.mitglieder_speichern')) ?></button>
             </form>
-            <a href="/gruppe.php?id=<?= $gruppeId ?>" class="btn">Abbrechen</a>
+            <a href=”/gruppe.php?id=<?= $gruppeId ?>” class=”btn”><?= Helpers::e(t('allg.abbrechen')) ?></a>
         <?php else: ?>
-            <a href="/gruppe_neu.php" class="btn btn--primaer">Weiter: Gruppe anlegen</a>
-            <form method="post" action="/papierkorb.php" data-auswahl-formular
-                  data-bestaetigen="Alle ausgewählten Werke in den Papierkorb verschieben?">
+            <a href=”/gruppe_neu.php” class=”btn btn--primaer”><?= Helpers::e(t('werke.gruppe_anlegen')) ?></a>
+            <form method=”post” action=”/papierkorb.php” data-auswahl-formular
+                  data-bestaetigen=”<?= Helpers::e(t('werke.papierkorb_frage')) ?>”>
                 <?= Helpers::csrfField() ?>
-                <input type="hidden" name="aktion" value="bulk_papierkorb">
-                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> In den Papierkorb</button>
+                <input type=”hidden” name=”aktion” value=”bulk_papierkorb”>
+                <button type=”submit” class=”btn btn--gefahr”><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werke.in_papierkorb')) ?></button>
             </form>
         <?php endif; ?>
     </div>
@@ -208,26 +208,26 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
 
 </div>
 
-<dialog id="bild-dialog" class="dialog">
-    <form method="post" action="/werk_bild.php" enctype="multipart/form-data">
+<dialog id=”bild-dialog” class=”dialog”>
+    <form method=”post” action=”/werk_bild.php” enctype=”multipart/form-data”>
         <?= Helpers::csrfField() ?>
-        <input type="hidden" name="werk_id" value="">
-        <input type="hidden" name="zurueck" value="">
-        <h3>Bild zuweisen</h3>
-        <p class="text-sekundaer" data-dialog-werk></p>
-        <p class="text-klein text-sekundaer" data-dialog-erwartet hidden></p>
-        <div class="feld">
-            <label for="dialog-bild">Bild hochladen</label>
-            <input type="file" id="dialog-bild" name="bild" accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
+        <input type=”hidden” name=”werk_id” value=””>
+        <input type=”hidden” name=”zurueck” value=””>
+        <h3><?= Helpers::e(t('werke.bild_dialog_titel')) ?></h3>
+        <p class=”text-sekundaer” data-dialog-werk></p>
+        <p class=”text-klein text-sekundaer” data-dialog-erwartet hidden></p>
+        <div class=”feld”>
+            <label for=”dialog-bild”><?= Helpers::e(t('werke.bild_upload_label')) ?></label>
+            <input type=”file” id=”dialog-bild” name=”bild” accept=”.jpg,.jpeg,.png,.gif,.webp,image/*”>
         </div>
-        <div class="feld">
-            <label for="dialog-vorhanden">… oder vorhandenes Bild aus dem Bilder-Ordner</label>
-            <input type="text" id="dialog-vorhanden" name="vorhandenes_bild" list="liste-freie-bilder" autocomplete="off"
-                   placeholder="<?= $freieBilder ? count($freieBilder) . ' noch nicht zugeordnete Bilder – Namen tippen' : 'Dateiname' ?>">
+        <div class=”feld”>
+            <label for=”dialog-vorhanden”><?= Helpers::e(t('werke.bild_vorhanden_label')) ?></label>
+            <input type=”text” id=”dialog-vorhanden” name=”vorhandenes_bild” list=”liste-freie-bilder” autocomplete=”off”
+                   placeholder=”<?= $freieBilder ? Helpers::e(t('werke.bild_placeholder_viele', ['n' => count($freieBilder)])) : Helpers::e(t('werke.bild_placeholder_leer')) ?>”>
         </div>
-        <div class="toolbar-aktionen">
-            <button type="submit" class="btn btn--primaer">Zuweisen</button>
-            <button type="button" class="btn" data-dialog-schliessen>Abbrechen</button>
+        <div class=”toolbar-aktionen”>
+            <button type=”submit” class=”btn btn--primaer”><?= Helpers::e(t('werke.bild_zuweisen')) ?></button>
+            <button type=”button” class=”btn” data-dialog-schliessen><?= Helpers::e(t('allg.abbrechen')) ?></button>
         </div>
     </form>
 </dialog>

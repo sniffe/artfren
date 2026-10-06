@@ -22,24 +22,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $werkIds = Helpers::idListe($_POST['werk_ids'] ?? []);
 
         if ($name === '' || mb_strlen($name) > 200) {
-            Helpers::flashSet('fehler', 'Bitte einen Gruppennamen (höchstens 200 Zeichen) angeben.');
+            Helpers::flashSet('fehler', t('gruppe_neu.name_leer'));
             Helpers::redirect('/gruppe_neu.php');
         }
         if ($werkIds === []) {
-            Helpers::flashSet('fehler', 'Bitte mindestens ein Werk auswählen.');
+            Helpers::flashSet('fehler', t('gruppe_neu.werk_leer'));
             Helpers::redirect('/gruppe_neu.php');
         }
 
         $neueId = $repo->anlegen($name, (int) $benutzer['id'], $werkIds);
         $anzahl = count(\App\WerkRepository::neu()->mitgliedIds($neueId));
-        Protokoll::schreibe('gruppe_angelegt', "„{$name}“ mit {$anzahl} Werken");
-        Helpers::flashSet('erfolg', "Gruppe „{$name}“ wurde mit {$anzahl} Werken angelegt.");
+        Protokoll::schreibe('gruppe_angelegt', “„{$name}” mit {$anzahl} Werken”);
+        Helpers::flashSet('erfolg', t('gruppe_neu.angelegt_mit', ['n' => $anzahl]));
         Helpers::redirect('/gruppe.php?id=' . $neueId . '&neu=1');
     }
 
     $gruppe = $repo->finde((int) ($_POST['id'] ?? 0));
     if ($gruppe === null) {
-        Helpers::flashSet('fehler', 'Gruppe wurde nicht gefunden.');
+        Helpers::flashSet('fehler', t('gruppen.nicht_gefunden'));
         Helpers::redirect('/gruppen.php');
     }
 
@@ -47,19 +47,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $neuerName = trim((string) ($_POST['name'] ?? ''));
         if ($neuerName !== '' && mb_strlen($neuerName) <= 200) {
             $repo->umbenennen((int) $gruppe['id'], $neuerName);
-            Protokoll::schreibe('gruppe_umbenannt', "„{$gruppe['name']}“ → „{$neuerName}“");
-            Helpers::flashSet('erfolg', 'Gruppenname wurde geändert.');
+            Protokoll::schreibe('gruppe_umbenannt', “„{$gruppe['name']}” → „{$neuerName}””);
+            Helpers::flashSet('erfolg', t('gruppen.umbenannt'));
         }
     } elseif ($aktion === 'loeschen') {
         $repo->loeschen((int) $gruppe['id']);
-        Protokoll::schreibe('gruppe_geloescht', "„{$gruppe['name']}“");
-        Helpers::flashSet('erfolg', 'Gruppe wurde gelöscht (die enthaltenen Kunstwerke bleiben erhalten).');
+        Protokoll::schreibe('gruppe_geloescht', “„{$gruppe['name']}””);
+        Helpers::flashSet('erfolg', t('gruppen.geloescht'));
     }
     Helpers::redirect('/gruppen.php');
 }
 
 render('gruppen_liste', [
-    'titel' => 'Gruppen',
+    'titel' => t('gruppen.titel'),
     'aktuelleSeite' => 'gruppen',
     'gruppen' => $repo->sichtbarFuer($benutzer),
     'istAdmin' => Auth::isAdmin($benutzer),

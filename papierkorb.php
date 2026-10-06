@@ -5,6 +5,7 @@ require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
 use App\Helpers;
+use App\I18n;
 use App\Protokoll;
 use App\WerkRepository;
 
@@ -21,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($werk !== null) {
             $werkRepo->wiederherstellen($id);
             Protokoll::schreibe('werk_wiederhergestellt', 'ID ' . $id . ': ' . ($werk['titel'] ?? ''), $benutzer);
-            Helpers::flashSet('erfolg', 'Werk „' . ($werk['titel'] ?? 'Unbenannt') . '" wurde wiederhergestellt.');
+            Helpers::flashSet('erfolg', I18n::plural(1, 'papierkorb.wiederhergestellt', ['n' => 1]));
         }
         Helpers::redirect('/papierkorb.php');
     }
@@ -32,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($werk !== null) {
             $werkRepo->endgueltigLoeschen($id, $benutzer['benutzername']);
             Protokoll::schreibe('werk_endgueltig_geloescht', 'ID ' . $id . ': ' . ($werk['titel'] ?? ''), $benutzer);
-            Helpers::flashSet('erfolg', 'Werk „' . ($werk['titel'] ?? 'Unbenannt') . '" wurde endgültig gelöscht.');
+            Helpers::flashSet('erfolg', I18n::plural(1, 'papierkorb.geloescht_endg', ['n' => 1]));
         }
         Helpers::redirect('/papierkorb.php');
     }
@@ -47,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($ids !== []) {
             $anzahl = count($ids);
             Protokoll::schreibe('werk_papierkorb', $anzahl . ' Werke in den Papierkorb verschoben', $benutzer);
-            Helpers::flashSet('erfolg', $anzahl . ' ' . ($anzahl === 1 ? 'Werk' : 'Werke') . ' in den Papierkorb verschoben.');
+            Helpers::flashSet('erfolg', I18n::plural($anzahl, 'papierkorb.in_papierkorb', ['n' => $anzahl]));
         }
         Helpers::redirect('/werke.php');
     }
@@ -58,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $werke = $werkRepo->papierkorbListe();
 
 render('papierkorb', [
-    'titel'         => 'Papierkorb',
+    'titel'         => t('papierkorb.titel'),
     'aktuelleSeite' => 'papierkorb',
     'werke'         => $werke,
 ]);

@@ -8,6 +8,7 @@ use App\Auth;
 use App\Database;
 use App\Einstellungen;
 use App\Helpers;
+use App\I18n;
 use App\Migration;
 use App\Protokoll;
 use App\Sicherheitscheck;
@@ -23,11 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($aktion === 'einstellungen') {
         $name = trim((string) ($_POST['app_name'] ?? ''));
         $httpsGewuenscht = isset($_POST['https_erzwingen']);
+        $neueSprache = (string) ($_POST['standard_sprache'] ?? '');
         // $https stammt aus bootstrap.php. Einschalten nur über HTTPS, damit man
         // sich nicht aussperrt, falls der Server gar kein Zertifikat hat.
         $fehler = Einstellungen::appNameFehler($name)
             ?? ($httpsGewuenscht && !$https
-                ? 'HTTPS erzwingen lässt sich nur einschalten, wenn die Seite bereits über https:// aufgerufen wird.'
+                ? t('system.https_hinweis')
                 : null);
         if ($fehler !== null) {
             Helpers::flashSet('fehler', $fehler);
@@ -35,17 +37,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $vorher = Einstellungen::appName();
             Einstellungen::setze('app_name', $name);
             Einstellungen::setze('https_erzwingen', $httpsGewuenscht ? '1' : '0');
-            Protokoll::schreibe('einstellungen', "Name: „{$vorher}“ → „{$name}“, HTTPS erzwingen: " . ($httpsGewuenscht ? 'ja' : 'nein'));
-            Helpers::flashSet('erfolg', 'Einstellungen wurden gespeichert.');
+            if (isset(I18n::SPRACHEN[$neueSprache])) {
+                Einstellungen::setze('standard_sprache', $neueSprache);
+            }
+            Protokoll::schreibe('einstellungen', “Name: „{$vorher}” → „{$name}”, HTTPS: “ . ($httpsGewuenscht ? 'ja' : 'nein'));
+            Helpers::flashSet('erfolg', t('system.gespeichert'));
         }
     } elseif ($aktion === 'aufraeumen') {
         $ergebnis = Wartung::loescheVeraltete();
         if ($ergebnis['geloescht'] !== []) {
             Protokoll::schreibe('aufraeumen', 'Veraltete Dateien gelöscht: ' . implode(', ', $ergebnis['geloescht']));
-            Helpers::flashSet('erfolg', 'Gelöscht: ' . implode(', ', $ergebnis['geloescht']));
+            Helpers::flashSet('erfolg', t('system.veraltet_geloescht'));
         }
         if ($ergebnis['fehler'] !== []) {
-            Helpers::flashSet('fehler', 'Konnte nicht gelöscht werden (bitte per FTP entfernen): ' . implode(', ', $ergebnis['fehler']));
+            Helpers::flashSet('fehler', t('system.loeschen_fehler', ['dateien' => implode(', ', $ergebnis['fehler'])]));
         }
     }
     Helpers::redirect('/system.php');
@@ -63,38 +68,39 @@ $freierSpeicher = disk_free_space(DATA_PATH);
 
 $warnungen = [];
 if ($postMaxBytes > 0 && $postMaxBytes < 32 * 1024 * 1024) {
-    $warnungen[] = 'post_max_size ist kleiner als 32 MB – der Upload größerer Bilder oder ZIP-Dateien kann fehlschlagen.';
+    $warnungen[] = t('system.warnung_post_max');
 }
 if (!$webpUnterstuetzt) {
-    $warnungen[] = 'GD unterstützt kein WebP – WebP-Bilder können nicht verarbeitet werden.';
+    $warnungen[] = t('system.warnung_webp');
 }
 
 render('system', [
-    'titel' => 'System',
+    'titel' => t('system.titel'),
+    'standardSprache' => Einstellungen::standardSprache(),
     'aktuelleSeite' => 'system',
     'breit' => true,
     'pruefung' => $_SESSION['sicherheitscheck'] ?? null,
     'info' => [
-        'Anwendungsversion' => APP_VERSION,
-        'PHP-Version' => PHP_VERSION,
-        'Speicherlimit (memory_limit)' => ini_get('memory_limit') === '-1' ? 'unbegrenzt' : (string) ini_get('memory_limit'),
-        'Max. Laufzeit (max_execution_time)' => ini_get('max_execution_time') . ' s',
-        'Max. Upload je Datei (upload_max_filesize)' => (string) ini_get('upload_max_filesize'),
-        'Max. Upload gesamt (post_max_size)' => (string) ini_get('post_max_size'),
-        'Max. Dateien je Upload (max_file_uploads)' => (string) ini_get('max_file_uploads'),
-        'GD-Bildverarbeitung' => function_exists('gd_info')
-            ? 'vorhanden' . ($webpUnterstuetzt ? ', WebP: ja' : ', WebP: nein')
-            : 'nicht vorhanden',
-        'ZipArchive' => $zipUnterstuetzt ? 'vorhanden' : 'nicht vorhanden',
-        'Datenbankgröße' => Helpers::formatGroesse((int) filesize(DB_PATH)),
-        'Schema-Version (DB user_version)' => Migration::aktuelleVersion($pdo) . ' / ' . Migration::zielVersion(),
-        'Ordner bilder/' => Helpers::formatGroesse(Helpers::ordnerGroesse(BILDER_PATH)),
-        'Ordner backups/' => Helpers::formatGroesse(Helpers::ordnerGroesse(BACKUPS_PATH)),
-        'Freier Speicher (data/)' => $freierSpeicher !== false
+        t('system.info_version')        => APP_VERSION,
+        t('system.info_php')            => PHP_VERSION,
+        t('system.info_speicher')       => ini_get('memory_limit') === '-1' ? t('system.info_unbegrenzt') : (string) ini_get('memory_limit'),
+        t('system.info_laufzeit')       => ini_get('max_execution_time') . ' s',
+        t('system.info_upload_datei')   => (string) ini_get('upload_max_filesize'),
+        t('system.info_upload_gesamt')  => (string) ini_get('post_max_size'),
+        t('system.info_upload_anzahl')  => (string) ini_get('max_file_uploads'),
+        t('system.info_gd')             => function_exists('gd_info')
+            ? ($webpUnterstuetzt ? t('system.info_gd_webp_ja') : t('system.info_gd_webp_nein'))
+            : t('system.info_nicht_vorhanden'),
+        t('system.info_zip')            => $zipUnterstuetzt ? t('system.info_vorhanden') : t('system.info_nicht_vorhanden'),
+        t('system.info_db_groesse')     => Helpers::formatGroesse((int) filesize(DB_PATH)),
+        t('system.info_schema')         => Migration::aktuelleVersion($pdo) . ' / ' . Migration::zielVersion(),
+        t('system.info_ordner_bilder')  => Helpers::formatGroesse(Helpers::ordnerGroesse(BILDER_PATH)),
+        t('system.info_ordner_backups') => Helpers::formatGroesse(Helpers::ordnerGroesse(BACKUPS_PATH)),
+        t('system.info_speicher_frei')  => $freierSpeicher !== false
             ? Helpers::formatGroesse((int) $freierSpeicher)
-            : 'unbekannt',
-        'Verbindung' => $https ? 'HTTPS (verschlüsselt)' : 'HTTP (unverschlüsselt)',
-        'HTTPS erzwingen' => Einstellungen::httpsErzwingen() ? 'ja' : 'nein',
+            : t('system.info_unbekannt'),
+        t('system.info_verbindung')     => $https ? t('system.info_https') : t('system.info_http'),
+        t('system.info_https_erzwingen') => Einstellungen::httpsErzwingen() ? t('system.info_ja') : t('system.info_nein'),
     ],
     'warnungen' => $warnungen,
     'httpsAktiv' => $https,

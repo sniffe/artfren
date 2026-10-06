@@ -22,7 +22,7 @@ $zurueck = Helpers::ruecksprung($_POST['zurueck'] ?? null, '/werke.php');
 
 // Überschreitet der Upload post_max_size, verwirft PHP alle Felder – auch das CSRF-Token.
 if ($_POST === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-    Helpers::flashSet('fehler', 'Das Bild ist größer als vom Server erlaubt (' . ini_get('post_max_size') . ').');
+    Helpers::flashSet('fehler', t('werk.bild_upload_err_server', ['limit' => ini_get('post_max_size')]));
     Helpers::redirect('/werke.php');
 }
 Helpers::checkCsrf();
@@ -38,9 +38,9 @@ if ($werk === null) {
 if ($fehler !== null) {
     Helpers::flashSet('fehler', $fehler);
 } elseif ($name === null) {
-    Helpers::flashSet('hinweis', 'Es wurde kein Bild ausgewählt.');
+    Helpers::flashSet('hinweis', t('werk.bild_kein_bild'));
 } else {
-    Protokoll::schreibe('werk_bild', "{$werk['maler']} – {$werk['titel']}: {$name}");
-    Helpers::flashSet('erfolg', "Bild „{$name}“ wurde „{$werk['titel']}“ zugewiesen.");
+    Protokoll::schreibe('werk_bild', “{$werk['maler']} – {$werk['titel']}: {$name}”);
+    Helpers::flashSet('erfolg', t('werk.bild_zugewiesen', ['name' => $name, 'werk' => $werk['titel']]));
 }
 Helpers::redirect($zurueck);

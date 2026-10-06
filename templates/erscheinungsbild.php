@@ -10,12 +10,12 @@ declare(strict_types=1);
 use App\Helpers;
 
 $looks = [
-    'galerie'  => ['label' => 'Galerie', 'beschr' => 'Warme Töne, Serifen-Überschriften (Standard)'],
-    'archiv'   => ['label' => 'Archiv',  'beschr' => 'Kühle Grautöne, kompaktere Darstellung'],
-    'kontrast' => ['label' => 'Kontrast','beschr' => 'Hoher Kontrast, größere Schrift'],
+    'galerie'  => ['label' => t('erscheint.look_galerie'),  'beschr' => t('erscheint.look_galerie_beschr')],
+    'archiv'   => ['label' => t('erscheint.look_archiv'),   'beschr' => t('erscheint.look_archiv_beschr')],
+    'kontrast' => ['label' => t('erscheint.look_kontrast'), 'beschr' => t('erscheint.look_kontrast_beschr')],
 ];
 ?>
-<h2>Erscheinungsbild</h2>
+<h2><?= Helpers::e(t('erscheint.titel')) ?></h2>
 
 <form method="post">
     <?= Helpers::csrfField() ?>
@@ -23,9 +23,9 @@ $looks = [
 
     <!-- ── Look intern ──────────────────────────────────────────────── -->
     <div class="karte" style="max-width:820px;">
-        <h3>Design – interner Bereich</h3>
+        <h3><?= Helpers::e(t('erscheint.design_intern')) ?></h3>
         <div class="feld">
-            <label>Look</label>
+            <label><?= Helpers::e(t('erscheint.look')) ?></label>
             <div class="checkliste">
                 <?php foreach ($looks as $wert => $info): ?>
                     <label>
@@ -39,29 +39,29 @@ $looks = [
         </div>
 
         <div class="feld">
-            <label>Schrift</label>
+            <label><?= Helpers::e(t('erscheint.schrift')) ?></label>
             <div class="checkliste">
-                <label><input type="radio" name="schrift" value="serif"   <?= $schrift === 'serif'   ? 'checked' : '' ?>> Serif (Source Serif 4 für Überschriften)</label>
-                <label><input type="radio" name="schrift" value="grotesk" <?= $schrift === 'grotesk' ? 'checked' : '' ?>> Grotesque (Inter für alles)</label>
-                <label><input type="radio" name="schrift" value="system"  <?= $schrift === 'system'  ? 'checked' : '' ?>> System-Schrift</label>
+                <label><input type="radio" name="schrift" value="serif"   <?= $schrift === 'serif'   ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.schrift_serif')) ?></label>
+                <label><input type="radio" name="schrift" value="grotesk" <?= $schrift === 'grotesk' ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.schrift_grotesk')) ?></label>
+                <label><input type="radio" name="schrift" value="system"  <?= $schrift === 'system'  ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.schrift_system')) ?></label>
             </div>
         </div>
 
         <div class="feld">
-            <label>Icon-Stärke</label>
+            <label><?= Helpers::e(t('erscheint.icon_staerke')) ?></label>
             <div class="checkliste">
-                <label><input type="radio" name="icon_staerke" value="regular" <?= $iconStaerke === 'regular' ? 'checked' : '' ?>> Normal</label>
-                <label><input type="radio" name="icon_staerke" value="light"   <?= $iconStaerke === 'light'   ? 'checked' : '' ?>> Leicht</label>
-                <label><input type="radio" name="icon_staerke" value="bold"    <?= $iconStaerke === 'bold'    ? 'checked' : '' ?>> Fett</label>
+                <label><input type="radio" name="icon_staerke" value="regular" <?= $iconStaerke === 'regular' ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.icon_regular')) ?></label>
+                <label><input type="radio" name="icon_staerke" value="light"   <?= $iconStaerke === 'light'   ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.icon_light')) ?></label>
+                <label><input type="radio" name="icon_staerke" value="bold"    <?= $iconStaerke === 'bold'    ? 'checked' : '' ?>> <?= Helpers::e(t('erscheint.icon_bold')) ?></label>
             </div>
         </div>
     </div>
 
     <!-- ── Look Web ─────────────────────────────────────────────────── -->
     <div class="karte" style="max-width:820px;">
-        <h3>Design – öffentliche Galerien</h3>
+        <h3><?= Helpers::e(t('erscheint.design_web')) ?></h3>
         <div class="feld">
-            <label>Look</label>
+            <label><?= Helpers::e(t('erscheint.look')) ?></label>
             <div class="checkliste">
                 <?php foreach ($looks as $wert => $info): ?>
                     <label>
@@ -77,17 +77,17 @@ $looks = [
 
     <!-- ── Akzentfarbe ───────────────────────────────────────────────── -->
     <div class="karte" style="max-width:820px;">
-        <h3>Akzentfarbe</h3>
-        <p class="text-klein text-sekundaer">Gilt für beide Bereiche. Leer = Standardfarbe (Bordeaux). Die Textfarbe auf der Akzentfarbe wird automatisch für guten Kontrast berechnet.</p>
+        <h3><?= Helpers::e(t('erscheint.akzentfarbe')) ?></h3>
+        <p class="text-klein text-sekundaer"><?= Helpers::e(t('erscheint.akzentfarbe_beschr')) ?></p>
         <div class="feldreihe" style="align-items:flex-end;">
             <div class="feld" style="flex:0 0 auto;">
-                <label for="akzentfarbe_picker">Farbwähler</label>
+                <label for="akzentfarbe_picker"><?= Helpers::e(t('erscheint.farbwaehler')) ?></label>
                 <input type="color" id="akzentfarbe_picker" value="<?= Helpers::e($akzentfarbe !== '' ? $akzentfarbe : '#7A2A38') ?>"
                        style="width:60px; height:38px; padding:2px; cursor:pointer; border:1px solid var(--farbe-linie);"
                        data-farb-sync="akzentfarbe">
             </div>
             <div class="feld">
-                <label for="akzentfarbe">Hex-Wert <span class="text-sekundaer">(#RRGGBB, leer = Standard)</span></label>
+                <label for="akzentfarbe"><?= Helpers::e(t('erscheint.hex_wert')) ?> <span class="text-sekundaer"><?= Helpers::e(t('erscheint.hex_hinweis')) ?></span></label>
                 <input type="text" id="akzentfarbe" name="akzentfarbe"
                        value="<?= Helpers::e($akzentfarbe) ?>"
                        placeholder="#7A2A38" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
@@ -97,23 +97,23 @@ $looks = [
     </div>
 
     <div style="max-width:820px; margin-top:var(--abstand-m);">
-        <button type="submit" class="btn btn--primaer">Einstellungen speichern</button>
+        <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('erscheint.einst_speichern')) ?></button>
     </div>
 </form>
 
 <!-- ── Logo ─────────────────────────────────────────────────────────── -->
 <div class="karte" style="max-width:820px;">
-    <h3>Logo</h3>
-    <p class="text-klein text-sekundaer">PNG, JPG, WebP oder SVG, max. 1 MB. Wird im Kopfbereich angezeigt; ohne Logo erscheint der App-Name als Text.</p>
+    <h3><?= Helpers::e(t('erscheint.logo')) ?></h3>
+    <p class="text-klein text-sekundaer"><?= Helpers::e(t('erscheint.logo_beschr')) ?></p>
 
     <?php if ($hatLogo): ?>
         <div style="margin-bottom:var(--abstand-m);">
-            <img src="/logo.php" alt="Aktuelles Logo" style="max-height:60px; max-width:240px; border:1px solid var(--farbe-linie); padding:4px;">
+            <img src="/logo.php" alt="<?= Helpers::e(t('erscheint.logo')) ?>" style="max-height:60px; max-width:240px; border:1px solid var(--farbe-linie); padding:4px;">
         </div>
-        <form method="post" data-bestaetigen="Logo wirklich entfernen?">
+        <form method="post" data-bestaetigen="<?= Helpers::e(t('erscheint.logo_entf_frage')) ?>">
             <?= Helpers::csrfField() ?>
             <input type="hidden" name="aktion" value="logo_loeschen">
-            <button type="submit" class="btn btn--gefahr btn--klein">Logo entfernen</button>
+            <button type="submit" class="btn btn--gefahr btn--klein"><?= Helpers::e(t('erscheint.logo_entfernen')) ?></button>
         </form>
         <hr style="margin:var(--abstand-m) 0; border:none; border-top:1px solid var(--farbe-linie);">
     <?php endif; ?>
@@ -122,9 +122,9 @@ $looks = [
         <?= Helpers::csrfField() ?>
         <input type="hidden" name="aktion" value="logo_hochladen">
         <div class="feld">
-            <label for="logo-upload">Logo <?= $hatLogo ? 'ersetzen' : 'hochladen' ?></label>
+            <label for="logo-upload"><?= Helpers::e($hatLogo ? t('erscheint.logo_ersetzen') : t('erscheint.logo_hochladen')) ?></label>
             <input type="file" id="logo-upload" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml">
         </div>
-        <button type="submit" class="btn">Hochladen</button>
+        <button type="submit" class="btn"><?= Helpers::e(t('erscheint.hochladen')) ?></button>
     </form>
 </div>

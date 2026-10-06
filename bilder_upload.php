@@ -16,7 +16,7 @@ $ergebnis = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Überschreitet der Upload post_max_size, verwirft PHP alle Felder – auch das CSRF-Token.
     if ($_POST === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-        Helpers::flashSet('fehler', 'Der Upload ist größer als vom Server erlaubt (' . ini_get('post_max_size') . '). Bitte in kleineren Teilen hochladen.');
+        Helpers::flashSet('fehler', t('bilder.upload_err_server', ['limit' => ini_get('post_max_size')]));
         Helpers::redirect('/bilder_upload.php');
     }
     Helpers::checkCsrf();
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 render('bilder_upload', [
-    'titel' => 'Bilder hochladen',
+    'titel' => t('bilder.titel'),
     'aktuelleSeite' => 'import',
     'ergebnis' => $ergebnis,
     'fehlend' => BildUpload::fehlendeBilder(),

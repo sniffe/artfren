@@ -8,6 +8,7 @@ use App\Auth;
 use App\BenutzerRepository;
 use App\GruppeRepository;
 use App\Helpers;
+use App\I18n;
 use App\Protokoll;
 
 $aktuellerBenutzer = Auth::requireAdmin();
@@ -15,7 +16,7 @@ $repo = BenutzerRepository::neu();
 
 $ziel = $repo->finde((int) ($_GET['id'] ?? $_POST['id'] ?? 0));
 if ($ziel === null) {
-    Helpers::abbrechen(404, 'Dieser Benutzer wurde nicht gefunden.');
+    Helpers::abbrechen(404, t('fehler.nicht_gefunden'));
 }
 $zielId = (int) $ziel['id'];
 $fehler = null;
@@ -31,14 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $fehler = BenutzerRepository::stammdatenFehler($echterName, $email);
         if ($fehler === null && $ziel['rolle'] === 'admin' && $rolle !== 'admin' && $repo->anzahlAdmins() <= 1) {
-            $fehler = 'Das ist der letzte Administrator – mindestens ein Admin muss bestehen bleiben.';
+            $fehler = t('benutzer_bearbeiten.letzter_admin');
         }
 
         if ($fehler === null) {
             $repo->aktualisieren($zielId, $echterName, $email, $rolle, Helpers::idListe($_POST['gruppen'] ?? []));
-            $details = "„{$ziel['benutzername']}“" . ($rolle !== $ziel['rolle'] ? ", Rolle → {$rolle}" : '');
+            $sprache = (string) ($_POST['sprache'] ?? '');
+            $repo->aktualisiereSprache($zielId, isset(I18n::SPRACHEN[$sprache]) ? $sprache : null);
+            $darfExcel = isset($_POST['darf_excel']) ? 1 : 0;
+            $darfBilder = isset($_POST['darf_bilder_export']) ? 1 : 0;
+            $repo->aktualisiereExportRechte($zielId, $darfExcel, $darfBilder);
+            $details = “„{$ziel['benutzername']}”” . ($rolle !== $ziel['rolle'] ? “, Rolle → {$rolle}” : '');
             Protokoll::schreibe('benutzer_geaendert', $details);
-            Helpers::flashSet('erfolg', 'Änderungen wurden gespeichert.');
+            Helpers::flashSet('erfolg', t('benutzer_bearbeiten.gespeichert'));
             // Hat sich der Admin selbst herabgestuft, gibt es die Verwaltung für ihn nicht mehr.
             Helpers::redirect($zielId === (int) $aktuellerBenutzer['id'] && $rolle !== 'admin' ? '/gruppen.php' : '/benutzer.php');
         }
@@ -47,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fehler = Auth::passwortFehler($passwort, (string) ($_POST['passwort_wiederholen'] ?? ''));
         if ($fehler === null) {
             Auth::setzePasswort($zielId, $passwort);
-            Protokoll::schreibe('passwort_zurueckgesetzt', "„{$ziel['benutzername']}“");
-            Helpers::flashSet('erfolg', "Neues Passwort für „{$ziel['benutzername']}“ wurde gesetzt. Bestehende Anmeldungen dieses Benutzers wurden beendet.");
+            Protokoll::schreibe('passwort_zurueckgesetzt', “„{$ziel['benutzername']}””);
+            Helpers::flashSet('erfolg', t('benutzer_bearbeiten.passwort_gesetzt', ['name' => $ziel['benutzername']]));
             Helpers::redirect('/benutzer.php');
         }
     }
@@ -61,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 render('benutzer_bearbeiten', [
-    'titel' => 'Benutzer bearbeiten',
+    'titel' => t('benutzer_bearbeiten.titel', ['name' => $ziel['benutzername']]),
     'aktuelleSeite' => 'benutzer',
     'ziel' => $ziel,
     'fehler' => $fehler,

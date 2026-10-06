@@ -5,22 +5,22 @@ declare(strict_types=1);
 use App\Helpers;
 ?>
 <div class="toolbar">
-    <h2 style="margin:0;">Papierkorb</h2>
+    <h2 style="margin:0;"><?= Helpers::e(t('papierkorb.titel')) ?></h2>
 </div>
-<p class="text-sekundaer">Gelöschte Werke. Wiederherstellen oder endgültig löschen. Endgültig gelöschte Werke werden beim Import nicht mehr neu angelegt.</p>
+<p class="text-sekundaer"><?= Helpers::e(t('papierkorb.beschreibung')) ?></p>
 
 <?php if (!$werke): ?>
-    <p class="text-sekundaer mt-m">Der Papierkorb ist leer.</p>
+    <p class="text-sekundaer mt-m"><?= Helpers::e(t('papierkorb.leer')) ?></p>
 <?php else: ?>
 <table class="liste mt-m">
     <thead>
         <tr>
-            <th>Bild</th>
-            <th>Ort</th>
-            <th>Maler</th>
-            <th>Titel</th>
-            <th>Gelöscht am</th>
-            <th>Gelöscht von</th>
+            <th><?= Helpers::e(t('papierkorb.bild')) ?></th>
+            <th><?= Helpers::e(t('papierkorb.ort')) ?></th>
+            <th><?= Helpers::e(t('feld.maler')) ?></th>
+            <th><?= Helpers::e(t('feld.titel')) ?></th>
+            <th><?= Helpers::e(t('papierkorb.geloescht_am')) ?></th>
+            <th><?= Helpers::e(t('papierkorb.geloescht_von')) ?></th>
             <th></th>
         </tr>
     </thead>
@@ -28,29 +28,29 @@ use App\Helpers;
     <?php foreach ($werke as $w):
         $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't'); ?>
         <tr>
-            <td data-label="Bild">
+            <td data-label="<?= Helpers::e(t('papierkorb.bild')) ?>">
                 <?php if ($thumb): ?>
                     <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
                 <?php endif; ?>
             </td>
-            <td data-label="Ort" class="text-klein"><?= Helpers::e($w['ort'] ?? '') ?></td>
-            <td data-label="Maler" class="text-klein"><?= Helpers::e($w['maler'] ?? '') ?></td>
-            <td data-label="Titel" class="text-klein"><?= Helpers::e($w['titel'] ?? '') ?></td>
-            <td data-label="Gelöscht am" class="text-klein"><?= Helpers::e(Helpers::formatDatum($w['geloescht_am'] ?? '')) ?></td>
-            <td data-label="Gelöscht von" class="text-klein"><?= Helpers::e($w['geloescht_von'] ?? '') ?></td>
+            <td data-label="<?= Helpers::e(t('papierkorb.ort')) ?>" class="text-klein"><?= Helpers::e($w['ort'] ?? '') ?></td>
+            <td data-label="<?= Helpers::e(t('feld.maler')) ?>" class="text-klein"><?= Helpers::e($w['maler'] ?? '') ?></td>
+            <td data-label="<?= Helpers::e(t('feld.titel')) ?>" class="text-klein"><?= Helpers::e($w['titel'] ?? '') ?></td>
+            <td data-label="<?= Helpers::e(t('papierkorb.geloescht_am')) ?>" class="text-klein"><?= Helpers::e(Helpers::formatDatum($w['geloescht_am'] ?? '')) ?></td>
+            <td data-label="<?= Helpers::e(t('papierkorb.geloescht_von')) ?>" class="text-klein"><?= Helpers::e($w['geloescht_von'] ?? '') ?></td>
             <td data-label="" style="white-space:nowrap;">
                 <form method="post" action="/papierkorb.php" style="display:inline;">
                     <?= Helpers::csrfField() ?>
                     <input type="hidden" name="aktion" value="wiederherstellen">
                     <input type="hidden" name="werk_id" value="<?= (int) $w['id'] ?>">
-                    <button type="submit" class="btn btn--klein">Wiederherstellen</button>
+                    <button type="submit" class="btn btn--klein"><?= Helpers::e(t('papierkorb.wiederherstellen')) ?></button>
                 </form>
                 <form method="post" action="/papierkorb.php" style="display:inline;"
-                      data-bestaetigen="Werk „<?= Helpers::e($w['titel'] ?? 'Unbenannt') ?>" endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.">
+                      data-bestaetigen="<?= Helpers::e(t('papierkorb.endgueltig_frage', ['titel' => $w['titel'] ?? t('werk.unbenannt')])) ?>">
                     <?= Helpers::csrfField() ?>
                     <input type="hidden" name="aktion" value="endgueltig_loeschen">
                     <input type="hidden" name="werk_id" value="<?= (int) $w['id'] ?>">
-                    <button type="submit" class="btn btn--klein btn--gefahr"><?= Helpers::icon('papierkorb') ?> Endgültig löschen</button>
+                    <button type="submit" class="btn btn--klein btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('papierkorb.endgueltig')) ?></button>
                 </form>
             </td>
         </tr>

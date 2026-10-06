@@ -47,16 +47,16 @@ $sichtbareFelder = array_filter(
 );
 ?>
 <div class="toolbar">
-    <p class="text-klein" style="margin:0;"><a href="/" data-zurueck>← zurück</a></p>
+    <p class="text-klein" style="margin:0;"><a href="/" data-zurueck><?= Helpers::e(t('allg.zurueck')) ?></a></p>
     <?php if ($istAdmin): ?>
         <div class="toolbar-aktionen">
-            <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--primaer">Bearbeiten</a>
+            <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--primaer"><?= Helpers::e(t('werk.bearbeiten')) ?></a>
             <form method="post" action="/papierkorb.php"
-                  data-bestaetigen="Werk „<?= Helpers::e($werk['titel'] ?? 'Unbenannt') ?>" in den Papierkorb verschieben?">
+                  data-bestaetigen="<?= Helpers::e(t('werk.papierkorb_frage', ['titel' => $werk['titel'] ?? t('werk.unbenannt')])) ?>">
                 <?= Helpers::csrfField() ?>
                 <input type="hidden" name="aktion" value="bulk_papierkorb">
                 <input type="hidden" name="werk_ids[]" value="<?= (int) $werk['id'] ?>">
-                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> In den Papierkorb</button>
+                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werk.in_papierkorb')) ?></button>
             </form>
         </div>
     <?php endif; ?>
@@ -66,9 +66,9 @@ $sichtbareFelder = array_filter(
         <?php if ($bildUrl): ?>
             <img src="<?= Helpers::e($bildUrl) ?>" alt="<?= Helpers::e($werk['titel']) ?>">
         <?php elseif ($hauptbild): ?>
-            <span class="passepartout--leer">Bilddatei „<?= Helpers::e($hauptbild['dateiname']) ?>" fehlt noch</span>
+            <span class="passepartout--leer"><?= Helpers::e(t('werk.bild_fehlt', ['name' => $hauptbild['dateiname']])) ?></span>
         <?php else: ?>
-            <span class="passepartout--leer">Kein Bild hinterlegt</span>
+            <span class="passepartout--leer"><?= Helpers::e(t('werk.kein_bild')) ?></span>
         <?php endif; ?>
     </div>
     <div class="werk-etikett">
@@ -84,22 +84,22 @@ $sichtbareFelder = array_filter(
                 if ($dlOffen): ?></dl><?php $dlOffen = false; endif;
                 $aktuelleGruppe = $feld['gruppe'];
         ?>
-        <h4 class="text-sekundaer text-klein mt-m"><?= Helpers::e($aktuelleGruppe) ?></h4>
+        <h4 class="text-sekundaer text-klein mt-m"><?= Helpers::e(t('feldgruppe.' . $aktuelleGruppe)) ?></h4>
         <dl>
         <?php $dlOffen = true; ?>
         <?php endif; ?>
-            <dt><?= Helpers::e($feld['label']) ?></dt>
+            <dt><?= Helpers::e(t($feld['label'])) ?></dt>
             <dd>
                 <?= $zeigeWert($feld, $werk) ?>
                 <?php if ($feld['key'] === 'beschreibung_intern'): ?>
-                    <span class="text-sekundaer text-klein"> – intern</span>
+                    <span class="text-sekundaer text-klein"><?= Helpers::e(t('werk.intern_hinweis')) ?></span>
                 <?php endif; ?>
             </dd>
         <?php endforeach; ?>
         <?php if ($dlOffen): ?></dl><?php endif; ?>
 
         <?php if ($originalUrl): ?>
-            <p class="mt-m"><a href="<?= Helpers::e($originalUrl) ?>" target="_blank" rel="noopener" class="btn btn--klein">Originalbild öffnen</a></p>
+            <p class="mt-m"><a href="<?= Helpers::e($originalUrl) ?>" target="_blank" rel="noopener" class="btn btn--klein"><?= Helpers::e(t('werk.originalbild')) ?></a></p>
         <?php endif; ?>
     </div>
 </div>
@@ -116,7 +116,7 @@ $sichtbareFelder = array_filter(
             <?php if ($bThumbUrl): ?>
                 <img src="<?= Helpers::e($bThumbUrl) ?>" alt="<?= Helpers::e((string) ($bild['beschriftung'] ?? '')) ?>">
             <?php else: ?>
-                <span class="passepartout--leer">fehlt</span>
+                <span class="passepartout--leer"><?= Helpers::e(t('werk_bearb.bild_fehlt')) ?></span>
             <?php endif; ?>
         </a>
     <?php endforeach; ?>

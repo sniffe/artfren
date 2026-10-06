@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 $reiter = [
-    'tabelle' => ['/import.php', 'Tabelle importieren'],
-    'bilder' => ['/bilder_upload.php', 'Bilder hochladen'],
-    'orte' => ['/orte.php', 'Orte bereinigen'],
+    'tabelle' => ['/import.php', t('import.reiter_tabelle')],
+    'bilder' => ['/bilder_upload.php', t('import.reiter_bilder')],
+    'orte' => ['/orte.php', t('import.reiter_orte')],
 ];
 ?>
 <nav class="reiter">
     <?php foreach ($reiter as $schluessel => [$url, $text]): ?>
-        <a href="<?= $url ?>" class="<?= $aktiverReiter === $schluessel ? 'aktiv' : '' ?>"><?= $text ?></a>
+        <a href="<?= $url ?>" class="<?= $aktiverReiter === $schluessel ? 'aktiv' : '' ?>"><?= \App\Helpers::e($text) ?></a>
     <?php endforeach; ?>
 </nav>

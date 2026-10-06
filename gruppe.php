@@ -24,33 +24,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($aktion === 'mitglieder_speichern') {
         $gruppe = $repo->finde($aktionGruppeId);
         if ($gruppe === null) {
-            Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.');
+            Helpers::abbrechen(404, t('gruppe.nicht_gefunden'));
         }
         $repo->setzeMitglieder((int) $gruppe['id'], Helpers::idListe($_POST['werk_ids'] ?? []));
         $anzahl = count(WerkRepository::neu()->mitgliedIds((int) $gruppe['id']));
         Protokoll::schreibe('gruppe_mitglieder', “„{$gruppe['name']}”: jetzt {$anzahl} Werke”);
-        Helpers::flashSet('erfolg', “Mitglieder der Gruppe wurden aktualisiert ({$anzahl} Werke).”);
+        Helpers::flashSet('erfolg', t('gruppe.mitglieder_aktualisiert', ['n' => $anzahl]));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id'] . '&mitglieder_gespeichert=1');
     }
 
     // ── Werk-Reihenfolge ──────────────────────────────────────────────────
     if ($aktion === 'werk_reihenfolge') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->setzeWerkReihenfolge((int) $gruppe['id'], array_map('intval', (array) ($_POST['werk_reihenfolge'] ?? [])));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'werk_nach_oben') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->werkNachOben((int) $gruppe['id'], (int) ($_POST['werk_id'] ?? 0));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'werk_nach_unten') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->werkNachUnten((int) $gruppe['id'], (int) ($_POST['werk_id'] ?? 0));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
@@ -58,34 +58,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Web-Veröffentlichung ──────────────────────────────────────────────
     if ($aktion === 'web_aktivieren') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webAktivieren((int) $gruppe['id']);
         Protokoll::schreibe('web_veroeffentlicht', “„{$gruppe['name']}””);
-        Helpers::flashSet('erfolg', 'Galerie wurde veröffentlicht.');
+        Helpers::flashSet('erfolg', t('gruppe.web_aktiviert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'web_deaktivieren') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webDeaktivieren((int) $gruppe['id']);
         Protokoll::schreibe('web_zurueckgezogen', “„{$gruppe['name']}””);
-        Helpers::flashSet('erfolg', 'Galerie wurde zurückgezogen.');
+        Helpers::flashSet('erfolg', t('gruppe.web_deaktiviert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'web_link_erneuern') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webLinkErneuern((int) $gruppe['id']);
         Protokoll::schreibe('web_link_erneuert', “„{$gruppe['name']}””);
-        Helpers::flashSet('erfolg', 'Der Link wurde erneuert. Der alte Link ist jetzt ungültig.');
+        Helpers::flashSet('erfolg', t('gruppe.web_link_erneuert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'web_einstellungen') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $einstellungen = [];
 
         $titel = trim((string) ($_POST['web_titel'] ?? ''));
@@ -131,16 +131,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $repo->webEinstellungenSpeichern((int) $gruppe['id'], $einstellungen);
         Protokoll::schreibe('web_felder_geaendert', “„{$gruppe['name']}””);
-        Helpers::flashSet('erfolg', 'Web-Einstellungen gespeichert.');
+        Helpers::flashSet('erfolg', t('gruppe.web_gespeichert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
     if ($aktion === 'web_alle_freigeben') {
         $gruppe = $repo->finde($aktionGruppeId);
-        if ($gruppe === null) { Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.'); }
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $anzahl = $repo->alleWerkeFreigeben((int) $gruppe['id']);
         Protokoll::schreibe('web_felder_geaendert', “„{$gruppe['name']}”: {$anzahl} Werke freigegeben”);
-        Helpers::flashSet('erfolg', “{$anzahl} Werke wurden für Web freigegeben.”);
+        Helpers::flashSet('erfolg', t('gruppe.alle_freigegeben', ['n' => $anzahl]));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
 
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $id = (int) ($_GET['id'] ?? 0);
 $gruppe = $repo->finde($id);
 if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
-    Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.');
+    Helpers::abbrechen(404, t('gruppe.nicht_gefunden'));
 }
 
 $istAdmin = Auth::isAdmin($benutzer);

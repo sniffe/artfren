@@ -40,11 +40,11 @@ final class Felder
             // ----- Stammdaten ------------------------------------------------
             [
                 'key'            => 'ort',
-                'label'          => 'Ort',
+                'label'          => 'feld.ort',
                 'typ'            => 'text',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['ort', 'standort'],
-                'export_label'   => 'Ort',
+                'import_alias'   => ['ort', 'standort', 'location'],
+                'export_label'   => 'feld.ort.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -54,11 +54,11 @@ final class Felder
             ],
             [
                 'key'            => 'maler',
-                'label'          => 'Maler',
+                'label'          => 'feld.maler',
                 'typ'            => 'text',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['maler', 'kuenstler', 'kuenstlerin'],
-                'export_label'   => 'Maler',
+                'import_alias'   => ['maler', 'kuenstler', 'kuenstlerin', 'artist'],
+                'export_label'   => 'feld.maler.export',
                 'in_detail'      => false, // wird im Etikett-Header angezeigt
                 'in_pdf'         => false, // wird im PDF-Etikett angezeigt
                 'oeffentlich'    => 'waehlbar',
@@ -68,11 +68,11 @@ final class Felder
             ],
             [
                 'key'            => 'titel',
-                'label'          => 'Titel',
+                'label'          => 'feld.titel',
                 'typ'            => 'text',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['titel'],
-                'export_label'   => 'Titel',
+                'import_alias'   => ['titel', 'title'],
+                'export_label'   => 'feld.titel.export',
                 'in_detail'      => false, // wird im Etikett-Header angezeigt
                 'in_pdf'         => false, // wird im PDF-Etikett angezeigt
                 'oeffentlich'    => 'waehlbar',
@@ -82,11 +82,11 @@ final class Felder
             ],
             [
                 'key'            => 'format',
-                'label'          => 'Format',
+                'label'          => 'feld.format',
                 'typ'            => 'text',
                 'gruppe'         => 'Stammdaten',
                 'import_alias'   => ['format'],
-                'export_label'   => 'Format',
+                'export_label'   => 'feld.format.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -96,11 +96,11 @@ final class Felder
             ],
             [
                 'key'            => 'technik',
-                'label'          => 'Technik',
+                'label'          => 'feld.technik',
                 'typ'            => 'text',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['technik'],
-                'export_label'   => 'Technik',
+                'import_alias'   => ['technik', 'technique'],
+                'export_label'   => 'feld.technik.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -110,11 +110,11 @@ final class Felder
             ],
             [
                 'key'            => 'entstehungsjahr',
-                'label'          => 'Entstehungsjahr',
+                'label'          => 'feld.entstehungsjahr',
                 'typ'            => 'jahr',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['entstehungsjahr', 'enstehungsjahr', 'jahr'],
-                'export_label'   => 'Entstehungsjahr',
+                'import_alias'   => ['entstehungsjahr', 'enstehungsjahr', 'jahr', 'yearcreated', 'year'],
+                'export_label'   => 'feld.entstehungsjahr.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -124,11 +124,11 @@ final class Felder
             ],
             [
                 'key'            => 'werktyp',
-                'label'          => 'Bild/Objekt',
+                'label'          => 'feld.werktyp',
                 'typ'            => 'auswahl',
                 'gruppe'         => 'Stammdaten',
-                'import_alias'   => ['bild', 'werktyp', 'typ'],
-                'export_label'   => 'Bild',
+                'import_alias'   => ['bild', 'werktyp', 'typ', 'type'],
+                'export_label'   => 'feld.werktyp.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'waehlbar',
@@ -139,11 +139,11 @@ final class Felder
             // ----- Ankauf ----------------------------------------------------
             [
                 'key'            => 'ankaufjahr',
-                'label'          => 'Ankaufjahr',
+                'label'          => 'feld.ankaufjahr',
                 'typ'            => 'jahr',
                 'gruppe'         => 'Ankauf',
-                'import_alias'   => ['ankaufjahr', 'ankaufsjahr'],
-                'export_label'   => 'Ankaufjahr',
+                'import_alias'   => ['ankaufjahr', 'ankaufsjahr', 'purchaseyear'],
+                'export_label'   => 'feld.ankaufjahr.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -153,11 +153,11 @@ final class Felder
             ],
             [
                 'key'            => 'ankauf',
-                'label'          => 'Ankauf (bei wem)',
+                'label'          => 'feld.ankauf',
                 'typ'            => 'text',
                 'gruppe'         => 'Ankauf',
-                'import_alias'   => ['ankauf'],
-                'export_label'   => 'Ankauf',
+                'import_alias'   => ['ankauf', 'gekauftvon', 'boughtfrom'],
+                'export_label'   => 'feld.ankauf.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -167,11 +167,11 @@ final class Felder
             ],
             [
                 'key'            => 'ankaufswert',
-                'label'          => 'Ankaufswert (€)',
+                'label'          => 'feld.ankaufswert',
                 'typ'            => 'geld',
                 'gruppe'         => 'Ankauf',
-                'import_alias'   => ['ankaufswert', 'ankaufwert'],
-                'export_label'   => 'Ankaufswert',
+                'import_alias'   => ['ankaufswert', 'ankaufwert', 'purchasevalue'],
+                'export_label'   => 'feld.ankaufswert.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -181,11 +181,11 @@ final class Felder
             ],
             [
                 'key'            => 'wert',
-                'label'          => 'Wert (€)',
+                'label'          => 'feld.wert',
                 'typ'            => 'geld',
                 'gruppe'         => 'Ankauf',
-                'import_alias'   => ['wert'],
-                'export_label'   => 'Wert',
+                'import_alias'   => ['wert', 'preis', 'price'],
+                'export_label'   => 'feld.wert.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -196,11 +196,11 @@ final class Felder
             // ----- Beschreibung ----------------------------------------------
             [
                 'key'            => 'beschreibung_oeffentlich',
-                'label'          => 'Beschreibung (öffentlich)',
+                'label'          => 'feld.beschreibung_oeffentlich',
                 'typ'            => 'langtext',
                 'gruppe'         => 'Beschreibung',
-                'import_alias'   => ['beschreibungoeffentlich', 'beschreibung'],
-                'export_label'   => 'Beschreibung (öffentlich)',
+                'import_alias'   => ['beschreibungoeffentlich', 'beschreibung', 'descriptionpublic', 'description'],
+                'export_label'   => 'feld.beschreibung_oeffentlich.export',
                 'in_detail'      => true,
                 'in_pdf'         => true,
                 'oeffentlich'    => 'waehlbar',
@@ -210,11 +210,11 @@ final class Felder
             ],
             [
                 'key'            => 'beschreibung_intern',
-                'label'          => 'Beschreibung (intern)',
+                'label'          => 'feld.beschreibung_intern',
                 'typ'            => 'langtext',
                 'gruppe'         => 'Beschreibung',
-                'import_alias'   => ['beschreibungintern'],
-                'export_label'   => 'Beschreibung (intern)',
+                'import_alias'   => ['beschreibungintern', 'descriptioninternal', 'descriptionintern'],
+                'export_label'   => 'feld.beschreibung_intern.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'never',
@@ -224,11 +224,11 @@ final class Felder
             ],
             [
                 'key'            => 'copyright',
-                'label'          => 'Bildrechte / Copyright-Vermerk',
+                'label'          => 'feld.copyright',
                 'typ'            => 'text',
                 'gruppe'         => 'Beschreibung',
-                'import_alias'   => ['copyright', 'bildrechte'],
-                'export_label'   => 'Bildrechte',
+                'import_alias'   => ['copyright', 'bildrechte', 'imagerights'],
+                'export_label'   => 'feld.copyright.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'immer',
@@ -239,11 +239,11 @@ final class Felder
             // ----- Herkunft --------------------------------------------------
             [
                 'key'            => 'herkunft',
-                'label'          => 'Herkunft',
+                'label'          => 'feld.herkunft',
                 'typ'            => 'text',
                 'gruppe'         => 'Herkunft',
-                'import_alias'   => ['herkunft'],
-                'export_label'   => 'Herkunft',
+                'import_alias'   => ['herkunft', 'provenance'],
+                'export_label'   => 'feld.herkunft.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'waehlbar',
@@ -254,11 +254,11 @@ final class Felder
             // ----- Status ----------------------------------------------------
             [
                 'key'            => 'status_farbe',
-                'label'          => 'Status',
+                'label'          => 'feld.status_farbe',
                 'typ'            => 'auswahl',
                 'gruppe'         => 'Status',
                 'import_alias'   => ['status', 'statusfarbe', 'statuszellfarbe'],
-                'export_label'   => 'Status',
+                'export_label'   => 'feld.status_farbe.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'never',
@@ -268,11 +268,11 @@ final class Felder
             ],
             [
                 'key'            => 'web_freigabe',
-                'label'          => 'Für Web freigegeben',
+                'label'          => 'feld.web_freigabe',
                 'typ'            => 'janein',
                 'gruppe'         => 'Status',
-                'import_alias'   => ['webfreigabe', 'webfreigegeben'],
-                'export_label'   => 'Web-Freigabe',
+                'import_alias'   => ['webfreigabe', 'webfreigegeben', 'webapproval', 'approvedforweb'],
+                'export_label'   => 'feld.web_freigabe.export',
                 'in_detail'      => true,
                 'in_pdf'         => false,
                 'oeffentlich'    => 'never',
@@ -283,6 +283,31 @@ final class Felder
         ];
 
         return self::$cache;
+    }
+
+    /**
+     * Übersetztes Label eines Feldes in der aktiven Sprache.
+     * Fällt auf den t()-Key zurück, wenn er nicht gefunden wird.
+     */
+    public static function label(string $key): string
+    {
+        return t('feld.' . $key);
+    }
+
+    /**
+     * Übersetztes Export-Label (ohne Einheit) in der aktiven Sprache.
+     */
+    public static function exportLabel(string $key): string
+    {
+        return t('feld.' . $key . '.export');
+    }
+
+    /**
+     * Übersetzter Gruppenname der Felddefinition.
+     */
+    public static function gruppenLabel(string $gruppe): string
+    {
+        return t('feldgruppe.' . $gruppe);
     }
 
     /**
@@ -308,19 +333,19 @@ final class Felder
     }
 
     /**
-     * Fuer den Import-Dropdown: key => Anzeige-Label.
+     * Fuer den Import-Dropdown: key => Anzeige-Label (übersetzt).
      * Reihenfolge: '' zuerst (ignorieren), dann alle Felder, dann bild_dateiname.
      * @return array<string, string>
      */
     public static function zielfelder(): array
     {
-        $ergebnis = ['' => '– ignorieren –'];
+        $ergebnis = ['' => t('feld.ignorieren')];
         foreach (self::alle() as $feld) {
-            $ergebnis[$feld['key']] = $feld['label'];
+            $ergebnis[$feld['key']] = self::label($feld['key']);
         }
-        $ergebnis['bild_dateiname'] = 'Bild-Dateiname';
+        $ergebnis['bild_dateiname'] = t('feld.bild_dateiname');
         for ($n = 2; $n <= 8; $n++) {
-            $ergebnis["bild_dateiname_{$n}"] = "Bild-Dateiname {$n}";
+            $ergebnis["bild_dateiname_{$n}"] = t('feld.bild_dateiname_n', ['n' => $n]);
         }
         return $ergebnis;
     }
@@ -374,38 +399,35 @@ final class Felder
      */
     public static function exportSpalten(): array
     {
-        $index = array_column(self::alle(), null, 'key');
-        $lbl   = static fn(string $k): string => $index[$k]['export_label'] ?? $k;
-
         return [
             // Historisch fixierte Reihenfolge
-            'ort'                    => $lbl('ort'),
-            'maler'                  => $lbl('maler'),
-            'titel'                  => $lbl('titel'),
-            'format'                 => $lbl('format'),
-            'technik'                => $lbl('technik'),
-            'entstehungsjahr'        => $lbl('entstehungsjahr'),
-            'ankaufjahr'             => $lbl('ankaufjahr'),
-            'ankauf'                 => $lbl('ankauf'),
-            'ankaufswert'            => $lbl('ankaufswert'),
-            'wert'                   => $lbl('wert'),
-            'werktyp'                => $lbl('werktyp'),
-            'status_farbe'           => $lbl('status_farbe'),
-            'bild_dateiname'         => 'Dateiname',
+            'ort'                    => self::exportLabel('ort'),
+            'maler'                  => self::exportLabel('maler'),
+            'titel'                  => self::exportLabel('titel'),
+            'format'                 => self::exportLabel('format'),
+            'technik'                => self::exportLabel('technik'),
+            'entstehungsjahr'        => self::exportLabel('entstehungsjahr'),
+            'ankaufjahr'             => self::exportLabel('ankaufjahr'),
+            'ankauf'                 => self::exportLabel('ankauf'),
+            'ankaufswert'            => self::exportLabel('ankaufswert'),
+            'wert'                   => self::exportLabel('wert'),
+            'werktyp'                => self::exportLabel('werktyp'),
+            'status_farbe'           => self::exportLabel('status_farbe'),
+            'bild_dateiname'         => t('feld.bild_dateiname.export'),
             // Ab v1.1 angehaengt
-            'beschreibung_oeffentlich' => $lbl('beschreibung_oeffentlich'),
-            'beschreibung_intern'    => $lbl('beschreibung_intern'),
-            'herkunft'               => $lbl('herkunft'),
-            'copyright'              => $lbl('copyright'),
-            'web_freigabe'           => $lbl('web_freigabe'),
+            'beschreibung_oeffentlich' => self::exportLabel('beschreibung_oeffentlich'),
+            'beschreibung_intern'    => self::exportLabel('beschreibung_intern'),
+            'herkunft'               => self::exportLabel('herkunft'),
+            'copyright'              => self::exportLabel('copyright'),
+            'web_freigabe'           => self::exportLabel('web_freigabe'),
             // Mehrere Bilder (Paket 4)
-            'bild_dateiname_2'       => 'Dateiname 2',
-            'bild_dateiname_3'       => 'Dateiname 3',
-            'bild_dateiname_4'       => 'Dateiname 4',
-            'bild_dateiname_5'       => 'Dateiname 5',
-            'bild_dateiname_6'       => 'Dateiname 6',
-            'bild_dateiname_7'       => 'Dateiname 7',
-            'bild_dateiname_8'       => 'Dateiname 8',
+            'bild_dateiname_2'       => t('feld.bild_dateiname_n', ['n' => 2]),
+            'bild_dateiname_3'       => t('feld.bild_dateiname_n', ['n' => 3]),
+            'bild_dateiname_4'       => t('feld.bild_dateiname_n', ['n' => 4]),
+            'bild_dateiname_5'       => t('feld.bild_dateiname_n', ['n' => 5]),
+            'bild_dateiname_6'       => t('feld.bild_dateiname_n', ['n' => 6]),
+            'bild_dateiname_7'       => t('feld.bild_dateiname_n', ['n' => 7]),
+            'bild_dateiname_8'       => t('feld.bild_dateiname_n', ['n' => 8]),
         ];
     }
 }

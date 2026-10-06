@@ -33,7 +33,7 @@ function zeige_mapping(string $tmpName, array $mapping, ?string $fehler = null, 
 {
     $vorschau = TabellenImport::vorschau(IMPORT_TMP_PATH . '/' . $tmpName);
     render('import_mapping', array_merge($vorschau, $info, [
-        'titel' => 'Import – Spalten zuordnen',
+        'titel' => t('import.spalten_zuordnen'),
         'aktuelleSeite' => 'import',
         'breit' => true,
         'mapping' => $mapping ?: TabellenImport::automatischesMapping($vorschau['header']),
@@ -45,7 +45,7 @@ function zeige_mapping(string $tmpName, array $mapping, ?string $fehler = null, 
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     render('import_upload', [
-        'titel' => 'Import',
+        'titel' => t('import.titel'),
         'aktuelleSeite' => 'import',
         'maxGroesse' => min(TabellenImport::MAX_DATEIGROESSE, \App\Bilder::alsBytes((string) ini_get('upload_max_filesize'))),
     ]);
@@ -58,12 +58,12 @@ $aktion = (string) ($_POST['aktion'] ?? '');
 if ($aktion === 'hochladen') {
     $datei = $_FILES['datei'] ?? null;
     if (!is_array($datei) || ($datei['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        $fehler = ($datei['error'] ?? null) === UPLOAD_ERR_INI_SIZE ? 'Die Datei ist größer als vom Server erlaubt.' : 'Es wurde keine Datei hochgeladen.';
+        $fehler = ($datei['error'] ?? null) === UPLOAD_ERR_INI_SIZE ? t('import.upload_err_server') : t('import.upload_err_keine');
         Helpers::flashSet('fehler', $fehler);
         Helpers::redirect('/import.php');
     }
     if ($datei['size'] > TabellenImport::MAX_DATEIGROESSE) {
-        Helpers::flashSet('fehler', 'Die Datei ist zu groß (höchstens 20 MB).');
+        Helpers::flashSet('fehler', t('import.upload_err_gross'));
         Helpers::redirect('/import.php');
     }
 
@@ -81,7 +81,7 @@ if ($aktion === 'hochladen') {
 if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
     $pfad = import_pfad($_POST['tmp_datei'] ?? null);
     if ($pfad === null) {
-        Helpers::flashSet('fehler', 'Die Import-Datei ist nicht mehr verfügbar. Bitte erneut hochladen.');
+        Helpers::flashSet('fehler', t('import.datei_abgelaufen'));
         Helpers::redirect('/import.php');
     }
     $tmpName = basename($pfad);
@@ -100,7 +100,7 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
 
     if ($aktion === 'abgleich') {
         render('import_abgleich', [
-            'titel' => 'Import – Abgleich',
+            'titel' => t('import.abgleich_seitentitel'),
             'aktuelleSeite' => 'import',
             'abgleich' => $abgleich,
             'tmp_datei' => $tmpName,
@@ -125,7 +125,7 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
     Protokoll::schreibe('import', $zusammenfassung);
 
     render('import_ergebnis', [
-        'titel' => 'Import abgeschlossen',
+        'titel' => t('import.abgeschlossen_titel'),
         'aktuelleSeite' => 'import',
         'abgleich' => $abgleich,
         'bearbeiteteUeberschrieben' => $ueberschreiben,

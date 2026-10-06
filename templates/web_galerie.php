@@ -11,7 +11,7 @@ $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['n
 $einleitung   = $gruppe['web_einleitung'] ?? '';
 ?>
 <?php if ($adminVorschau): ?>
-<div class="web-vorschau-banner">Vorschau (Admin) – diese Galerie ist <?= (int) $gruppe['web_aktiv'] ? 'aktiv' : 'noch nicht veröffentlicht' ?></div>
+<div class="web-vorschau-banner"><?= Helpers::e(t('pubweb.vorschau_banner', ['status' => (int) $gruppe['web_aktiv'] ? t('pubweb.vorschau_aktiv') : t('pubweb.vorschau_nicht')])) ?></div>
 <?php endif; ?>
 <header class="web-header">
     <h1><?= Helpers::e($gruppenTitel) ?></h1>
@@ -21,7 +21,7 @@ $einleitung   = $gruppe['web_einleitung'] ?? '';
 </header>
 
 <?php if (!$werke): ?>
-    <p class="web-leer">Diese Galerie enthält noch keine Werke.</p>
+    <p class="web-leer"><?= Helpers::e(t('pubweb.galerie_leer')) ?></p>
 <?php else: ?>
 <div class="web-karten" id="web-karten">
     <?php foreach ($werke as $w): ?>

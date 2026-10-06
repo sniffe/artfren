@@ -71,11 +71,11 @@ final class TabellenImport
             $zeilen = self::rohzeilenCsv($quelle);
             $format = 'CSV';
         } else {
-            throw new ImportFehler('Bitte eine .xlsx- oder .csv-Datei hochladen.');
+            throw new ImportFehler(\t('import.fehler_falscher_typ'));
         }
 
         if ($zeilen === []) {
-            throw new ImportFehler('Die Datei enthält keine Daten.');
+            throw new ImportFehler(\t('import.fehler_keine_daten'));
         }
 
         $kopfIndex = self::findeKopfzeile($zeilen);
@@ -124,7 +124,7 @@ final class TabellenImport
             $blatt = $leser->load($pfad)->getSheet(0);
         } catch (\Throwable $e) {
             error_log('XLSX-Import: ' . $e->getMessage());
-            throw new ImportFehler('Die Excel-Datei konnte nicht gelesen werden. Ist sie beschädigt oder passwortgeschützt?');
+            throw new ImportFehler(\t('import.fehler_excel_defekt'));
         }
 
         $maxZeile = $blatt->getHighestDataRow();
@@ -317,11 +317,11 @@ final class TabellenImport
         if ($fehlend !== []) {
             $zielfelder = self::zielfelder();
             $namen = array_map(static fn($f) => $zielfelder[$f], $fehlend);
-            return 'Bitte eine Spalte zuordnen für: ' . implode(', ', $namen) . ' (daran werden Werke beim erneuten Import wiedererkannt).';
+            return \t('import.mapping_pflicht', ['spalten' => implode(', ', $namen)]);
         }
         $doppelt = array_diff_assoc(array_filter($mapping), array_unique(array_filter($mapping)));
         if ($doppelt !== []) {
-            return 'Das Feld „' . self::zielfelder()[reset($doppelt)] . '” ist mehreren Spalten zugeordnet.';
+            return \t('import.mapping_doppelt', ['feld' => self::zielfelder()[reset($doppelt)]]);
         }
         return null;
     }
@@ -365,8 +365,8 @@ final class TabellenImport
 
             $daten['entstehungsjahr'] = Helpers::parseJahr($daten['entstehungsjahr']);
             $daten['ankaufjahr'] = Helpers::parseJahr($daten['ankaufjahr']);
-            $daten['ankaufswert'] = Helpers::parseBetrag($daten['ankaufswert']);
-            $daten['wert'] = Helpers::parseBetrag($daten['wert']);
+            $daten['ankaufswert'] = Helpers::parseBetrag($daten['ankaufswert'], 'de'); // Excel: stets deutsche Logik
+            $daten['wert'] = Helpers::parseBetrag($daten['wert'], 'de');
             $daten['werktyp'] = mb_strtolower((string) $daten['werktyp']) === 'objekt' ? 'Objekt' : 'Bild';
             $daten['status_farbe'] = Helpers::normalisiereStatus($daten['status_farbe']);
             // web_freigabe: "ja" → 1, alles andere (leer, "nein") → 0

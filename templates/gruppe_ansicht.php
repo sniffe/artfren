@@ -18,28 +18,28 @@ $gruppeId = (int) $gruppe['id'];
 ?>
 <div class="toolbar">
     <div>
-        <p class="text-klein text-sekundaer"><a href="/gruppen.php">← Gruppen</a></p>
+        <p class="text-klein text-sekundaer"><a href="/gruppen.php"><?= Helpers::e(t('gruppe.zurueck')) ?></a></p>
         <h2 class="gruppenname"><?= Helpers::e($gruppe['name']) ?></h2>
         <p class="text-sekundaer text-klein">
-            <?= count($werke) ?> Werke · erstellt am <?= Helpers::e(Helpers::formatDatum($gruppe['erstellt_am'], 'd.m.Y')) ?>
+            <?= Helpers::e(\App\I18n::plural(count($werke), 'gruppe.werke_zaehler', ['n' => count($werke)])) ?> · <?= Helpers::e(t('gruppe.erstellt_am', ['datum' => Helpers::formatDatum($gruppe['erstellt_am'], 'd.m.Y')])) ?>
             <?php if ($istAdmin): ?>
-                · sichtbar für:
+                · <?= Helpers::e(t('gruppe.sichtbar_fuer')) ?>
                 <?php if ($freigegebenFuer): ?>
                     <?php foreach ($freigegebenFuer as $i => $b): ?><?= $i > 0 ? ', ' : '' ?><a href="/benutzer_bearbeiten.php?id=<?= (int) $b['id'] ?>"><?= Helpers::e($b['echter_name'] ?: $b['benutzername']) ?></a><?php endforeach; ?>
                 <?php else: ?>
-                    nur Admins
+                    <?= Helpers::e(t('gruppe.nur_admins')) ?>
                 <?php endif; ?>
             <?php endif; ?>
         </p>
     </div>
     <div class="toolbar-aktionen">
-        <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="Tabelle mit allen Feldern und Dateinamen">Excel</a>
+        <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></a>
         <?php if ($bilderAnzahl > 0): ?>
-            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="Bilddateien der Gruppe als ZIP">Bilder-ZIP (<?= $bilderAnzahl ?>)</a>
+            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('gruppe.bilder_zip', ['n' => $bilderAnzahl])) ?></a>
         <?php endif; ?>
-        <a href="/export_gruppe_pdf.php?id=<?= $gruppeId ?>" class="btn">PDF</a>
+        <a href="/export_gruppe_pdf.php?id=<?= $gruppeId ?>" class="btn"><?= Helpers::e(t('gruppe.pdf')) ?></a>
         <?php if ($istAdmin): ?>
-            <a href="/werke.php?gruppe_id=<?= $gruppeId ?>" class="btn btn--primaer">Werke hinzufügen/entfernen</a>
+            <a href="/werke.php?gruppe_id=<?= $gruppeId ?>" class="btn btn--primaer"><?= Helpers::e(t('gruppe.werke_hinzufuegen')) ?></a>
         <?php endif; ?>
     </div>
 </div>
@@ -51,7 +51,7 @@ $gruppeId = (int) $gruppe['id'];
                 <?php if ($bild): ?>
                     <img src="<?= Helpers::e($bild) ?>" alt="" loading="lazy">
                 <?php else: ?>
-                    <span class="passepartout--leer">Kein Bild</span>
+                    <span class="passepartout--leer"><?= Helpers::e(t('gruppe.kein_bild')) ?></span>
                 <?php endif; ?>
             </div>
             <div class="werk-etikett">
@@ -62,7 +62,7 @@ $gruppeId = (int) $gruppe['id'];
         </a>
     <?php endforeach; ?>
     <?php if (!$werke): ?>
-        <p class="text-sekundaer">Diese Gruppe enthält noch keine Werke.</p>
+        <p class="text-sekundaer"><?= Helpers::e(t('gruppe.leer')) ?></p>
     <?php endif; ?>
 </div>
 
@@ -70,22 +70,22 @@ $gruppeId = (int) $gruppe['id'];
 
 <!-- ── Web-Veröffentlichung ───────────────────────────────────────── -->
 <div class="karte mt-l" style="max-width:900px;">
-    <h3>Im Web veröffentlichen</h3>
+    <h3><?= Helpers::e(t('gruppe.web_veroeffentlichen')) ?></h3>
 
     <?php if ($gruppe['web_aktiv']): ?>
         <?php $galerieUrl = $baseUrl . '/w/' . $gruppe['web_token']; ?>
         <p>
-            <span class="badge badge--admin">Veröffentlicht</span>
+            <span class="badge badge--admin"><?= Helpers::e(t('gruppe.web_veroeffentlicht')) ?></span>
             <?php if (!empty($gruppe['web_ablauf'])): ?>
-                · läuft ab <?= Helpers::e(Helpers::formatDatum($gruppe['web_ablauf'], 'd.m.Y')) ?>
+                · <?= Helpers::e(t('gruppe.web_laeuft_ab', ['datum' => Helpers::formatDatum($gruppe['web_ablauf'], 'd.m.Y')])) ?>
             <?php endif; ?>
-            <?php if (!empty($gruppe['web_passwort_hash'])): ?> · passwortgeschützt<?php endif; ?>
-            <?php if (!empty($gruppe['web_aufrufe'])): ?> · <?= (int) $gruppe['web_aufrufe'] ?> Aufrufe<?php endif; ?>
+            <?php if (!empty($gruppe['web_passwort_hash'])): ?> · <?= Helpers::e(t('gruppe.web_passwortgeschuetzt')) ?><?php endif; ?>
+            <?php if (!empty($gruppe['web_aufrufe'])): ?> · <?= Helpers::e(t('gruppe.web_aufrufe', ['n' => (int) $gruppe['web_aufrufe']])) ?><?php endif; ?>
         </p>
         <div style="display:flex; gap:var(--abstand-s); align-items:center; flex-wrap:wrap; margin-bottom:var(--abstand-m);">
             <code id="web-galerie-url" style="flex:1; min-width:200px; overflow-wrap:anywhere;"><?= Helpers::e($galerieUrl) ?></code>
-            <button type="button" class="btn btn--klein" data-kopieren="web-galerie-url">Kopieren</button>
-            <a href="<?= Helpers::e($galerieUrl) ?>" target="_blank" rel="noopener" class="btn btn--klein">↗ Öffnen</a>
+            <button type="button" class="btn btn--klein" data-kopieren="web-galerie-url"><?= Helpers::e(t('gruppe.web_kopieren')) ?></button>
+            <a href="<?= Helpers::e($galerieUrl) ?>" target="_blank" rel="noopener" class="btn btn--klein"><?= Helpers::e(t('gruppe.web_oeffnen')) ?></a>
         </div>
         <div style="display:flex; gap:var(--abstand-s); flex-wrap:wrap; margin-bottom:var(--abstand-l);">
             <form method="post">
@@ -93,78 +93,77 @@ $gruppeId = (int) $gruppe['id'];
                 <input type="hidden" name="aktion" value="web_deaktivieren">
                 <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
                 <button type="submit" class="btn btn--gefahr btn--klein"
-                        data-bestaetigen="Galerie wirklich zurückziehen? Der Link wird inaktiv.">Zurückziehen</button>
+                        data-bestaetigen="<?= Helpers::e(t('gruppe.web_zurueckziehen_frage')) ?>"><?= Helpers::e(t('gruppe.web_zurueckziehen')) ?></button>
             </form>
             <form method="post">
                 <?= Helpers::csrfField() ?>
                 <input type="hidden" name="aktion" value="web_link_erneuern">
                 <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
                 <button type="submit" class="btn btn--klein"
-                        data-bestaetigen="Link wirklich erneuern? Der alte Link wird sofort ungültig!">Link erneuern</button>
+                        data-bestaetigen="<?= Helpers::e(t('gruppe.web_link_erneuern_frage')) ?>"><?= Helpers::e(t('gruppe.web_link_erneuern')) ?></button>
             </form>
         </div>
     <?php else: ?>
-        <p class="text-sekundaer text-klein">Galerie ist nicht öffentlich zugänglich.</p>
+        <p class="text-sekundaer text-klein"><?= Helpers::e(t('gruppe.web_nicht_oeffentlich')) ?></p>
         <form method="post" style="margin-bottom:var(--abstand-l);">
             <?= Helpers::csrfField() ?>
             <input type="hidden" name="aktion" value="web_aktivieren">
             <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
-            <button type="submit" class="btn btn--primaer">Galerie veröffentlichen</button>
+            <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('gruppe.web_veroeffentlichen_btn')) ?></button>
         </form>
     <?php endif; ?>
 
     <p class="text-klein text-sekundaer">
-        <?= (int) ($webStats['gesamt'] ?? 0) ?> Werke in der Gruppe,
-        davon <?= (int) ($webStats['freigegeben'] ?? 0) ?> für Web freigegeben.
+        <?= Helpers::e(t('gruppe.web_stats', ['gesamt' => (int) ($webStats['gesamt'] ?? 0), 'freigegeben' => (int) ($webStats['freigegeben'] ?? 0)])) ?>
     </p>
     <?php if ((int) ($webStats['freigegeben'] ?? 0) < (int) ($webStats['gesamt'] ?? 0)): ?>
         <form method="post" style="margin-bottom:var(--abstand-m);">
             <?= Helpers::csrfField() ?>
             <input type="hidden" name="aktion" value="web_alle_freigeben">
             <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
-            <button type="submit" class="btn btn--klein">Alle Werke für Web freigeben</button>
+            <button type="submit" class="btn btn--klein"><?= Helpers::e(t('gruppe.web_alle_freigeben')) ?></button>
         </form>
     <?php endif; ?>
 
     <hr style="margin:var(--abstand-m) 0; border:none; border-top:1px solid var(--farbe-linie);">
-    <h4 style="margin-bottom:var(--abstand-m);">Galerie-Einstellungen</h4>
+    <h4 style="margin-bottom:var(--abstand-m);"><?= Helpers::e(t('gruppe.web_einstellungen')) ?></h4>
     <form method="post">
         <?= Helpers::csrfField() ?>
         <input type="hidden" name="aktion" value="web_einstellungen">
         <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
 
         <div class="feld">
-            <label for="web_titel">Titel <span class="text-sekundaer">(leer = Gruppenname)</span></label>
+            <label for="web_titel"><?= Helpers::e(t('gruppe.web_titel_feld')) ?> <span class="text-sekundaer"><?= Helpers::e(t('gruppe.web_titel_hinweis')) ?></span></label>
             <input type="text" id="web_titel" name="web_titel"
                    value="<?= Helpers::e((string) ($gruppe['web_titel'] ?? '')) ?>" maxlength="200">
         </div>
 
         <div class="feld">
-            <label for="web_einleitung">Einleitungstext</label>
+            <label for="web_einleitung"><?= Helpers::e(t('gruppe.web_einleitung')) ?></label>
             <textarea id="web_einleitung" name="web_einleitung" rows="3"><?= Helpers::e((string) ($gruppe['web_einleitung'] ?? '')) ?></textarea>
         </div>
 
         <div class="feld">
-            <label>Bilder anzeigen</label>
+            <label><?= Helpers::e(t('gruppe.web_bilder_modus')) ?></label>
             <div class="checkliste">
                 <label><input type="radio" name="web_bilder_modus" value="haupt"
-                    <?= ($gruppe['web_bilder_modus'] ?? 'haupt') !== 'alle' ? 'checked' : '' ?>> Nur Hauptbild</label>
+                    <?= ($gruppe['web_bilder_modus'] ?? 'haupt') !== 'alle' ? 'checked' : '' ?>> <?= Helpers::e(t('gruppe.web_nur_hauptbild')) ?></label>
                 <label><input type="radio" name="web_bilder_modus" value="alle"
-                    <?= ($gruppe['web_bilder_modus'] ?? 'haupt') === 'alle' ? 'checked' : '' ?>> Alle Bilder (Galerie-Streifen)</label>
+                    <?= ($gruppe['web_bilder_modus'] ?? 'haupt') === 'alle' ? 'checked' : '' ?>> <?= Helpers::e(t('gruppe.web_alle_bilder')) ?></label>
             </div>
         </div>
 
         <?php if ($webFeldOptionen): ?>
         <div class="feld">
-            <label>Sichtbare Felder in der Galerie</label>
+            <label><?= Helpers::e(t('gruppe.web_felder')) ?></label>
             <div class="checkliste">
                 <?php foreach ($webFeldOptionen as $feld): ?>
                     <label>
                         <input type="checkbox" name="web_feld_<?= Helpers::e($feld['key']) ?>"
                                <?= in_array($feld['key'], $erlaubteFelder, true) ? 'checked' : '' ?>>
-                        <?= Helpers::e($feld['label']) ?>
+                        <?= Helpers::e(t($feld['label'])) ?>
                         <?php if (!empty($feld['sensibel'])): ?>
-                            <span class="text-sekundaer" style="font-size:11px;"> (sensibel)</span>
+                            <span class="text-sekundaer" style="font-size:11px;"> <?= Helpers::e(t('gruppe.web_sensibel')) ?></span>
                         <?php endif; ?>
                     </label>
                 <?php endforeach; ?>
@@ -174,15 +173,15 @@ $gruppeId = (int) $gruppe['id'];
 
         <div class="feldreihe">
             <div class="feld">
-                <label for="web_passwort_neu">Passwort <span class="text-sekundaer">(leer = unverändert)</span></label>
+                <label for="web_passwort_neu"><?= Helpers::e(t('gruppe.web_passwort')) ?> <span class="text-sekundaer"><?= Helpers::e(t('gruppe.web_passwort_hinweis')) ?></span></label>
                 <input type="password" id="web_passwort_neu" name="web_passwort_neu"
                        autocomplete="new-password"
-                       placeholder="<?= !empty($gruppe['web_passwort_hash']) ? '●●●●●●●● (gesetzt)' : 'Kein Passwort' ?>">
+                       placeholder="<?= !empty($gruppe['web_passwort_hash']) ? Helpers::e(t('gruppe.web_passwort_gesetzt')) : Helpers::e(t('gruppe.web_passwort_keines')) ?>">
             </div>
             <?php if (!empty($gruppe['web_passwort_hash'])): ?>
                 <div class="feld" style="display:flex; align-items:flex-end; padding-bottom:var(--abstand-m);">
                     <label style="display:inline-flex; align-items:center; gap:6px; color:var(--farbe-text);">
-                        <input type="checkbox" name="web_passwort_entfernen"> Passwort entfernen
+                        <input type="checkbox" name="web_passwort_entfernen"> <?= Helpers::e(t('gruppe.web_passwort_entfernen')) ?>
                     </label>
                 </div>
             <?php endif; ?>
@@ -190,38 +189,38 @@ $gruppeId = (int) $gruppe['id'];
 
         <div class="feldreihe">
             <div class="feld">
-                <label for="web_ablauf_typ">Link-Ablauf</label>
+                <label for="web_ablauf_typ"><?= Helpers::e(t('gruppe.web_ablauf')) ?></label>
                 <select id="web_ablauf_typ" name="web_ablauf_typ">
-                    <option value="kein" <?= empty($gruppe['web_ablauf']) ? 'selected' : '' ?>>Kein Ablauf</option>
-                    <option value="7">7 Tage ab jetzt</option>
-                    <option value="14">14 Tage ab jetzt</option>
-                    <option value="30">30 Tage ab jetzt</option>
-                    <option value="datum" <?= !empty($gruppe['web_ablauf']) ? 'selected' : '' ?>>Bestimmtes Datum …</option>
+                    <option value="kein" <?= empty($gruppe['web_ablauf']) ? 'selected' : '' ?>><?= Helpers::e(t('gruppe.web_kein_ablauf')) ?></option>
+                    <option value="7"><?= Helpers::e(t('gruppe.web_ablauf_7')) ?></option>
+                    <option value="14"><?= Helpers::e(t('gruppe.web_ablauf_14')) ?></option>
+                    <option value="30"><?= Helpers::e(t('gruppe.web_ablauf_30')) ?></option>
+                    <option value="datum" <?= !empty($gruppe['web_ablauf']) ? 'selected' : '' ?>><?= Helpers::e(t('gruppe.web_ablauf_datum')) ?></option>
                 </select>
             </div>
             <div class="feld">
-                <label for="web_ablauf_datum">Ablaufdatum</label>
+                <label for="web_ablauf_datum"><?= Helpers::e(t('gruppe.web_ablauf_datum_feld')) ?></label>
                 <input type="date" id="web_ablauf_datum" name="web_ablauf_datum"
                        value="<?= Helpers::e(substr((string) ($gruppe['web_ablauf'] ?? ''), 0, 10)) ?>">
             </div>
         </div>
 
         <div class="feld">
-            <label for="web_einbetten_von">Einbetten erlaubt von <span class="text-sekundaer">(Domain, leer = nein)</span></label>
+            <label for="web_einbetten_von"><?= Helpers::e(t('gruppe.web_einbetten')) ?> <span class="text-sekundaer"><?= Helpers::e(t('gruppe.web_einbetten_hinweis')) ?></span></label>
             <input type="text" id="web_einbetten_von" name="web_einbetten_von"
                    value="<?= Helpers::e((string) ($gruppe['web_einbetten_von'] ?? '')) ?>"
                    placeholder="z.B. example.com">
         </div>
 
-        <button type="submit" class="btn btn--primaer">Einstellungen speichern</button>
+        <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('gruppe.web_einstellungen_speichern')) ?></button>
     </form>
 </div>
 
 <!-- ── Werk-Reihenfolge ───────────────────────────────────────────── -->
 <?php if (count($werkeSortiert) > 1): ?>
 <div class="karte" style="max-width:900px;">
-    <h3>Reihenfolge in der Gruppe</h3>
-    <p class="text-klein text-sekundaer">Gilt für die öffentliche Galerie und den PDF-Export.</p>
+    <h3><?= Helpers::e(t('gruppe.reihenfolge')) ?></h3>
+    <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.reihenfolge_hinweis')) ?></p>
     <ul class="bild-liste" style="list-style:none; padding:0; margin:0 0 var(--abstand-m);">
         <?php $werkAnzahl = count($werkeSortiert); foreach ($werkeSortiert as $i => $w): $wid = (int) $w['id']; ?>
             <li class="bild-karte" data-werk-id="<?= $wid ?>">
@@ -231,14 +230,14 @@ $gruppeId = (int) $gruppe['id'];
                         <input type="hidden" name="aktion" value="werk_nach_oben">
                         <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
                         <input type="hidden" name="werk_id" value="<?= $wid ?>">
-                        <button type="submit" class="btn btn--klein" <?= $i === 0 ? 'disabled' : '' ?> aria-label="Nach oben">↑</button>
+                        <button type="submit" class="btn btn--klein" <?= $i === 0 ? 'disabled' : '' ?> aria-label="↑">↑</button>
                     </form>
                     <form method="post">
                         <?= Helpers::csrfField() ?>
                         <input type="hidden" name="aktion" value="werk_nach_unten">
                         <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
                         <input type="hidden" name="werk_id" value="<?= $wid ?>">
-                        <button type="submit" class="btn btn--klein" <?= $i === $werkAnzahl - 1 ? 'disabled' : '' ?> aria-label="Nach unten">↓</button>
+                        <button type="submit" class="btn btn--klein" <?= $i === $werkAnzahl - 1 ? 'disabled' : '' ?> aria-label="↓">↓</button>
                     </form>
                 </div>
                 <?php $bild = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 'm'); ?>
@@ -251,7 +250,7 @@ $gruppeId = (int) $gruppe['id'];
                     <?= Helpers::e($w['maler']) ?>
                     <?php if ($w['titel']): ?> · <em><?= Helpers::e($w['titel']) ?></em><?php endif; ?>
                     <?php if (!empty($w['web_freigabe'])): ?>
-                        <span class="text-sekundaer text-klein"> · Web ✓</span>
+                        <span class="text-sekundaer text-klein"> · <?= Helpers::e(t('gruppe.web_freigabe_check')) ?></span>
                     <?php endif; ?>
                 </div>
             </li>
@@ -264,7 +263,7 @@ $gruppeId = (int) $gruppe['id'];
         <?php foreach ($werkeSortiert as $w): ?>
             <input type="hidden" name="werk_reihenfolge[]" value="<?= (int) $w['id'] ?>">
         <?php endforeach; ?>
-        <button type="submit" class="btn">Reihenfolge speichern</button>
+        <button type="submit" class="btn"><?= Helpers::e(t('gruppe.reihenfolge_speichern')) ?></button>
     </form>
 </div>
 <?php endif; ?>

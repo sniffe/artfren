@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Einstellungen::setze('schrift', $schrift);
         Einstellungen::setze('icon_staerke', $iconStaerke);
         Protokoll::schreibe('erscheinungsbild', "look_intern={$lookIntern}, look_web={$lookWeb}, schrift={$schrift}");
-        Helpers::flashSet('erfolg', 'Erscheinungsbild gespeichert.');
+        Helpers::flashSet('erfolg', t('erscheint.gespeichert'));
         Helpers::redirect('/erscheinungsbild.php');
     }
 
@@ -56,9 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fehler = null;
 
         if (!is_array($datei) || ($datei['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            $fehler = 'Kein Bild ausgewählt oder Upload fehlgeschlagen.';
+            $fehler = t('erscheint.logo_kein_bild');
         } elseif ((int) ($datei['size'] ?? 0) > 1_048_576) {
-            $fehler = 'Das Logo darf maximal 1 MB groß sein.';
+            $fehler = t('erscheint.logo_zu_gross');
         } else {
             $mime   = (string) mime_content_type($datei['tmp_name']);
             $endung = match ($mime) {
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 default         => null,
             };
             if ($endung === null) {
-                $fehler = 'Nur PNG, JPG, WebP oder SVG erlaubt.';
+                $fehler = t('erscheint.logo_format');
             } else {
                 $logoVerzeichnis = DATA_PATH . '/logo';
                 if (!is_dir($logoVerzeichnis)) {
@@ -91,9 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (move_uploaded_file((string) $datei['tmp_name'], $zielPfad)) {
                     Einstellungen::setze('logo_datei', $zielDatei);
                     Protokoll::schreibe('erscheinungsbild', "Logo hochgeladen: {$zielDatei}");
-                    Helpers::flashSet('erfolg', 'Logo gespeichert.');
+                    Helpers::flashSet('erfolg', t('erscheint.logo_gespeichert'));
                 } else {
-                    $fehler = 'Logo konnte nicht gespeichert werden (Schreibrechte prüfen).';
+                    $fehler = t('erscheint.logo_schreiben');
                 }
             }
         }
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         Einstellungen::setze('logo_datei', '');
         Protokoll::schreibe('erscheinungsbild', 'Logo gelöscht');
-        Helpers::flashSet('erfolg', 'Logo entfernt.');
+        Helpers::flashSet('erfolg', t('erscheint.logo_entfernt'));
         Helpers::redirect('/erscheinungsbild.php');
     }
 
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 render('erscheinungsbild', [
-    'titel'         => 'Erscheinungsbild',
+    'titel'         => t('erscheint.titel'),
     'aktuelleSeite' => 'erscheinungsbild',
     'lookIntern'    => Einstellungen::look('intern'),
     'lookWeb'       => Einstellungen::look('web'),

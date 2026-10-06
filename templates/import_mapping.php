@@ -15,18 +15,17 @@ use App\TabellenImport;
 $aktiverReiter = 'tabelle';
 require __DIR__ . '/_import_reiter.php';
 ?>
-<h2>Spalten zuordnen</h2>
+<h2><?= Helpers::e(t('import.spalten_zuordnen')) ?></h2>
 
 <?php if (!empty($info)): ?>
-    <p class="text-sekundaer">
-        <?= Helpers::e($dateiname ?? '') ?> (<?= Helpers::e($info['format']) ?>):
-        Kopfzeile in Zeile <?= (int) $info['kopfzeile'] ?> erkannt, <?= $gesamtzeilen ?> Datenzeilen.
+    <p class=”text-sekundaer”>
+        <?= Helpers::e(t('import.datei_info', ['name' => $dateiname ?? '', 'format' => $info['format'], 'zeile' => (int) $info['kopfzeile'], 'daten' => $gesamtzeilen])) ?>
         <?php if ($info['farbige_zeilen'] > 0): ?>
-            <?= (int) $info['farbige_zeilen'] ?> farbig markierte Zeilen → Spalte „<?= Helpers::e(TabellenImport::FARB_SPALTE) ?>“.
+            <?= Helpers::e(t('import.farbige_zeilen', ['n' => (int) $info['farbige_zeilen'], 'spalte' => TabellenImport::FARB_SPALTE])) ?>
         <?php endif; ?>
     </p>
 <?php endif; ?>
-<p class="text-sekundaer">Vorschau der ersten <?= count($zeilen) ?> Zeilen. Die Zuordnung wurde automatisch erkannt – bitte prüfen. Ort, Maler und Titel sind Pflicht.</p>
+<p class=”text-sekundaer”><?= Helpers::e(t('import.vorschau', ['n' => count($zeilen)])) ?></p>
 
 <?php if ($fehler): ?>
     <div class="flash flash--fehler"><?= Helpers::e($fehler) ?></div>
@@ -43,8 +42,8 @@ require __DIR__ . '/_import_reiter.php';
             <tr>
                 <?php foreach ($header as $i => $spalte): ?>
                 <th>
-                    <div class="text-klein text-sekundaer"><?= Helpers::e($spalte !== '' ? $spalte : '(ohne Überschrift)') ?></div>
-                    <select name="mapping[<?= (int) $i ?>]" aria-label="Zuordnung für Spalte <?= (int) $i + 1 ?>">
+                    <div class="text-klein text-sekundaer"><?= Helpers::e($spalte !== '' ? $spalte : t('import.ohne_ueberschrift')) ?></div>
+                    <select name="mapping[<?= (int) $i ?>]" aria-label="<?= Helpers::e(t('import.zuordnung_aria', ['n' => (int) $i + 1])) ?>">
                         <?php foreach (TabellenImport::zielfelder() as $wert => $label): ?>
                             <option value="<?= Helpers::e($wert) ?>" <?= ($mapping[$i] ?? '') === $wert ? 'selected' : '' ?>><?= Helpers::e($label) ?></option>
                         <?php endforeach; ?>
@@ -65,6 +64,6 @@ require __DIR__ . '/_import_reiter.php';
     </table>
     </div>
 
-    <button type="submit" class="btn btn--primaer mt-m">Weiter: Abgleich prüfen</button>
-    <a href="/import.php" class="btn mt-m">Abbrechen</a>
+    <button type="submit" class="btn btn--primaer mt-m"><?= Helpers::e(t('import.weiter_abgleich')) ?></button>
+    <a href="/import.php" class="btn mt-m"><?= Helpers::e(t('allg.abbrechen')) ?></a>
 </form>

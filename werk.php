@@ -15,14 +15,14 @@ $id = (int) ($_GET['id'] ?? 0);
 $werk = WerkRepository::neu()->finde($id);
 if ($werk === null || !Auth::darfWerkSehen($benutzer, $id)) {
     // Gleiche Antwort für "gibt es nicht" und "darfst du nicht" – verrät keine IDs.
-    Helpers::abbrechen(404, 'Dieses Werk wurde nicht gefunden.');
+    Helpers::abbrechen(404, t('fehler.nicht_gefunden'));
 }
 
 $bilder = Database::get()->prepare('SELECT * FROM bilder WHERE kunstwerk_id = :id ORDER BY ist_hauptbild DESC, sortierung, id');
 $bilder->execute(['id' => $id]);
 
 render('werk_detail', [
-    'titel' => $werk['titel'] ?: 'Werk',
+    'titel' => $werk['titel'] ?: t('werk.unbenannt'),
     'aktuelleSeite' => Auth::isAdmin($benutzer) ? 'werke' : 'gruppen',
     'werk' => $werk,
     'bilder' => $bilder->fetchAll(),

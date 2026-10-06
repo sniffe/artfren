@@ -27,14 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fehler = BenutzerRepository::benutzernameFehler($benutzername)
             ?? BenutzerRepository::stammdatenFehler($echterName, $email)
             ?? Auth::passwortFehler($passwort, (string) ($_POST['passwort_wiederholen'] ?? ''))
-            ?? ($repo->benutzernameVergeben($benutzername) ? 'Dieser Benutzername ist bereits vergeben.' : null);
+            ?? ($repo->benutzernameVergeben($benutzername) ? t('benutzer.vergeben') : null);
 
         if ($fehler !== null) {
             Helpers::flashSet('fehler', $fehler);
         } else {
             $repo->anlegen($benutzername, $echterName, $email, $passwort, $rolle, Helpers::idListe($_POST['gruppen'] ?? []));
-            Protokoll::schreibe('benutzer_angelegt', "„{$benutzername}“ ({$rolle})");
-            Helpers::flashSet('erfolg', "Benutzer „{$benutzername}“ wurde angelegt.");
+            Protokoll::schreibe('benutzer_angelegt', “„{$benutzername}” ({$rolle})”);
+            Helpers::flashSet('erfolg', t('benutzer.angelegt'));
         }
         Helpers::redirect('/benutzer.php');
     }
@@ -46,23 +46,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($aktion === 'loeschen') {
         if ((int) $ziel['id'] === (int) $aktuellerBenutzer['id']) {
-            Helpers::flashSet('fehler', 'Der eigene Benutzer kann nicht gelöscht werden.');
+            Helpers::flashSet('fehler', t('benutzer.eigener_loeschen'));
         } else {
             $repo->loeschen((int) $ziel['id']);
-            Protokoll::schreibe('benutzer_geloescht', "„{$ziel['benutzername']}“");
-            Helpers::flashSet('erfolg', 'Benutzer wurde gelöscht.');
+            Protokoll::schreibe('benutzer_geloescht', “„{$ziel['benutzername']}””);
+            Helpers::flashSet('erfolg', t('benutzer.geloescht'));
         }
     } elseif ($aktion === 'entsperren') {
         Auth::unlockUser((int) $ziel['id']);
-        Protokoll::schreibe('benutzer_entsperrt', "„{$ziel['benutzername']}“");
-        Helpers::flashSet('erfolg', 'Benutzer wurde entsperrt.');
+        Protokoll::schreibe('benutzer_entsperrt', “„{$ziel['benutzername']}””);
+        Helpers::flashSet('erfolg', t('benutzer.entsperrt'));
     }
 
     Helpers::redirect('/benutzer.php');
 }
 
 render('benutzer_liste', [
-    'titel' => 'Benutzerverwaltung',
+    'titel' => t('benutzer.titel'),
     'aktuelleSeite' => 'benutzer',
     'breit' => true,
     'benutzerListe' => $repo->alle(),
