@@ -167,6 +167,8 @@ return [
     'gruppe.erstellt_am'        => 'erstellt am {datum}',
     'gruppe.sichtbar_fuer'      => 'sichtbar für:',
     'gruppe.nur_admins'         => 'nur Admins',
+    'gruppe.summe_wert'         => 'Preis: {summe}',
+    'gruppe.summe_ankaufswert'  => 'Ankaufswert: {summe}',
     'gruppe.excel'              => 'Excel',
     'gruppe.bilder_zip'         => 'Bilder-ZIP ({n})',
     'gruppe.pdf'                => 'PDF',
@@ -282,6 +284,10 @@ return [
     'werke.bild_placeholder_viele'  => '{n} noch nicht zugeordnete Bilder – Namen tippen',
     'werke.bild_placeholder_leer'   => 'Dateiname',
     'werke.gespeichert'         => 'Mitglieder gespeichert.',
+    'werke.summe_label'         => 'Summe (gefilterte Werke)',
+    'werke.summe_info'          => '{n} Werke, davon {m} ohne Preis',
+    'werke.auswahl_summe_wert'  => 'Preis: {betrag}',
+    'werke.auswahl_summe_ankaufswert' => 'Ankaufswert: {betrag}',
 
     // ── Werk-Detail ──────────────────────────────────────────────────────────
     'werk.ansehen'              => 'Ansehen',

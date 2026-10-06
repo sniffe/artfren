@@ -154,7 +154,8 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
 }
 
 $istAdmin = Auth::isAdmin($benutzer);
-$werke = WerkRepository::neu()->fuerGruppeExport($id);
+$werkRepo = WerkRepository::neu();
+$werke = $werkRepo->fuerGruppeExport($id);
 $werkeSortiert   = $istAdmin ? $repo->fuerGruppeSortiert($id) : [];
 $webStats        = $istAdmin ? $repo->webWerkStats($id) : ['gesamt' => 0, 'freigegeben' => 0];
 $webFeldOptionen = $istAdmin ? \App\WebGruppe::feldPickerOptionen() : [];
@@ -169,6 +170,7 @@ render('gruppe_ansicht', [
     'werke' => $werke,
     'bilderAnzahl' => count(\App\Export::bilderZuWerken($werke)['dateien']),
     'istAdmin' => $istAdmin,
+    'summen' => $werkRepo->summeFuerGruppe($id),
     'werkeSortiert' => $werkeSortiert,
     'webStats' => $webStats,
     'webFeldOptionen' => $webFeldOptionen,

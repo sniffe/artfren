@@ -52,6 +52,28 @@
             checkboxen.forEach(function (cb) {
                 cb.checked = auswahl.has(cb.getAttribute('data-werk-id'));
             });
+            // Geldsummen der Auswahl berechnen und anzeigen.
+            var locale = root.getAttribute('data-geld-locale') || 'de-DE';
+            var ankaufswertSumme = 0, wertSumme = 0;
+            checkboxen.forEach(function (cb) {
+                if (!auswahl.has(cb.getAttribute('data-werk-id'))) return;
+                var tr = cb.closest('tr');
+                if (!tr) return;
+                var a = parseFloat(tr.getAttribute('data-ankaufswert') || '');
+                var w = parseFloat(tr.getAttribute('data-wert') || '');
+                if (!isNaN(a)) ankaufswertSumme += a;
+                if (!isNaN(w)) wertSumme += w;
+            });
+            var fmt = new Intl.NumberFormat(locale, {style: 'currency', currency: 'EUR'});
+            root.querySelectorAll('[data-auswahl-wert]').forEach(function (el) {
+                el.textContent = fmt.format(wertSumme);
+            });
+            root.querySelectorAll('[data-auswahl-ankaufswert]').forEach(function (el) {
+                el.textContent = fmt.format(ankaufswertSumme);
+            });
+            root.querySelectorAll('[data-auswahl-summen]').forEach(function (el) {
+                el.hidden = auswahl.size === 0;
+            });
         }
 
         function speichern() {

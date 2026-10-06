@@ -196,9 +196,11 @@ legend { font-family: var(--schrift-serif); font-style: italic; padding: 0 var(-
 table.werkliste { width: 100%; border-collapse: collapse; background: var(--farbe-flaeche); }
 table.werkliste th {
     text-align: left;
-    font-size: var(--schrift-groesse-klein);
+    font-size: inherit;
     color: var(--farbe-text-sekundaer);
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
     padding: var(--abstand-s) var(--abstand-s);
     border-bottom: 1px solid var(--farbe-linie);
 }
@@ -208,6 +210,7 @@ table.werkliste td {
     vertical-align: middle;
 }
 table.werkliste tr:hover td { background: color-mix(in srgb, var(--farbe-akzent) 5%, transparent); }
+table.werkliste tfoot td { border-top: 2px solid var(--farbe-linie); border-bottom: none; }
 table.werkliste .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.werkliste img.thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); object-fit: cover; border: 1px solid var(--farbe-linie); }
 table.werkliste .platzhalter-thumb { width: var(--thumb-groesse); height: var(--thumb-groesse); border: 1px dashed var(--farbe-linie); display: inline-block; }
@@ -270,13 +273,13 @@ table.werkliste th a.sortiert { color: var(--farbe-akzent); }
 .thumb-wrapper { position: relative; display: inline-block; }
 .bild-anzahl-badge { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,.55); color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 3px; line-height: 1.4; pointer-events: none; }
 .vitrine-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--abstand-m); margin-top: var(--abstand-l); }
-.vitrine-detail dt { color: var(--farbe-text-sekundaer); font-size: var(--schrift-groesse-klein); }
+.vitrine-detail dt { color: var(--farbe-text-sekundaer); }
 .vitrine-detail dd { margin: 0; }
 
 /* ---------- Karten (Gruppen, Backups, Benutzer) ---------- */
 
 table.liste { width: 100%; border-collapse: collapse; background: var(--farbe-flaeche); }
-table.liste th { text-align: left; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); padding: var(--abstand-s); border-bottom: 1px solid var(--farbe-linie); }
+table.liste th { text-align: left; font-size: inherit; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--farbe-text-sekundaer); padding: var(--abstand-s); border-bottom: 1px solid var(--farbe-linie); }
 table.liste td { padding: var(--abstand-s); border-bottom: 1px solid var(--farbe-linie); }
 table.liste .aktionen { display: flex; gap: var(--abstand-s); }
 

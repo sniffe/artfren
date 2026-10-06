@@ -35,11 +35,15 @@ final class WerkRepository
     }
 
     public const SORTIERUNGEN = [
-        'ort' => 'k.ort',
-        'maler' => 'k.maler',
-        'titel' => 'k.titel',
-        'jahr' => 'k.entstehungsjahr',
-        'wert' => 'k.wert',
+        'ort'          => 'k.ort',
+        'maler'        => 'k.maler',
+        'titel'        => 'k.titel',
+        'jahr'         => 'k.entstehungsjahr',
+        'wert'         => 'k.wert',
+        'preis'        => 'k.wert',       // Alias für alte Bookmarks
+        'ankaufsjahr'  => 'k.ankaufjahr',
+        'gekauft_von'  => 'k.ankauf',
+        'ankaufswert'  => 'k.ankaufswert',
     ];
 
     public function __construct(private readonly PDO $pdo)
@@ -91,7 +95,7 @@ final class WerkRepository
         if ($q !== '') {
             // kv_lower: umlautfähiges Kleinschreiben; % und _ im Suchtext wörtlich nehmen.
             $muster = '%' . addcslashes(mb_strtolower($q), '%_\\') . '%';
-            $bedingungen[] = "(kv_lower(k.maler) LIKE :q ESCAPE '\\' OR kv_lower(k.titel) LIKE :q ESCAPE '\\' OR kv_lower(k.ort) LIKE :q ESCAPE '\\' OR kv_lower(k.technik) LIKE :q ESCAPE '\\')";
+            $bedingungen[] = "(kv_lower(k.maler) LIKE :q ESCAPE '\\' OR kv_lower(k.titel) LIKE :q ESCAPE '\\' OR kv_lower(k.ort) LIKE :q ESCAPE '\\' OR kv_lower(k.technik) LIKE :q ESCAPE '\\' OR kv_lower(k.ankauf) LIKE :q ESCAPE '\\')";
             $params['q'] = $muster;
         }
         if (($filter['ort'] ?? '') !== '') {
@@ -171,6 +175,35 @@ final class WerkRepository
     {
         return $this->pdo->query("SELECT DISTINCT maler FROM kunstwerke WHERE maler IS NOT NULL AND maler <> '' AND geloescht_am IS NULL ORDER BY maler COLLATE NOCASE")
             ->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /** Summen über alle gefilterten Werke (für Summenzeile in der Werkliste). */
+    public function summe(array $filter): array
+    {
+        [$where, $params] = $this->where($filter);
+        $stmt = $this->pdo->prepare(
+            "SELECT COALESCE(SUM(k.ankaufswert), 0) AS ankaufswert,
+                    COALESCE(SUM(k.wert), 0) AS wert,
+                    COUNT(CASE WHEN k.wert IS NULL THEN 1 END) AS ohne_wert
+             FROM kunstwerke k {$where}"
+        );
+        $stmt->execute($params);
+        return (array) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /** Summen für alle Werke einer Gruppe (für Gruppenansicht). */
+    public function summeFuerGruppe(int $gruppeId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT COALESCE(SUM(k.ankaufswert), 0) AS ankaufswert,
+                    COALESCE(SUM(k.wert), 0) AS wert,
+                    COUNT(CASE WHEN k.wert IS NULL THEN 1 END) AS ohne_wert
+             FROM kunstwerke k
+             JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL"
+        );
+        $stmt->execute(['id' => $gruppeId]);
+        return (array) $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /** Filtert eine ID-Liste auf tatsächlich existierende Werke. @return int[] */

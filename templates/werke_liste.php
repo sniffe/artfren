@@ -9,6 +9,7 @@
 /** @var int $seite */
 /** @var int $seitenAnzahl */
 /** @var int $gesamtAnzahl */
+/** @var array $summen */
 /** @var array|null $gruppe */
 /** @var int[] $aktuelleMitglieder */
 /** @var string[] $freieBilder */
@@ -36,8 +37,12 @@ $kopf = static function (string $feld, string $text, bool $zahl = false) use ($u
 };
 $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] !== ''
     || $filter['status'] !== '' || $filter['web_freigabe'] !== '' || $filter['ohne_bild'] !== '';
+// Tabellenkopf: "(€)"-Suffix weglassen, da Spaltenbreite begrenzt.
+$thLabel = static fn(string $key): string => str_replace(' (€)', '', t($key));
+$geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
 ?>
 <div data-auswahl-schluessel="<?= Helpers::e($auswahlSchluessel) ?>"
+     data-geld-locale="<?= Helpers::e($geldLocale) ?>"
      data-auswahl-start="<?= Helpers::e($auswahlStart) ?>"
      data-treffer-ids="<?= Helpers::e(json_encode($trefferIds)) ?>">
 
@@ -127,7 +132,10 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
             <th><?= Helpers::e(t('feld.format')) ?></th>
             <th><?= Helpers::e(t('feld.technik')) ?></th>
             <?= $kopf('jahr', t('werke.spalte_jahr'), true) ?>
-            <?= $kopf('wert', t('feld.wert'), true) ?>
+            <?= $kopf('ankaufsjahr', $thLabel('feld.ankaufjahr'), true) ?>
+            <?= $kopf('gekauft_von', t('feld.ankauf')) ?>
+            <?= $kopf('ankaufswert', $thLabel('feld.ankaufswert'), true) ?>
+            <?= $kopf('wert', $thLabel('feld.wert'), true) ?>
             <th></th>
         </tr>
     </thead>
@@ -136,7 +144,9 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
         $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't');
         $zeilenUrl = $url() . '#werk-' . (int) $w['id'];
         $werkText = trim(($w['maler'] ?? '') . ' – ' . ($w['titel'] ?? ''), ' –'); ?>
-        <tr id=”werk-<?= (int) $w['id'] ?>”>
+        <tr id=”werk-<?= (int) $w['id'] ?>”
+            data-ankaufswert=”<?= $w['ankaufswert'] !== null ? Helpers::e((string) $w['ankaufswert']) : '' ?>”
+            data-wert=”<?= $w['wert'] !== null ? Helpers::e((string) $w['wert']) : '' ?>”>
             <td data-label=”<?= Helpers::e(t('werke.auswahl_label')) ?>”><input type=”checkbox” data-werk-id=”<?= (int) $w['id'] ?>” aria-label=”<?= Helpers::e(t('werke.auswahl_aria')) ?>”></td>
             <td data-label=”<?= Helpers::e(t('werke.spalte_bild')) ?>”>
                 <?php if ($thumb): ?>
@@ -162,7 +172,10 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
             <td data-label=”<?= Helpers::e(t('feld.format')) ?>”><?= Helpers::e($w['format']) ?></td>
             <td data-label=”<?= Helpers::e(t('feld.technik')) ?>”><?= Helpers::e($w['technik']) ?></td>
             <td data-label=”<?= Helpers::e(t('werke.spalte_jahr')) ?>” class=”num”><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
-            <td data-label=”<?= Helpers::e(t('feld.wert')) ?>” class=”num”><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
+            <td data-label=”<?= Helpers::e($thLabel('feld.ankaufjahr')) ?>” class=”num”><?= Helpers::e((string) ($w['ankaufjahr'] ?? '')) ?></td>
+            <td data-label=”<?= Helpers::e(t('feld.ankauf')) ?>”><?= Helpers::e((string) ($w['ankauf'] ?? '')) ?></td>
+            <td data-label=”<?= Helpers::e($thLabel('feld.ankaufswert')) ?>” class=”num”><?= Helpers::formatGeld($w['ankaufswert'] !== null ? (float) $w['ankaufswert'] : null) ?></td>
+            <td data-label=”<?= Helpers::e($thLabel('feld.wert')) ?>” class=”num”><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
             <td data-label=”” style=”white-space:nowrap;”>
                 <?php if ($w['status_farbe']): ?><span class=”status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>” title=”<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>”></span><?php endif; ?>
                 <a href=”/werk.php?id=<?= (int) $w['id'] ?>” class=”ikon-link” title=”<?= Helpers::e(t('werk.ansehen')) ?>” aria-label=”<?= Helpers::e(t('werk.ansehen')) ?>”><?= Helpers::icon('auge') ?></a>
@@ -171,19 +184,42 @@ $filterAktiv = $filter['q'] !== '' || $filter['ort'] !== '' || $filter['maler'] 
         </tr>
     <?php endforeach; ?>
     <?php if (!$werke): ?>
-        <tr><td colspan=”10” class=”text-sekundaer”><?= Helpers::e(t('werke.leer')) ?></td></tr>
+        <tr><td colspan=”13” class=”text-sekundaer”><?= Helpers::e(t('werke.leer')) ?></td></tr>
     <?php endif; ?>
     </tbody>
+    <tfoot>
+        <tr class=”summen-zeile”>
+            <td colspan=”10” class=”text-sekundaer text-klein”>
+                <?= Helpers::e(t('werke.summe_label')) ?>
+                · <?= Helpers::e(t('werke.summe_info', ['n' => $gesamtAnzahl, 'm' => (int) ($summen['ohne_wert'] ?? 0)])) ?>
+            </td>
+            <td class=”num text-sekundaer text-klein”><?= Helpers::formatGeld((float) ($summen['ankaufswert'] ?? 0) ?: null) ?></td>
+            <td class=”num text-sekundaer text-klein”><?= Helpers::formatGeld((float) ($summen['wert'] ?? 0) ?: null) ?></td>
+            <td></td>
+        </tr>
+    </tfoot>
 </table>
 
 <div class=”seiten-nav”>
-    <?php if ($seite > 1): ?><a href=”<?= Helpers::e($url(['seite' => $seite - 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.zurueck_seite')) ?></a><?php endif; ?>
+    <?php if ($seite > 1): ?>
+        <a href=”<?= Helpers::e($url(['seite' => 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.erste_seite')) ?></a>
+        <a href=”<?= Helpers::e($url(['seite' => $seite - 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.zurueck_seite')) ?></a>
+    <?php endif; ?>
     <span><?= Helpers::e(t('allg.seite_x_von_y', ['x' => $seite, 'y' => $seitenAnzahl])) ?></span>
-    <?php if ($seite < $seitenAnzahl): ?><a href=”<?= Helpers::e($url(['seite' => $seite + 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.weiter_seite')) ?></a><?php endif; ?>
+    <?php if ($seite < $seitenAnzahl): ?>
+        <a href=”<?= Helpers::e($url(['seite' => $seite + 1])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.weiter_seite')) ?></a>
+        <a href=”<?= Helpers::e($url(['seite' => $seitenAnzahl])) ?>” class=”btn btn--klein”><?= Helpers::e(t('allg.letzte_seite')) ?></a>
+    <?php endif; ?>
 </div>
 
 <div class=”auswahl-leiste”>
-    <span><strong data-auswahl-zaehler>0</strong> <?= Helpers::e(t('gruppe_neu.zaehler_suffix')) ?></span>
+    <span>
+        <strong data-auswahl-zaehler>0</strong> <?= Helpers::e(t('gruppe_neu.zaehler_suffix')) ?>
+        <span class=”text-sekundaer” data-auswahl-summen hidden>
+            · <?= Helpers::e(t('werke.auswahl_summe_wert', ['betrag' => ''])) ?><span data-auswahl-wert></span>
+            · <?= Helpers::e(t('werke.auswahl_summe_ankaufswert', ['betrag' => ''])) ?><span data-auswahl-ankaufswert></span>
+        </span>
+    </span>
     <div class=”toolbar-aktionen”>
         <button type=”button” class=”btn” data-auswahl-leeren><?= Helpers::e(t('werke.auswahl_leeren')) ?></button>
         <?php if ($gruppe): ?>

@@ -51,6 +51,7 @@ render('werke_liste', [
     'seite' => $seite,
     'seitenAnzahl' => $seitenAnzahl,
     'gesamtAnzahl' => $gesamtAnzahl,
+    'summen' => $werkRepo->summe($filter),
     'gruppe' => $gruppe,
     'aktuelleMitglieder' => $gruppe ? $werkRepo->mitgliedIds((int) $gruppe['id']) : [],
     'freieBilder' => \App\BildUpload::unzugeordnet(),
