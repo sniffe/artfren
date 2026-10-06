@@ -73,6 +73,7 @@ papierkorb.php
 README.md
 rechtliche_angaben.php
 RELEASE_CHECKLIST_V1_1.md
+RELEASE_CHECKLIST_V1_2.md
 robots.txt
 scripts/.htaccess
 scripts/dateiliste.php

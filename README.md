@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.1.0.
+groups, two user roles, export and backup functions. Version 1.2.0.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -107,6 +107,27 @@ ZIP as described in `LIESMICH.txt` inside the archive.
 
 The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1.md`.
 
+### Updating to 1.2
+
+1. **Create a backup** – in the admin area under **Backup** → "Create backup",
+   download the file and keep it locally.
+2. **Note for restricted users:** After the update, Excel export, images ZIP and
+   original image downloads are disabled for all restricted users until an admin
+   re-enables them individually under **Administration → Users**.
+3. **Upload files** – upload all version 1.2 files via FTP and overwrite everything.
+   Enable **hidden files** in your FTP client.
+4. **Open any page** – database migrations run automatically. A snapshot of the old
+   database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
+5. **Verify** – under **System**: application version `1.2.0`, schema version `9 / 9`,
+   snapshot file present, completeness check clear.
+6. **Restore export permissions** for restricted users under **Administration → Users**
+   (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
+
+**Rollback:** re-upload the v1.1.0 files. To also roll back data: use the snapshot
+file as the new database or restore the backup ZIP.
+
+The full checklist is in `RELEASE_CHECKLIST_V1_2.md`.
+
 ### Alternative with shell access (local development)
 
 `composer install`, then `php scripts/migrate.php` and
@@ -139,7 +160,8 @@ The full export and group export each produce **two files** that belong together
 
 Both can be re-imported unchanged: ZIP under "Upload images" (or via FTP to
 `bilder/`), Excel under "Import table" – in any order. Each group also has a PDF
-(one work per page). Groups, users and settings are only included in the backup.
+(one work per page or as a list); a dialog lets you pick fields and layout, optionally
+from a saved export profile. Groups, users and settings are only included in the backup.
 
 ## Editing works
 
@@ -180,6 +202,44 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2
+
+### Language selection
+
+Each user can select their interface language (Deutsch or English) in **My Account**.
+The choice is saved in the database and survives logout/login and backup restores.
+Admins can also set a language for each user and set the default language under
+**System → Settings**.
+
+To add a new language: copy `lang/en.php`, translate all values, then add one entry
+to `I18n::SPRACHEN` in `src/I18n.php`.
+
+### New columns in the work list
+
+The work list now shows **Purchase year**, **Purchased from**, **Purchase value** and
+**Price** (sortable). A sum row shows totals across all filtered works; the group page
+shows both sums; the selection bar sums the ticked works.
+
+### PDF export profiles
+
+Before a PDF is generated, a dialog lets you select fields, layout (single sheet per
+work or list with total row) and switches (show image, show title block, hide empty
+fields, show total). The selection can be saved as a named **export profile** under
+**Administration → Export → Profiles**. Profiles store fields, switches, layout and
+optionally a fixed language for the PDF labels. Restricted users see only profiles
+explicitly released for them.
+
+### Export permissions per user
+
+Admins always have full export access. For restricted users, access is now
+**off by default** after the 1.2 update and must be enabled individually:
+
+- **Allow Excel export**: the user sees the Excel button; export is limited to the
+  selected group and the fields of a released export profile.
+- **Allow image export (ZIP and originals)**: the Bilder-ZIP button appears and
+  original-resolution images become accessible; without it, `bild.php?g=o` returns
+  the 1600 px version.
 
 ## New in version 1.1
 
@@ -246,7 +306,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.1.0.
+Version 1.2.0.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -357,6 +417,28 @@ gemäß `LIESMICH.txt` im Archiv einspielen.
 Die vollständige Checkliste für Staging- und Live-Deployment liegt in
 `RELEASE_CHECKLIST_V1_1.md`.
 
+### Update auf 1.2
+
+1. **Backup erstellen** – im Admin-Bereich unter **Backup** → „Backup erstellen",
+   Datei herunterladen und lokal aufbewahren.
+2. **Hinweis für eingeschränkte Benutzer:** Nach dem Update sind Excel-Export,
+   Bilder-ZIP und Originalbilder für alle eingeschränkten Benutzer gesperrt,
+   bis du sie einzeln unter **Verwaltung → Benutzer** freischaltest.
+3. **Dateien hochladen** – alle Dateien der Version 1.2 per FTP hochladen und
+   alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
+4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
+   wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.0`, Schema-Version `9 / 9`,
+   Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
+6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
+   setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
+   „Bilder-Export erlauben").
+
+**Rollback:** v1.1.0-Dateien erneut hochladen. Wenn auch die Daten zurückgesetzt
+werden sollen: Snapshot-Datei als neue DB einsetzen oder Backup-ZIP einspielen.
+
+Die vollständige Checkliste liegt in `RELEASE_CHECKLIST_V1_2.md`.
+
 ### Alternative mit Shell-Zugriff (lokale Entwicklung)
 
 `composer install`, dann `php scripts/migrate.php` und
@@ -368,8 +450,9 @@ nur über die Kommandozeile ausführbar.
 - **Administrator:** alles – Werke, Import, Export, Gruppen, Benutzer,
   Backup und System.
 - **Eingeschränkt:** sieht nur die Gruppen, die ihm zugewiesen sind, samt
-  deren Werken, und kann diese Gruppen als Excel, Bilder-ZIP und PDF
-  exportieren. Keine Bearbeitung.
+  deren Werken. Export-Rechte (Excel, Bilder-ZIP) werden einzeln vom Admin
+  vergeben; das PDF steht immer zur Verfügung (eingeschränkt auf freigegebene
+  Profile). Keine Bearbeitung.
 
 ## Import
 
@@ -398,8 +481,9 @@ zusammengehören:
 
 Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen"
 (oder per FTP nach `bilder/`), Excel unter „Tabelle importieren" – in
-beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro
-Seite). Gruppen, Benutzer und Einstellungen enthält nur das Backup.
+beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro Seite oder als Liste);
+ein Dialog erlaubt Feldauswahl und Layout, optional aus einem gespeicherten
+Export-Profil. Gruppen, Benutzer und Einstellungen enthält nur das Backup.
 
 ## Backup und Wiederherstellen
 
@@ -476,6 +560,49 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2
+
+### Sprachauswahl
+
+Jeder Benutzer kann seine Oberflächensprache (Deutsch oder English) unter
+**Mein Konto** wählen. Die Einstellung wird in der Datenbank gespeichert und
+bleibt nach Abmeldung/Anmeldung und Backup-Wiederherstellung erhalten. Admins
+können die Sprache auch beim Benutzer-Bearbeiten setzen; die Standardsprache
+wird unter **System → Einstellungen** festgelegt.
+
+Neue Sprache hinzufügen: `lang/en.php` kopieren, alle Werte übersetzen, dann
+einen Eintrag in `I18n::SPRACHEN` in `src/I18n.php` ergänzen.
+
+### Neue Spalten in der Werkliste
+
+Die Werkliste zeigt jetzt **Ankaufsjahr**, **Gekauft von**, **Ankaufswert** und
+**Preis** (sortierbar). Eine Summenzeile zeigt die Gesamtsummen über alle
+gefilterten Werke; die Gruppenseite zeigt beide Summen; die Auswahlleiste
+summiert die angehakten Werke.
+
+### PDF-Export-Profile
+
+Vor der PDF-Erstellung öffnet ein Dialog, in dem Felder, Layout (ein Werk pro
+Seite oder Liste mit Summenzeile) und Schalter (Bild anzeigen, Titelblock,
+Leere Felder ausblenden, Summe anzeigen) gewählt werden können. Die Auswahl
+lässt sich als benanntes **Export-Profil** unter **Verwaltung → Export → Profile**
+speichern. Profile speichern Felder, Schalter, Layout und optional eine feste
+Sprache für die PDF-Beschriftungen. Eingeschränkte Benutzer sehen nur Profile,
+die explizit für sie freigegeben wurden.
+
+### Export-Rechte je Benutzer
+
+Admins haben stets vollen Exportzugriff. Für eingeschränkte Benutzer ist der
+Zugriff nach dem Update auf 1.2 **standardmäßig gesperrt** und muss einzeln
+aktiviert werden:
+
+- **Excel-Export erlauben:** der Benutzer sieht den Excel-Button; der Export
+  beschränkt sich auf die gewählte Gruppe und die Felder eines freigegebenen
+  Export-Profils.
+- **Bilder-Export erlauben (ZIP und Originaldateien):** der Bilder-ZIP-Button
+  erscheint und Originalbilder werden abrufbar; ohne diese Berechtigung liefert
+  `bild.php?g=o` die 1600-px-Version.
 
 ## Neu in Version 1.1
 
