@@ -19,6 +19,7 @@ assets/fonts/source-serif-4-latin-ext-400-normal.woff2
 assets/icons.svg
 assets/looks.css
 assets/pdf-dialog.js
+assets/pdf-dialog.js
 assets/style.css
 assets/theme-init.js
 assets/tokens.css
@@ -42,6 +43,7 @@ erscheinungsbild.php
 export_gesamt.php
 export_gruppe_pdf.php
 export_gruppe.php
+export_profile.php
 export_profile.php
 gruppe_neu.php
 gruppe.php
@@ -92,6 +94,7 @@ src/DatenbankFehltException.php
 src/Einstellungen.php
 src/Export.php
 src/ExportProfile.php
+src/ExportProfile.php
 src/Felder.php
 src/GruppeRepository.php
 src/Helpers.php
@@ -107,6 +110,7 @@ src/WebGruppe.php
 src/WerkRepository.php
 system.php
 templates/_export_reiter.php
+templates/_export_reiter.php
 templates/_gruppen_auswahl.php
 templates/_import_reiter.php
 templates/.htaccess
@@ -117,6 +121,7 @@ templates/bilder_upload.php
 templates/datenpruefung.php
 templates/erscheinungsbild.php
 templates/export_gesamt.php
+templates/export_profile.php
 templates/export_profile.php
 templates/fehler.php
 templates/gruppe_ansicht.php

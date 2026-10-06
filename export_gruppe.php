@@ -21,8 +21,21 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
     Helpers::abbrechen(404, 'Diese Gruppe wurde nicht gefunden.');
 }
 $format = ($_GET['format'] ?? '') === 'bilder' ? 'bilder' : 'xlsx';
+$istAdmin = Auth::isAdmin($benutzer);
 
-Protokoll::schreibe('export_gruppe', ($format === 'bilder' ? 'Bilder-ZIP' : 'Excel') . " „{$gruppe['name']}“");
+// Berechtigungsprüfung für eingeschränkte Benutzer
+if (!$istAdmin) {
+    if ($format === 'bilder' && !($benutzer['darf_bilder_export'] ?? 0)) {
+        Protokoll::schreibe('export_verweigert', “Bilder-ZIP „{$gruppe['name']}””);
+        Helpers::abbrechen(403, t('export.keine_rechte'));
+    }
+    if ($format === 'xlsx' && !($benutzer['darf_excel'] ?? 0)) {
+        Protokoll::schreibe('export_verweigert', “Excel „{$gruppe['name']}””);
+        Helpers::abbrechen(403, t('export.keine_rechte'));
+    }
+}
+
+Protokoll::schreibe('export_gruppe', ($format === 'bilder' ? 'Bilder-ZIP' : 'Excel') . “ „{$gruppe['name']}””);
 session_write_close();
 @set_time_limit(0);
 

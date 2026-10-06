@@ -54,6 +54,23 @@ use App\Helpers;
     </form>
 </div>
 
+<?php if ($benutzer['rolle'] !== 'admin'): ?>
+<div class="karte" style="max-width:640px;">
+    <h3><?= Helpers::e(t('konto.export_rechte')) ?></h3>
+    <p class="text-klein text-sekundaer"><?= Helpers::e(t('konto.export_rechte_info')) ?></p>
+    <div class="checkliste">
+        <label>
+            <input type="checkbox" disabled <?= ($benutzer['darf_excel'] ?? 0) ? 'checked' : '' ?>>
+            <?= Helpers::e(t('benutzer_bearbeiten.darf_excel')) ?>
+        </label>
+        <label>
+            <input type="checkbox" disabled <?= ($benutzer['darf_bilder_export'] ?? 0) ? 'checked' : '' ?>>
+            <?= Helpers::e(t('benutzer_bearbeiten.darf_bilder')) ?>
+        </label>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="karte" style="max-width:640px;">
     <h3><?= Helpers::e(t('konto.sprache')) ?></h3>
     <form method="post" action="/konto.php">

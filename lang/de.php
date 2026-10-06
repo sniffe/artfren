@@ -94,6 +94,8 @@ return [
     'konto.aktuelles_falsch'    => 'Das aktuelle Passwort ist falsch.',
     'konto.sprache'             => 'Sprache / Language',
     'konto.sprache_gespeichert' => 'Sprache gespeichert.',
+    'konto.export_rechte'       => 'Export-Berechtigungen',
+    'konto.export_rechte_info'  => 'Diese Berechtigungen werden von einem Administrator festgelegt.',
 
     // ── Benutzer-Verwaltung ──────────────────────────────────────────────────
     'benutzer.titel'            => 'Benutzerverwaltung',
@@ -473,6 +475,7 @@ return [
     'export.bilder_fehlend'     => '{n} verknüpfte Dateien fehlen auf dem Server – sie sind im ZIP in FEHLENDE_BILDER.txt aufgelistet.',
     'export.bilder_zip'         => 'Bilder-ZIP herunterladen',
     'export.keine_bilder'       => 'Noch keinem Werk ist ein Bild zugeordnet.',
+    'export.keine_rechte'       => 'Du hast keine Berechtigung für diesen Export.',
     'export.wiedereinspielen_titel' => 'Wieder einspielen (z. B. auf einem neuen Server)',
     'export.wiedereinspielen_1' => 'Unter Import → Bilder hochladen das Bilder-ZIP hochladen (oder den ZIP-Inhalt per FTP in den Ordner bilder/ kopieren).',
     'export.wiedereinspielen_2' => 'Unter Import → Tabelle importieren die Excel-Datei hochladen – die Bilder werden über die Spalte „Dateiname" automatisch zugeordnet.',

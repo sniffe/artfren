@@ -26,6 +26,7 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
 }
 
 $pdo = Database::get();
+$istAdmin = Auth::isAdmin($benutzer);
 
 // ── Felder und Profil-Optionen auflösen ──────────────────────────────────────
 $alleFelder = Felder::alle();
@@ -35,10 +36,21 @@ $alleKeys   = array_column($alleFelder, 'key');
 $profilId = ($_GET['profil_id'] ?? '') !== '' ? (int) $_GET['profil_id'] : null;
 $profil   = $profilId !== null ? ExportProfile::finde($pdo, $profilId) : null;
 
-// Felder aus GET-Array?
-$getFelder = isset($_GET['felder']) && is_array($_GET['felder'])
-    ? array_values(array_filter((array) $_GET['felder'], static fn(mixed $k): bool => in_array($k, $alleKeys, true)))
-    : null;
+// Eingeschränkte Benutzer: freie Feldauswahl ignorieren; nur freigegebene Profile erlaubt
+if (!$istAdmin) {
+    // felder[] aus GET verwerfen
+    $getFelder = null;
+    // Profil muss für eingeschränkte Benutzer freigegeben sein
+    if ($profil !== null && !$profil['fuer_eingeschraenkte']) {
+        Protokoll::schreibe('export_verweigert', "PDF-Profil „{$profil['name']}" für „{$gruppe['name']}"");
+        Helpers::abbrechen(403, t('export.keine_rechte'));
+    }
+} else {
+    // Felder aus GET-Array?
+    $getFelder = isset($_GET['felder']) && is_array($_GET['felder'])
+        ? array_values(array_filter((array) $_GET['felder'], static fn(mixed $k): bool => in_array($k, $alleKeys, true)))
+        : null;
+}
 
 $spracheQuelle = null;
 

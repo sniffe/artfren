@@ -19,6 +19,8 @@ $jetzt = gmdate('Y-m-d H:i:s');
             <th><?= Helpers::e(t('benutzer.name_email')) ?></th>
             <th><?= Helpers::e(t('benutzer.rolle')) ?></th>
             <th><?= Helpers::e(t('benutzer.letzter_login')) ?></th>
+            <th class="text-klein" title="<?= Helpers::e(t('benutzer_bearbeiten.darf_excel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></th>
+            <th class="text-klein" title="<?= Helpers::e(t('benutzer_bearbeiten.darf_bilder')) ?>"><?= Helpers::e(t('export.bilder')) ?></th>
             <th><?= Helpers::e(t('benutzer.status')) ?></th>
             <th><?= Helpers::e(t('benutzer.aktionen')) ?></th>
         </tr>
@@ -43,6 +45,8 @@ $jetzt = gmdate('Y-m-d H:i:s');
                 <?php endif; ?>
             </td>
             <td class=”text-klein”><?= Helpers::e(Helpers::formatDatum($b['letzter_login'])) ?: '–' ?></td>
+            <td class=”text-klein text-sekundaer”><?= $b['rolle'] === 'admin' ? '' : ($b['darf_excel'] ? '✓' : '–') ?></td>
+            <td class=”text-klein text-sekundaer”><?= $b['rolle'] === 'admin' ? '' : ($b['darf_bilder_export'] ? '✓' : '–') ?></td>
             <td>
                 <?php if ($gesperrt): ?>
                     <span class=”badge badge--gesperrt”><?= Helpers::e(t('benutzer.gesperrt_bis', ['zeit' => Helpers::formatDatum($b['gesperrt_bis'], 'H:i')])) ?></span>

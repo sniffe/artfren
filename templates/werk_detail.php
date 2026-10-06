@@ -8,8 +8,9 @@ use App\Helpers;
 
 $hauptbild = $bilder[0] ?? null;
 $bildUrl = $hauptbild ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'g') : null;
-$originalUrl = $hauptbild ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'o') : null;
 $istAdmin = \App\Auth::isAdmin($aktuellerBenutzer);
+$darf_original = $istAdmin || ($aktuellerBenutzer['darf_bilder_export'] ?? false);
+$originalUrl = ($darf_original && $hauptbild) ? Helpers::bildUrl((int) $hauptbild['id'], $hauptbild['dateiname'], 'o') : null;
 
 // Hilfsfunktion: formatierten Wert eines Feldes ausgeben (escaped).
 $zeigeWert = static function (array $feld, array $werk) use ($istAdmin): string {

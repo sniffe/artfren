@@ -39,9 +39,15 @@ $gruppeId = (int) $gruppe['id'];
             <?php endif; ?>
         </p>
     </div>
+    <?php
+    $darfExcel  = $istAdmin || ($aktuellerBenutzer['darf_excel']          ?? false);
+    $darfBilder = $istAdmin || ($aktuellerBenutzer['darf_bilder_export']  ?? false);
+    ?>
     <div class="toolbar-aktionen">
-        <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></a>
-        <?php if ($bilderAnzahl > 0): ?>
+        <?php if ($darfExcel): ?>
+            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></a>
+        <?php endif; ?>
+        <?php if ($bilderAnzahl > 0 && $darfBilder): ?>
             <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('gruppe.bilder_zip', ['n' => $bilderAnzahl])) ?></a>
         <?php endif; ?>
         <button type="button" class="btn" data-pdf-dialog="<?= $gruppeId ?>"><?= Helpers::e(t('gruppe.pdf')) ?></button>
@@ -312,6 +318,7 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
     </div>
     <?php endif; ?>
 
+    <?php if ($istAdmin): ?>
     <p class="text-sekundaer text-klein" style="margin:0 0 var(--abstand-s);"><?= Helpers::e(t('pdf.felder_titel')) ?></p>
     <?php foreach ($pdfGruppen as $pdfGrpName): ?>
     <fieldset style="border:1px solid var(--farbe-linie); margin-bottom:var(--abstand-s); padding:var(--abstand-s) var(--abstand-m);">
@@ -330,6 +337,7 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
         </div>
     </fieldset>
     <?php endforeach; ?>
+    <?php endif; // $istAdmin – Felder ?>
 
     <div class="checkliste" style="margin:var(--abstand-m) 0;">
         <label><input type="checkbox" id="pdf-bild" checked> <?= Helpers::e(t('pdf.bild_zeigen')) ?></label>

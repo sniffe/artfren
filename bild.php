@@ -18,6 +18,11 @@ if (!in_array($groesse, ['t', 'm', 'g', 'o'], true)) {
     $groesse = 'm';
 }
 
+// Original-Dateien nur für Admins und Benutzer mit Bilder-Export-Recht
+if ($groesse === 'o' && !Auth::isAdmin($benutzer) && !($benutzer['darf_bilder_export'] ?? 0)) {
+    $groesse = 'g';
+}
+
 $bild = Auth::erlaubtesBild($benutzer, $bildId);
 
 // Sitzung sofort freigeben: sonst warten die vielen parallelen Bildanfragen

@@ -94,6 +94,8 @@ return [
     'konto.aktuelles_falsch'    => 'The current password is incorrect.',
     'konto.sprache'             => 'Language / Sprache',
     'konto.sprache_gespeichert' => 'Language saved.',
+    'konto.export_rechte'       => 'Export permissions',
+    'konto.export_rechte_info'  => 'These permissions are set by an administrator.',
 
     // ── User management ──────────────────────────────────────────────────────
     'benutzer.titel'            => 'User management',
@@ -473,6 +475,7 @@ return [
     'export.bilder_fehlend'     => '{n} linked files are missing on the server – they are listed in MISSING_IMAGES.txt inside the ZIP.',
     'export.bilder_zip'         => 'Download images ZIP',
     'export.keine_bilder'       => 'No image has been assigned to any work yet.',
+    'export.keine_rechte'       => 'You do not have permission for this export.',
     'export.wiedereinspielen_titel' => 'Restore (e.g. on a new server)',
     'export.wiedereinspielen_1' => 'Under Import → Upload images, upload the images ZIP (or copy the ZIP contents into the bilder/ folder via FTP).',
     'export.wiedereinspielen_2' => 'Under Import → Import spreadsheet, upload the Excel file – images are automatically assigned via the "File name" column.',
