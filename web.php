@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Rechtliche Seiten: /w/impressum, /w/datenschutz
 // Passwort-Tor (POST): /w/<token>/passwort
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap_public.php';
 
 use App\Database;

@@ -9,6 +9,7 @@ declare(strict_types=1);
 // Aktionen mehr aus. Spätere Datenbank-Updates laufen automatisch beim
 // normalen Seitenaufruf (siehe src/Migration.php).
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/config.php';
 
 header('X-Content-Type-Options: nosniff');

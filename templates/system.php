@@ -6,6 +6,8 @@
 /** @var string $appName */
 /** @var bool $httpsErzwingen */
 /** @var array<string, string> $veraltet */
+/** @var array{gesamt: int, fehlend: string[]}|null $vollstaendigkeit */
+/** @var string[] $fehlendeSchutzdateien */
 /** @var array $protokoll */
 /** @var int $proSeite */
 /** @var int $seite */
@@ -20,10 +22,34 @@ $ordnerTexte = [
     'bilder' => 'Original-Bilder',
     'src' => 'Programmcode',
 ];
+$fehlendNachOrdner = [];
+foreach ($vollstaendigkeit['fehlend'] ?? [] as $pfad) {
+    $fehlendNachOrdner[str_contains($pfad, '/') ? strstr($pfad, '/', true) . '/' : 'Hauptordner'][] = $pfad;
+}
 $mehrSeiten = count($protokoll) > $proSeite;
 $protokoll = array_slice($protokoll, 0, $proSeite);
 ?>
 <h2>System</h2>
+
+<div class="karte">
+    <h3>Vollständigkeit des Programms</h3>
+    <?php if ($vollstaendigkeit === null): ?>
+        <p class="text-sekundaer">Die Dateiliste <code><?= Helpers::e(\App\Wartung::DATEILISTE) ?></code> fehlt, daher ist keine Prüfung möglich. Bitte den Ordner <code>src/</code> erneut hochladen.</p>
+    <?php elseif ($vollstaendigkeit['fehlend'] === []): ?>
+        <p class="status-ok">Alle <?= $vollstaendigkeit['gesamt'] ?> Programmdateien sind vorhanden.</p>
+    <?php else: ?>
+        <div class="flash flash--fehler"><?= count($vollstaendigkeit['fehlend']) ?> von <?= $vollstaendigkeit['gesamt'] ?> Programmdateien fehlen. Bitte die genannten Ordner aus dem heruntergeladenen Paket erneut hochladen und „Überschreiben“ wählen.</div>
+        <ul class="warnung-liste">
+            <?php foreach ($fehlendNachOrdner as $ordner => $pfade): ?>
+                <li><code><?= Helpers::e($ordner) ?></code>: <?= count($pfade) ?> fehlend<br>
+                    <span class="text-klein text-sekundaer">z. B. <?= Helpers::e(implode(', ', array_slice($pfade, 0, 5))) ?><?= count($pfade) > 5 ? ' …' : '' ?></span></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+    <?php if ($fehlendeSchutzdateien): ?>
+        <div class="flash flash--fehler">Es fehlen Schutzdateien: <?= Helpers::e(implode(', ', $fehlendeSchutzdateien)) ?>. Ohne sie können private Ordner von außen abrufbar sein. Im FTP-Programm „versteckte Dateien anzeigen“ einschalten (FileZilla: Server → Anzeigen versteckter Dateien erzwingen) und das Paket erneut hochladen.</div>
+    <?php endif; ?>
+</div>
 
 <?php if ($veraltet): ?>
     <div class="karte">

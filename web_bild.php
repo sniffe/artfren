@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Nur Größen 'm' und 'g' – nie 'o' (Original).
 // Sicherheit: Werk muss zur aktiven Gruppe gehören und web_freigabe=1 haben.
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap_public.php';
 
 use App\Bilder;

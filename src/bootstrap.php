@@ -3,11 +3,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/config.php';
 
-if (!is_file(APP_ROOT . '/vendor/autoload.php')) {
-    http_response_code(500);
-    exit('Der Ordner vendor/ fehlt. Bitte das komplette Projekt inklusive vendor/ hochladen.');
-}
-require APP_ROOT . '/vendor/autoload.php';
+// Vollständigkeit von src/ und vendor/ prüft bereits upload_pruefung.php.
+$autoloader = require APP_ROOT . '/vendor/autoload.php';
 
 use App\Auth;
 use App\Database;
@@ -27,7 +24,13 @@ if (is_file($fehlerLog) && filesize($fehlerLog) > 5 * 1024 * 1024) {
 }
 ini_set('error_log', $fehlerLog);
 
-set_exception_handler(static function (\Throwable $e): void {
+set_exception_handler(static function (\Throwable $e) use ($autoloader): void {
+    // Fehlt eine Programmdatei (unvollständiger Upload), das verständlich sagen.
+    if (function_exists('kv_fehlende_datei') && ($pfad = kv_fehlende_datei($e, $autoloader->getPrefixesPsr4())) !== null) {
+        error_log('Programmdatei fehlt: ' . $pfad);
+        kv_upload_unvollstaendig([$pfad]);
+    }
+
     $fehlerId = bin2hex(random_bytes(4));
     error_log("[Fehler-ID {$fehlerId}] " . $e);
 

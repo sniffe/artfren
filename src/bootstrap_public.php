@@ -24,6 +24,11 @@ if (!is_dir(LOG_PATH)) {
 ini_set('error_log', LOG_PATH . '/php-fehler.log');
 
 set_exception_handler(static function (\Throwable $e): void {
+    // Fehlt eine Programmdatei (unvollständiger Upload), das verständlich sagen.
+    if (function_exists('kv_fehlende_datei') && ($pfad = kv_fehlende_datei($e)) !== null) {
+        error_log('Programmdatei fehlt: ' . $pfad);
+        kv_upload_unvollstaendig([$pfad]);
+    }
     $fehlerId = bin2hex(random_bytes(4));
     error_log("[Fehler-ID {$fehlerId}] " . $e);
     while (ob_get_level() > 0) {

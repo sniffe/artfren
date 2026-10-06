@@ -4,11 +4,56 @@ declare(strict_types=1);
 namespace App;
 
 /**
- * Erkennt Dateien früherer Versionen, die ein Update per Hochladen nicht
- * entfernt, und löscht sie auf Knopfdruck.
+ * Prüft nach einem Update per Hochladen, ob alles angekommen ist, und
+ * entfernt Dateien früherer Versionen, die das Hochladen nicht löscht.
  */
 final class Wartung
 {
+    /** Ordner, die eine .htaccess-Sperre mitbringen ('' = Hauptordner). */
+    private const GESCHUETZTE_ORDNER = ['', 'data', 'backups', 'bilder', 'src', 'templates', 'migrations', 'scripts', 'vendor'];
+
+    /** Liste aller Programmdateien der Version, erzeugt mit scripts/dateiliste.php. */
+    public const DATEILISTE = 'src/dateiliste.txt';
+
+    /**
+     * .htaccess-Dateien, die fehlen – typischerweise, weil das FTP-Programm
+     * versteckte Dateien (Name beginnt mit Punkt) nicht hochgeladen hat.
+     *
+     * @return string[]
+     */
+    public static function fehlendeSchutzdateien(): array
+    {
+        $fehlend = [];
+        foreach (self::GESCHUETZTE_ORDNER as $ordner) {
+            $verzeichnis = APP_ROOT . ($ordner === '' ? '' : '/' . $ordner);
+            if (is_dir($verzeichnis) && !is_file($verzeichnis . '/.htaccess')) {
+                $fehlend[] = ($ordner === '' ? '' : $ordner . '/') . '.htaccess';
+            }
+        }
+        return $fehlend;
+    }
+
+    /**
+     * Vergleicht die Programmdateien auf dem Server mit der Dateiliste der
+     * Version. Null, wenn die Dateiliste selbst fehlt.
+     *
+     * @return array{gesamt: int, fehlend: string[]}|null
+     */
+    public static function fehlendeProgrammdateien(): ?array
+    {
+        $liste = @file(APP_ROOT . '/' . self::DATEILISTE, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($liste === false) {
+            return null;
+        }
+        $fehlend = [];
+        foreach ($liste as $pfad) {
+            if (!is_file(APP_ROOT . '/' . $pfad)) {
+                $fehlend[] = $pfad;
+            }
+        }
+        return ['gesamt' => count($liste), 'fehlend' => $fehlend];
+    }
+
     /**
      * Pfade relativ zum Programmordner, die es in der aktuellen Version nicht
      * mehr gibt. Bei künftigen Versionen hier ergänzen.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Bild für ein Werk hochladen oder aus dem Bilder-Ordner zuweisen
 // (Dialog über den Bild-Platzhalter in der Werkliste).
 
+require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;

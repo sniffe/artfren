@@ -40,18 +40,51 @@ repository.
 
 ### Applying updates
 
-1. Create a backup under "Backup" and download it.
-2. Upload the new version completely and let it overwrite everything. Works, users,
-   images, backups and settings are not affected – they live in `data/`, `bilder/`
-   and `backups/`, and the new version only brings these folders with their
-   `.htaccess` protection. Enable hidden files in your FTP client so that `.htaccess`
-   files are included.
-3. Open any page: required database changes run automatically
-   (`migrations/NNN_*.sql`, version tracked via `PRAGMA user_version`). Before the
-   first migration run, a consistent snapshot of the database is saved automatically
-   under `data/`.
-4. If files from older versions remain, a notice appears; they can be removed with
-   one click under **System**.
+Works, users, images, backups and settings are preserved during an update: they
+live in `data/`, `bilder/` and `backups/` or in the database, and a new version
+only brings its `.htaccess` protection into those folders.
+
+1. Create a backup under **Backup** and download it (for emergencies).
+2. Download the new version as a ZIP (on GitHub: "Code" → "Download ZIP") and
+   unpack it.
+3. Enable **show hidden files** in your FTP client (FileZilla:
+   Server → Force showing hidden files) so that `.htaccess` files are included.
+4. Upload the **contents** of the unpacked folder (not the folder itself) to the
+   application folder on the server and let it overwrite everything.
+5. Wait until the upload is complete (FileZilla: "Files in transfer queue" and
+   "Failed transfers" show 0). `vendor/` has over a thousand files and often takes
+   10–30 minutes.
+6. Open any page and log in. Required database changes run automatically
+   (`migrations/NNN_*.sql`, version tracked via `PRAGMA user_version`).
+7. Check under **System**:
+   - "Program completeness" reports all program files as present,
+   - if **outdated files** from previous versions are shown: "Delete now".
+8. Optional: delete the `install.php` that came back (it is locked once an
+   administrator exists).
+
+**One-time step when updating from a version without "System → Settings":** The
+application name was previously set in `src/config.php`; this file is overwritten
+during updates. Enter the name once under **System → Settings** – from then on it
+is preserved through all updates.
+
+#### If something is wrong after the update
+
+- **Page "The application has not been completely uploaded":** The page names the
+  affected folders (checked by `upload_pruefung.php` before anything else loads).
+  Wait for the upload or re-upload these folders and overwrite. If after the upload
+  everything is one level too deep (e.g. `artfren-…/src`), move the contents up one
+  level.
+- **Error "Failed opening required …/src/bootstrap.php":** This comes from an older
+  version without the upload check – the `src/` folder is missing. Upload the
+  current version completely.
+- **Red warning "Missing protection files (.htaccess)":** The FTP client skipped
+  hidden files. Repeat steps 3 and 4, otherwise private folders may be accessible
+  from outside.
+- **"An error occurred" with error ID:** Details are in `data/logs/php-fehler.log`
+  (download via FTP and search for the error ID).
+
+For developers: before each new version, run `php scripts/dateiliste.php` to keep
+`src/dateiliste.txt` (the basis for the completeness check) up to date.
 
 ### Updating to 1.1
 
@@ -248,19 +281,58 @@ Abhängigkeiten ist bereits Teil dieses Repositories.
 
 ### Updates einspielen
 
-1. Unter „Backup" ein Backup erstellen und herunterladen.
-2. Die neue Version komplett hochladen und alles überschreiben lassen.
-   Werke, Benutzer, Bilder, Backups und Einstellungen sind nicht betroffen:
-   Sie liegen in `data/`, `bilder/` und `backups/`, und die neue Version
-   bringt diese Ordner nur mit ihrer `.htaccess`-Sperre mit. Im FTP-Programm
-   versteckte Dateien anzeigen lassen, damit die `.htaccess`-Dateien
-   mitkommen.
-3. Irgendeine Seite aufrufen: Nötige Datenbank-Änderungen laufen dabei
-   automatisch (`migrations/NNN_*.sql`, Versionsstand über
-   `PRAGMA user_version`). Vor dem ersten Migrationslauf wird automatisch ein
-   konsistenter Snapshot der Datenbank unter `data/` gespeichert.
-4. Bleiben Dateien früherer Versionen liegen, weist ein Hinweis darauf hin;
-   unter **System** lassen sie sich mit einem Klick löschen.
+Werke, Benutzer, Bilder, Backups und Einstellungen bleiben bei einem Update
+erhalten: Sie liegen in `data/`, `bilder/` und `backups/` bzw. in der
+Datenbank, und eine neue Version bringt in diese Ordner nur ihre
+`.htaccess`-Sperre mit.
+
+1. Unter **Backup** ein Backup erstellen und herunterladen (für den Notfall).
+2. Die neue Version als ZIP herunterladen (auf GitHub: „Code” → „Download
+   ZIP”) und entpacken.
+3. Im FTP-Programm **versteckte Dateien anzeigen** einschalten (FileZilla:
+   Server → Anzeigen versteckter Dateien erzwingen), damit die
+   `.htaccess`-Dateien mitkommen.
+4. Den **Inhalt** des entpackten Ordners (nicht den Ordner selbst) in den
+   Programmordner auf dem Server hochladen und alles überschreiben lassen.
+5. Warten, bis das Hochladen fertig ist (FileZilla: „Zu übertragende
+   Dateien” und „Fehlgeschlagene Übertragungen” stehen auf 0). `vendor/`
+   hat über tausend Dateien und braucht oft 10–30 Minuten.
+6. Irgendeine Seite aufrufen und anmelden. Nötige Datenbank-Änderungen
+   laufen dabei automatisch (`migrations/NNN_*.sql`, Versionsstand über
+   `PRAGMA user_version`).
+7. Unter **System** kontrollieren:
+   - „Vollständigkeit des Programms” meldet alle Programmdateien als
+     vorhanden,
+   - werden **veraltete Dateien** früherer Versionen angezeigt: „Jetzt
+     löschen”.
+8. Optional: das wieder mitgebrachte `install.php` löschen (es ist gesperrt,
+   sobald ein Administrator existiert).
+
+**Einmalig beim Update von einer Version ohne „System → Einstellungen”:** Der Name der
+Anwendung wurde früher in `src/config.php` eingetragen; diese Datei wird beim
+Update überschrieben. Den Namen daher einmal unter **System → Einstellungen**
+eintragen – ab dann bleibt er bei allen Updates erhalten.
+
+#### Wenn nach dem Update etwas nicht stimmt
+
+- **Seite „Das Programm ist noch nicht vollständig hochgeladen”:** Die Seite
+  nennt die betroffenen Ordner (geprüft von `upload_pruefung.php`, bevor
+  irgendetwas anderes geladen wird). Upload abwarten bzw. diese Ordner erneut
+  hochladen und überschreiben. Liegt nach dem Upload alles eine Ebene zu tief
+  (z. B. `artfren-…/src`), den Inhalt eine Ebene nach oben verschieben.
+- **Englische Meldung „Failed opening required …/src/bootstrap.php”:** Stammt
+  von einer älteren Version ohne Upload-Prüfung – der Ordner `src/` fehlt.
+  Die aktuelle Version komplett hochladen.
+- **Rote Warnung „Es fehlen Schutzdateien (.htaccess)”:** Das FTP-Programm
+  hat versteckte Dateien ausgelassen. Schritt 3 und 4 wiederholen, sonst
+  können private Ordner von außen abrufbar sein.
+- **„Es ist ein Fehler aufgetreten” mit Fehler-ID:** Die Details stehen in
+  `data/logs/php-fehler.log` (per FTP herunterladen und nach der Fehler-ID
+  suchen).
+
+Für Entwickler: Vor jeder neuen Version `php scripts/dateiliste.php`
+ausführen, damit `src/dateiliste.txt` (Grundlage der
+Vollständigkeitsprüfung) aktuell ist.
 
 ### Update auf 1.1
 
@@ -290,6 +362,14 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
 `composer install`, dann `php scripts/migrate.php` und
 `php scripts/seed_admin.php <benutzername> <passwort>`. Die Skripte sind
 nur über die Kommandozeile ausführbar.
+
+## Rollen
+
+- **Administrator:** alles – Werke, Import, Export, Gruppen, Benutzer,
+  Backup und System.
+- **Eingeschränkt:** sieht nur die Gruppen, die ihm zugewiesen sind, samt
+  deren Werken, und kann diese Gruppen als Excel, Bilder-ZIP und PDF
+  exportieren. Keine Bearbeitung.
 
 ## Import
 
@@ -321,6 +401,23 @@ Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen
 beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro
 Seite). Gruppen, Benutzer und Einstellungen enthält nur das Backup.
 
+## Backup und Wiederherstellen
+
+Unter **Backup** lassen sich Backups mit oder ohne Bilder erstellen und
+herunterladen (ZIP mit Datenbank-Schnappschuss `kunstverwaltung.sqlite`,
+ggf. dem Ordner `bilder/` und einer `LIESMICH.txt`). Es gibt keine
+automatischen Backups – regelmäßig eines anlegen und herunterladen.
+
+Wiederherstellen per FTP:
+
+1. Die vorhandene Datei `data/kv_*.sqlite` herunterladen (zur Sicherheit)
+   und auf dem Server löschen – es darf nur eine `kv_*.sqlite` in `data/`
+   liegen.
+2. `kunstverwaltung.sqlite` aus dem Backup-ZIP nach `data/` hochladen und in
+   `kv_<beliebige Buchstaben>.sqlite` umbenennen.
+3. Bei einem Backup mit Bildern den Inhalt von `bilder/` nach `bilder/` auf
+   dem Server hochladen.
+
 ## Werke bearbeiten
 
 Über „+ Neues Werk anlegen" in der Werkliste lassen sich Werke auch ohne
@@ -336,6 +433,18 @@ geschützt: Die Vorschau listet sie gesondert, überschrieben werden sie nur mit
 ausdrücklichem Häkchen. Werden Ort, Maler oder Titel geändert, erkennt der
 Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 
+## System (nur Administratoren)
+
+- **Einstellungen:** Name der Anwendung, „HTTPS erzwingen“ (nur über eine
+  `https://`-Verbindung einschaltbar, damit man sich nicht aussperrt).
+- **Vollständigkeit des Programms** und fehlende `.htaccess`-Schutzdateien
+  (siehe „Updates einspielen“).
+- **Veraltete Dateien** früherer Versionen anzeigen und löschen.
+- **Sicherheitsprüfung:** ruft die geschützten Ordner von außen ab und
+  meldet, ob sie wirklich gesperrt sind.
+- Server-Informationen (PHP-Version, Upload-Grenzen, Datenbankgröße,
+  Schema-Version) und das **Protokoll** aller wichtigen Aktionen.
+
 ## Sicherheit
 
 - Passwörter mit bcrypt; Kontosperre nach 4 Fehlversuchen (15 Min.) plus
@@ -350,16 +459,23 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 
 ## Struktur
 
-- `*.php` im Wurzelverzeichnis – Einstiegspunkte (Controller).
+- `*.php` im Wurzelverzeichnis – Einstiegspunkte (Controller). Jeder lädt
+  zuerst `upload_pruefung.php` (Vollständigkeit, ohne Abhängigkeiten), dann
+  `src/bootstrap.php`.
 - `src/` – Klassen (PSR-4 `App\`): `Auth`, `Database`, `Migration`,
-  Repositories, `TabellenImport`, `Export`, `Bilder`, `Backup`, `Protokoll`,
-  `Sicherheitscheck`, `OrtBereinigung`.
+  Repositories, `TabellenImport`, `Export`, `Bilder`, `BildUpload`, `Backup`,
+  `Protokoll`, `Sicherheitscheck`, `OrtBereinigung`, `Einstellungen`
+  (im Browser änderbare Werte), `Wartung` (Vollständigkeit, Aufräumen).
+  `src/config.php` enthält nur technische Standardwerte,
+  `src/dateiliste.txt` die Dateiliste der Version.
 - `templates/` – reine Ausgabe-Templates, keine Geschäftslogik/SQL.
 - `assets/tokens.css` – alle Design-Tokens; `assets/style.css` verwendet nur
   diese Variablen. `assets/fonts/` – Schriften (SIL Open Font License).
 - `migrations/` – nummerierte Schema-Migrationen.
 - `data/` – Datenbank, Bild-Cache (`cache/`), Fehlerprotokoll (`logs/`).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
+- `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
+  Dateiliste erzeugen); von außen gesperrt.
 
 ## Neu in Version 1.1
 

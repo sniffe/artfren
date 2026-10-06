@@ -117,6 +117,9 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 </header>
 <?php endif; ?>
 <main class="hauptinhalt <?= !empty($breit) ? 'hauptinhalt--breit' : '' ?>">
+    <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::fehlendeSchutzdateien() !== []): ?>
+        <div class="flash flash--fehler">Nach dem Update fehlen Schutzdateien (.htaccess) – private Ordner könnten von außen abrufbar sein. <a href="/system.php">Details unter „System“</a></div>
+    <?php endif; ?>
     <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::veralteteDateien() !== []): ?>
         <div class="flash flash--hinweis">Nach dem Update liegen noch veraltete Dateien auf dem Server. <a href="/system.php">Unter „System" aufräumen</a></div>
     <?php endif; ?>
