@@ -11,8 +11,11 @@
 /** @var array[] $webFeldOptionen */
 /** @var string[] $erlaubteFelder */
 /** @var string $baseUrl */
+/** @var array[] $pdfProfile */
 declare(strict_types=1);
 
+use App\ExportProfile;
+use App\Felder;
 use App\Helpers;
 
 $gruppeId = (int) $gruppe['id'];
@@ -41,7 +44,7 @@ $gruppeId = (int) $gruppe['id'];
         <?php if ($bilderAnzahl > 0): ?>
             <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('gruppe.bilder_zip', ['n' => $bilderAnzahl])) ?></a>
         <?php endif; ?>
-        <a href="/export_gruppe_pdf.php?id=<?= $gruppeId ?>" class="btn"><?= Helpers::e(t('gruppe.pdf')) ?></a>
+        <button type="button" class="btn" data-pdf-dialog="<?= $gruppeId ?>"><?= Helpers::e(t('gruppe.pdf')) ?></button>
         <?php if ($istAdmin): ?>
             <a href="/werke.php?gruppe_id=<?= $gruppeId ?>" class="btn btn--primaer"><?= Helpers::e(t('gruppe.werke_hinzufuegen')) ?></a>
         <?php endif; ?>
@@ -273,6 +276,85 @@ $gruppeId = (int) $gruppe['id'];
 <?php endif; ?>
 
 <?php endif; // $istAdmin ?>
+
+<!-- ── PDF-Dialog ─────────────────────────────────────────────────── -->
+<?php
+$pdfStandardFelder = ExportProfile::standardFelder();
+$pdfAlleFelder     = Felder::alle();
+$pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
+?>
+<dialog id="pdf-dialog"
+        data-gruppe-id="<?= $gruppeId ?>"
+        data-csrf="<?= Helpers::e(Helpers::csrfToken()) ?>"
+        data-profil-name-frage="<?= Helpers::e(t('pdf.profil_name_frage')) ?>"
+        style="width:min(700px,95vw); max-height:90vh; overflow-y:auto; padding:var(--abstand-l); border-radius:var(--radius); border:1px solid var(--farbe-linie);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--abstand-m);">
+        <h2 style="margin:0;"><?= Helpers::e(t('pdf.dialog_titel')) ?></h2>
+        <button type="button" class="btn btn--klein" onclick="this.closest('dialog').close()">✕</button>
+    </div>
+
+    <?php if ($pdfProfile): ?>
+    <div class="feld" style="max-width:400px; margin-bottom:var(--abstand-m);">
+        <label for="pdf-profil"><?= Helpers::e(t('pdf.profil_waehlen')) ?></label>
+        <select id="pdf-profil">
+            <option value=""><?= Helpers::e(t('pdf.profil_standard')) ?></option>
+            <?php foreach ($pdfProfile as $p): ?>
+                <option value="<?= (int) $p['id'] ?>"
+                        data-felder="<?= Helpers::e((string) ($p['felder'] ?? '')) ?>"
+                        data-bild="<?= (int) $p['bild'] ?>"
+                        data-titelblock="<?= (int) $p['titelblock'] ?>"
+                        data-leer="<?= (int) $p['leer_ausblenden'] ?>"
+                        data-summe="<?= (int) $p['summe'] ?>"
+                        data-layout="<?= Helpers::e((string) $p['layout']) ?>"
+                ><?= Helpers::e($p['name']) ?><?= $p['ist_standard'] ? ' (' . Helpers::e(t('profil.standard')) . ')' : '' ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <?php endif; ?>
+
+    <p class="text-sekundaer text-klein" style="margin:0 0 var(--abstand-s);"><?= Helpers::e(t('pdf.felder_titel')) ?></p>
+    <?php foreach ($pdfGruppen as $pdfGrpName): ?>
+    <fieldset style="border:1px solid var(--farbe-linie); margin-bottom:var(--abstand-s); padding:var(--abstand-s) var(--abstand-m);">
+        <legend style="font-size:var(--schrift-groesse-klein); font-weight:600; padding:0 var(--abstand-xs);"><?= Helpers::e(t('feldgruppe.' . $pdfGrpName)) ?></legend>
+        <div class="checkliste">
+        <?php foreach ($pdfAlleFelder as $pdfF): if ($pdfF['gruppe'] !== $pdfGrpName) continue; ?>
+            <label style="font-size:var(--schrift-groesse-klein);">
+                <input type="checkbox" name="felder[]" value="<?= Helpers::e($pdfF['key']) ?>"
+                       <?= in_array($pdfF['key'], $pdfStandardFelder, true) ? 'checked' : '' ?>>
+                <?= Helpers::e(t($pdfF['label'])) ?>
+                <?php if ($pdfF['sensibel']): ?>
+                    <span class="text-sekundaer"> (<?= Helpers::e(t('profil.sensibel_hinweis')) ?>)</span>
+                <?php endif; ?>
+            </label>
+        <?php endforeach; ?>
+        </div>
+    </fieldset>
+    <?php endforeach; ?>
+
+    <div class="checkliste" style="margin:var(--abstand-m) 0;">
+        <label><input type="checkbox" id="pdf-bild" checked> <?= Helpers::e(t('pdf.bild_zeigen')) ?></label>
+        <label><input type="checkbox" id="pdf-titelblock" checked> <?= Helpers::e(t('pdf.titelblock_zeigen')) ?></label>
+        <label><input type="checkbox" id="pdf-leer" checked> <?= Helpers::e(t('pdf.leer_ausblenden')) ?></label>
+        <label><input type="checkbox" id="pdf-summe" checked> <?= Helpers::e(t('pdf.summe_zeigen')) ?></label>
+    </div>
+
+    <div class="feld" style="max-width:200px; margin-bottom:var(--abstand-m);">
+        <label for="pdf-layout"><?= Helpers::e(t('pdf.layout')) ?></label>
+        <select id="pdf-layout">
+            <option value="einzelblatt"><?= Helpers::e(t('pdf.layout_einzelblatt')) ?></option>
+            <option value="liste"><?= Helpers::e(t('pdf.layout_liste')) ?></option>
+        </select>
+    </div>
+
+    <div style="display:flex; gap:var(--abstand-s); flex-wrap:wrap; align-items:center;">
+        <a id="pdf-erstellen-link" href="#" target="_blank" rel="noopener" class="btn btn--primaer"><?= Helpers::e(t('pdf.erstellen')) ?></a>
+        <?php if ($istAdmin): ?>
+            <button type="button" id="pdf-als-profil" class="btn"><?= Helpers::e(t('pdf.als_profil_speichern')) ?></button>
+            <button type="button" id="pdf-profil-update" class="btn" hidden><?= Helpers::e(t('pdf.profil_aktualisieren')) ?></button>
+        <?php endif; ?>
+    </div>
+</dialog>
+<script src="/assets/pdf-dialog.js"></script>
 
 <?php if ($auswahlVerwerfen): ?>
     <div data-auswahl-loeschen="<?= Helpers::e(implode(' ', $auswahlVerwerfen)) ?>" hidden></div>

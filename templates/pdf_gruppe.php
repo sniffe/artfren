@@ -1,19 +1,27 @@
 <?php
 /** @var array $gruppe */
-/** @var array $werke  jeweils mit 'bild_data_uri' */
+/** @var array $werke   jeweils mit 'bild_data_uri' */
+/** @var array $pdfFelder   Felddefinitionen aus Registry, bereits gefiltert */
+/** @var bool $zeigeBild */
+/** @var bool $zeigeTitelblock */
+/** @var bool $leerAusblenden */
+/** @var bool $zeigeSumme */
+/** @var string $layout  'einzelblatt'|'liste' */
 declare(strict_types=1);
 
-use App\Felder;
 use App\Helpers;
+use App\I18n;
 
-// Felder, die in der PDF-Tabelle erscheinen (in_pdf = true, kein Etikett-Feld).
-$pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pdf']);
+$tabellenFelder = array_values(array_filter($pdfFelder, static fn(array $f): bool => $f['typ'] !== 'langtext'));
+$langtextFelder = array_values(array_filter($pdfFelder, static fn(array $f): bool => $f['typ'] === 'langtext'));
+$geldFelder     = array_values(array_filter($pdfFelder, static fn(array $f): bool => $f['typ'] === 'geld'));
 ?>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
     body { font-family: DejaVu Sans, sans-serif; color: #1C1B1A; font-size: 11pt; }
+    /* ── Einzelblatt ── */
     .seite { page-break-after: always; padding-top: 20px; }
     .seite:last-child { page-break-after: auto; }
     .kopf { font-size: 9pt; color: #6B6862; border-bottom: 1px solid #E2E0DC; padding-bottom: 6px; }
@@ -27,13 +35,113 @@ $pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pd
     table.daten { width: 100%; margin-top: 24px; border-collapse: collapse; }
     table.daten td { padding: 4px 8px; border-bottom: 1px solid #E2E0DC; font-size: 10pt; }
     table.daten td.label { color: #6B6862; width: 160px; }
-    .beschreibung { padding: 6px 8px; font-size: 10pt; line-height: 1.4; }
+    .beschreibung { padding: 4px 8px; font-size: 10pt; line-height: 1.4; }
+    .beschreibung-label { padding: 10px 8px 2px; font-size: 9pt; color: #6B6862; }
+    /* ── Liste ── */
+    .liste-kopf { font-size: 10pt; margin-bottom: 16px; }
+    .liste-kopf h1 { font-size: 14pt; color: #1C1B1A; margin: 0 0 4px; }
+    .liste-meta { font-size: 9pt; color: #6B6862; }
+    table.werkliste { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    table.werkliste th { background: #f0ede8; padding: 4px 6px; text-align: left; border-bottom: 2px solid #C8C4BC; }
+    table.werkliste td { padding: 4px 6px; border-bottom: 1px solid #E2E0DC; vertical-align: top; }
+    table.werkliste tr.summe-zeile td { border-top: 2px solid #C8C4BC; border-bottom: none; font-weight: bold; font-size: 9pt; }
+    .num { text-align: right; }
 </style>
 </head>
 <body>
-<?php foreach ($werke as $i => $w): ?>
+<?php if ($layout === 'liste'): ?>
+<?php
+// ── Listen-Layout ─────────────────────────────────────────────────────────────
+$summen     = array_fill_keys(array_column($geldFelder, 'key'), 0.0);
+$ohneAngabe = array_fill_keys(array_column($geldFelder, 'key'), 0);
+$zeilenZahl = 0;
+?>
+<div class="liste-kopf">
+    <h1><?= Helpers::e($gruppe['name']) ?></h1>
+    <div class="liste-meta">
+        <?= Helpers::e(t('pdf.liste_datum')) ?> <?= date('d.m.Y') ?>
+        · <?= Helpers::e(I18n::plural(count($werke), 'pdf.liste_werke', ['n' => count($werke)])) ?>
+    </div>
+</div>
+<table class="werkliste">
+    <thead>
+        <tr>
+            <th style="width:24px;">#</th>
+            <?php foreach ($pdfFelder as $f): ?>
+                <th class="<?= $f['typ'] === 'geld' ? 'num' : '' ?>"><?= Helpers::e(t($f['label'])) ?></th>
+            <?php endforeach; ?>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($werke as $i => $w): ?>
+    <?php
+        // Zeile überspringen wenn komplett leer und leer_ausblenden aktiv
+        if ($leerAusblenden) {
+            $hatWert = false;
+            foreach ($pdfFelder as $f) {
+                if (($w[$f['key']] ?? '') !== '' && ($w[$f['key']] ?? null) !== null) {
+                    $hatWert = true;
+                    break;
+                }
+            }
+            if (!$hatWert) continue;
+        }
+        $zeilenZahl++;
+    ?>
+        <tr>
+            <td><?= $i + 1 ?></td>
+            <?php foreach ($pdfFelder as $f): ?>
+            <?php
+                $val = $w[$f['key']] ?? null;
+                $leer = $val === null || $val === '';
+                if ($f['typ'] === 'geld') {
+                    if (!$leer) {
+                        $summen[$f['key']] += (float) $val;
+                        echo '<td class="num">' . Helpers::formatGeld((float) $val) . '</td>';
+                    } else {
+                        $ohneAngabe[$f['key']]++;
+                        echo '<td class="num">' . ($leerAusblenden ? '' : '–') . '</td>';
+                    }
+                } elseif ($f['typ'] === 'langtext') {
+                    $anzeige = $leer ? ($leerAusblenden ? '' : '–') : Helpers::e(mb_strimwidth((string) $val, 0, 120, '…'));
+                    echo '<td>' . $anzeige . '</td>';
+                } else {
+                    $anzeige = $leer ? ($leerAusblenden ? '' : '–') : Helpers::e((string) $val);
+                    echo '<td>' . $anzeige . '</td>';
+                }
+            ?>
+            <?php endforeach; ?>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    <?php if ($zeigeSumme && $geldFelder): ?>
+    <tfoot>
+        <tr class="summe-zeile">
+            <td></td>
+            <?php foreach ($pdfFelder as $f): ?>
+            <?php if ($f['typ'] === 'geld'): ?>
+                <td class="num">
+                    <?= Helpers::formatGeld($summen[$f['key']]) ?>
+                    <?php if ($ohneAngabe[$f['key']] > 0): ?>
+                        <br><span style="font-size:8pt; font-weight:normal;"><?= Helpers::e(t('pdf.ohne_angabe', ['m' => $ohneAngabe[$f['key']]])) ?></span>
+                    <?php endif; ?>
+                </td>
+            <?php else: ?>
+                <td></td>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </tr>
+    </tfoot>
+    <?php endif; ?>
+</table>
+<?php else: ?>
+<?php
+// ── Einzelblatt-Layout ────────────────────────────────────────────────────────
+foreach ($werke as $i => $w):
+?>
 <div class="seite">
     <div class="kopf"><?= Helpers::e($gruppe['name']) ?> · <?= Helpers::e(t('pdf.werk_n_von_m', ['n' => $i + 1, 'm' => count($werke)])) ?></div>
+    <?php if ($zeigeBild): ?>
     <div class="bild-rahmen">
         <?php if ($w['bild_data_uri']): ?>
             <img src="<?= $w['bild_data_uri'] ?>">
@@ -41,38 +149,39 @@ $pdfFelder = array_filter(Felder::alle(), static fn(array $f): bool => $f['in_pd
             <div class="kein-bild"><?= Helpers::e(t('pdf.kein_bild')) ?></div>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
+    <?php if ($zeigeTitelblock): ?>
     <div class="etikett">
         <div class="maler"><?= Helpers::e($w['maler']) ?></div>
         <div class="titel"><?= Helpers::e($w['titel']) ?></div>
         <div class="meta"><?= Helpers::e(Helpers::werkMeta($w['technik'] ?? null, $w['entstehungsjahr'] ?? null)) ?></div>
     </div>
+    <?php endif; ?>
     <table class="daten">
-        <?php foreach ($pdfFelder as $feld): ?>
+        <?php foreach ($tabellenFelder as $feld): ?>
         <?php
             $wert = $w[$feld['key']] ?? null;
-            if ($wert === null || $wert === '') continue;
-            if ($feld['typ'] === 'langtext') {
-                // Beschreibung als Absatz unter der Tabelle
-                continue;
-            }
+            if ($leerAusblenden && ($wert === null || $wert === '')) continue;
             $anzeige = match ($feld['typ']) {
                 'geld' => Helpers::formatGeld($wert !== null ? (float) $wert : null),
-                default => Helpers::e((string) $wert),
+                default => Helpers::e((string) ($wert ?? '')),
             };
-            if ($anzeige === '') continue;
+            if ($leerAusblenden && $anzeige === '') continue;
         ?>
         <tr><td class="label"><?= Helpers::e(t($feld['label'])) ?></td><td><?= $anzeige ?></td></tr>
         <?php endforeach; ?>
     </table>
+    <?php foreach ($langtextFelder as $feld): ?>
     <?php
-    // Beschreibung (oeffentlich) als eigener Absatz nach der Tabelle
-    $beschr = trim((string) ($w['beschreibung_oeffentlich'] ?? ''));
-    if ($beschr !== ''):
+        $wert = trim((string) ($w[$feld['key']] ?? ''));
+        if ($wert === '') continue;
     ?>
-    <div class="beschreibung"><?= nl2br(Helpers::e($beschr)) ?></div>
-    <?php endif; ?>
+    <div class="beschreibung-label"><?= Helpers::e(t($feld['label'])) ?></div>
+    <div class="beschreibung"><?= nl2br(Helpers::e($wert)) ?></div>
+    <?php endforeach; ?>
 </div>
 <?php endforeach; ?>
+<?php endif; ?>
 <?php if (!$werke): ?>
 <div class="seite"><p><?= Helpers::e(t('pdf.gruppe_leer')) ?></p></div>
 <?php endif; ?>

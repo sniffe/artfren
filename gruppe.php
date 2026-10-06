@@ -5,6 +5,8 @@ require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
+use App\Database;
+use App\ExportProfile;
 use App\GruppeRepository;
 use App\Helpers;
 use App\Protokoll;
@@ -154,6 +156,7 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
 }
 
 $istAdmin = Auth::isAdmin($benutzer);
+$pdo = Database::get();
 $werkRepo = WerkRepository::neu();
 $werke = $werkRepo->fuerGruppeExport($id);
 $werkeSortiert   = $istAdmin ? $repo->fuerGruppeSortiert($id) : [];
@@ -162,6 +165,10 @@ $webFeldOptionen = $istAdmin ? \App\WebGruppe::feldPickerOptionen() : [];
 $erlaubteFelder  = $istAdmin ? \App\WebGruppe::erlaubteFelder($gruppe) : [];
 $https   = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 $baseUrl = ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+$allePdfProfile = ExportProfile::alle($pdo);
+$pdfProfile = $istAdmin
+    ? $allePdfProfile
+    : array_values(array_filter($allePdfProfile, static fn(array $p): bool => (bool) $p['fuer_eingeschraenkte']));
 render('gruppe_ansicht', [
     'titel' => $gruppe['name'],
     'aktuelleSeite' => 'gruppen',
@@ -177,6 +184,7 @@ render('gruppe_ansicht', [
     'erlaubteFelder' => $erlaubteFelder,
     'baseUrl' => $baseUrl,
     'freigegebenFuer' => $istAdmin ? $repo->freigegebenFuer($id) : [],
+    'pdfProfile' => $pdfProfile,
     'auswahlVerwerfen' => array_filter([
         isset($_GET['neu']) ? 'auswahl_neu' : null,
         isset($_GET['mitglieder_gespeichert']) ? 'auswahl_gruppe_' . $id : null,

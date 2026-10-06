@@ -17,6 +17,7 @@ if (!in_array($format, ['xlsx', 'bilder', 'csv'], true)) {
     render('export_gesamt', [
         'titel' => t('export.titel'),
         'aktuelleSeite' => 'export',
+        'aktiverReiter' => 'gesamt',
         'anzahlWerke' => $repo->zaehle([]),
         'bilder' => Export::bilderZuWerken($repo->alleExport()),
     ]);

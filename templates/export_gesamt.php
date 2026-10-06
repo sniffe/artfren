@@ -1,9 +1,12 @@
 <?php
 /** @var int $anzahlWerke */
 /** @var array{dateien: string[], fehlend: string[], groesse: int} $bilder */
+/** @var string $aktiverReiter */
 declare(strict_types=1);
 
 use App\Helpers;
+
+require __DIR__ . '/_export_reiter.php';
 ?>
 <h2><?= Helpers::e(t('export.titel')) ?></h2>
 <p class=”text-sekundaer”><?= Helpers::e(t('export.beschreibung', ['n' => $anzahlWerke])) ?></p>
