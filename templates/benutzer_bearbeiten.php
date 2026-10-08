@@ -42,10 +42,6 @@ $zielId = (int) $ziel['id'];
         <?php $auswahlId = 'gruppen-auswahl-bearbeiten'; require __DIR__ . '/_gruppen_auswahl.php'; ?>
         <div class="feld" id="export-rechte-bearbeiten" <?= $ziel['rolle'] === 'admin' ? 'style="display:none;"' : '' ?>>
             <label>
-                <input type="checkbox" name="darf_excel" value="1" <?= ($ziel['darf_excel'] ?? 0) ? 'checked' : '' ?>>
-                <?= Helpers::e(t('benutzer_bearbeiten.darf_excel')) ?>
-            </label><br>
-            <label>
                 <input type="checkbox" name="darf_bilder_export" value="1" <?= ($ziel['darf_bilder_export'] ?? 0) ? 'checked' : '' ?>>
                 <?= Helpers::e(t('benutzer_bearbeiten.darf_bilder')) ?>
             </label>

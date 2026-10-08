@@ -141,7 +141,6 @@ return [
     'benutzer_bearbeiten.letzter_admin' => 'Das ist der letzte Administrator – mindestens ein Admin muss bestehen bleiben.',
     'benutzer_bearbeiten.passwort_gesetzt' => 'Passwort für „{name}“ gesetzt. Bestehende Anmeldungen beendet.',
     'benutzer_bearbeiten.sprache'       => 'Sprache / Language',
-    'benutzer_bearbeiten.darf_excel'    => 'Excel-Export erlauben',
     'benutzer_bearbeiten.darf_bilder'   => 'Bilder-Export erlauben (ZIP und Originaldateien)',
 
     // ── Gruppen-Liste ────────────────────────────────────────────────────────

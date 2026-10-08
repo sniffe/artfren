@@ -29,7 +29,8 @@ if (!$istAdmin) {
         Protokoll::schreibe('export_verweigert', "Bilder-ZIP „{$gruppe['name']}“");
         Helpers::abbrechen(403, t('export.keine_rechte'));
     }
-    if ($format === 'xlsx' && !($benutzer['darf_excel'] ?? 0)) {
+    // Excel gibt es für eingeschränkte Benutzer nicht (seit 1.2.3) – nur PDF.
+    if ($format === 'xlsx') {
         Protokoll::schreibe('export_verweigert', "Excel „{$gruppe['name']}“");
         Helpers::abbrechen(403, t('export.keine_rechte'));
     }

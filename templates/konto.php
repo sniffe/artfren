@@ -60,10 +60,6 @@ use App\Helpers;
     <p class="text-klein text-sekundaer"><?= Helpers::e(t('konto.export_rechte_info')) ?></p>
     <div class="checkliste">
         <label>
-            <input type="checkbox" disabled <?= ($benutzer['darf_excel'] ?? 0) ? 'checked' : '' ?>>
-            <?= Helpers::e(t('benutzer_bearbeiten.darf_excel')) ?>
-        </label>
-        <label>
             <input type="checkbox" disabled <?= ($benutzer['darf_bilder_export'] ?? 0) ? 'checked' : '' ?>>
             <?= Helpers::e(t('benutzer_bearbeiten.darf_bilder')) ?>
         </label>

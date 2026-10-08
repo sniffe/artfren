@@ -141,7 +141,6 @@ return [
     'benutzer_bearbeiten.letzter_admin' => 'This is the last administrator – at least one admin must remain.',
     'benutzer_bearbeiten.passwort_gesetzt' => 'Password for "{name}" has been set. Existing sessions ended.',
     'benutzer_bearbeiten.sprache'       => 'Language / Sprache',
-    'benutzer_bearbeiten.darf_excel'    => 'Allow Excel export',
     'benutzer_bearbeiten.darf_bilder'   => 'Allow image export (ZIP and original files)',
 
     // ── Group list ───────────────────────────────────────────────────────────

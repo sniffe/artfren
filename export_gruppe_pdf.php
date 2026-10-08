@@ -72,8 +72,16 @@ if ($getFelder !== null) {
     $layout          = (string) $profil['layout'];
     $spracheQuelle   = $profil;
 } else {
-    // Fallback: Standard-Profil
+    // Fallback: Standard-Profil. Eingeschränkte Benutzer bekommen es nur, wenn es
+    // für sie freigegeben ist; sonst das erste freigegebene Profil.
     $standardProfil = ExportProfile::standard($pdo);
+    if (!$istAdmin && ($standardProfil === null || !$standardProfil['fuer_eingeschraenkte'])) {
+        $freigegeben = array_values(array_filter(
+            ExportProfile::alle($pdo),
+            static fn(array $p): bool => (bool) $p['fuer_eingeschraenkte']
+        ));
+        $standardProfil = $freigegeben[0] ?? null;
+    }
     if ($standardProfil !== null) {
         $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool => in_array($f['key'], ExportProfile::felderAusProfil($standardProfil), true)));
         $zeigeBild       = (bool) $standardProfil['bild'];
@@ -83,8 +91,10 @@ if ($getFelder !== null) {
         $layout          = (string) $standardProfil['layout'];
         $spracheQuelle   = $standardProfil;
     } else {
-        // Letzter Fallback: in_pdf-Felder, alle Schalter an
-        $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool => $f['in_pdf']));
+        // Letzter Fallback: in_pdf-Felder, alle Schalter an. Den Ankaufswert
+        // sehen eingeschränkte Benutzer auch hier nicht.
+        $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool =>
+            $f['in_pdf'] && ($istAdmin || $f['key'] !== 'ankaufswert')));
         $zeigeBild       = true;
         $zeigeTitelblock = true;
         $leerAusblenden  = true;

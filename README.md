@@ -229,6 +229,12 @@ Visual refinements, no database change (schema stays 9).
 - Restricted users no longer see the purchase value ("Ankaufswert"): neither
   in the sums at the top of a group nor on the detail page of a work. The price
   remains visible. Exports are still governed by the export profiles.
+- Excel export removed for restricted users; they only receive PDFs. The
+  "Allow Excel export" option in user management is gone.
+- PDF for restricted users without a chosen profile: the default profile is
+  only used if it is released for restricted users, otherwise the first released
+  profile. Previously a default profile not released for them (or, without any
+  profile, all PDF fields including the purchase value) could end up in their PDF.
 
 ## New in version 1.2.2
 
@@ -643,6 +649,13 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
 - Eingeschränkte Benutzer sehen den Ankaufswert nicht mehr: weder in den Summen
   oben in einer Gruppe noch in der Detailansicht eines Werks. Der Preis bleibt
   sichtbar. Für Exporte gelten weiterhin die Export-Profile.
+- Excel-Export für eingeschränkte Benutzer abgeschafft, sie erhalten nur noch
+  PDFs. Die Option „Excel-Export erlauben“ in der Benutzerverwaltung entfällt.
+- PDF für eingeschränkte Benutzer ohne gewähltes Profil: Das Standard-Profil
+  wird nur verwendet, wenn es für eingeschränkte Benutzer freigegeben ist, sonst
+  das erste freigegebene Profil. Bisher konnte ein nicht freigegebenes
+  Standard-Profil (oder ohne Profil alle PDF-Felder samt Ankaufswert) in ihrem
+  PDF landen.
 
 ## Neu in Version 1.2.2
 

@@ -42,7 +42,7 @@ $gruppeId = (int) $gruppe['id'];
         </p>
     </div>
     <?php
-    $darfExcel  = $istAdmin || ($aktuellerBenutzer['darf_excel']          ?? false);
+    $darfExcel  = $istAdmin; // Excel nur für Admins, eingeschränkte Benutzer erhalten PDF
     $darfBilder = $istAdmin || ($aktuellerBenutzer['darf_bilder_export']  ?? false);
     ?>
     <div class="toolbar-aktionen">

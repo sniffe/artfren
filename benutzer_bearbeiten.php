@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $repo->aktualisieren($zielId, $echterName, $email, $rolle, Helpers::idListe($_POST['gruppen'] ?? []));
             $sprache = (string) ($_POST['sprache'] ?? '');
             $repo->aktualisiereSprache($zielId, isset(I18n::SPRACHEN[$sprache]) ? $sprache : null);
-            $darfExcel = isset($_POST['darf_excel']) ? 1 : 0;
+            $darfExcel = 0; // Excel-Export für eingeschränkte Benutzer gibt es nicht mehr
             $darfBilder = isset($_POST['darf_bilder_export']) ? 1 : 0;
             $repo->aktualisiereExportRechte($zielId, $darfExcel, $darfBilder);
             $details = "„{$ziel['benutzername']}“" . ($rolle !== $ziel['rolle'] ? ", Rolle → {$rolle}" : '');
