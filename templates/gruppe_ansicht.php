@@ -28,7 +28,7 @@ $gruppeId = (int) $gruppe['id'];
         <h2 class="gruppenname"><?= Helpers::e($gruppe['name']) ?></h2>
         <p class="text-sekundaer text-klein">
             <?= Helpers::e(\App\I18n::plural(count($werke), 'gruppe.werke_zaehler', ['n' => count($werke)])) ?>
-            <?php if ((float) ($summen['ankaufswert'] ?? 0) > 0): ?> · <?= Helpers::e(t('gruppe.summe_ankaufswert', ['summe' => Helpers::formatGeld((float) $summen['ankaufswert'])])) ?><?php endif; ?>
+            <?php if ($istAdmin && (float) ($summen['ankaufswert'] ?? 0) > 0): /* Ankaufswert nur für Admins */ ?> · <?= Helpers::e(t('gruppe.summe_ankaufswert', ['summe' => Helpers::formatGeld((float) $summen['ankaufswert'])])) ?><?php endif; ?>
             <?php if ((float) ($summen['wert'] ?? 0) > 0): ?> · <?= Helpers::e(t('gruppe.summe_wert', ['summe' => Helpers::formatGeld((float) $summen['wert'])])) ?><?php endif; ?>
             · <?= Helpers::e(t('gruppe.erstellt_am', ['datum' => Helpers::formatDatum($gruppe['erstellt_am'], 'd.m.Y')])) ?>
             <?php if ($istAdmin): ?>

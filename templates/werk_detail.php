@@ -34,8 +34,8 @@ $sichtbareFelder = array_filter(
         if (!$feld['in_detail']) {
             return false;
         }
-        // beschreibung_intern nur fuer Admins
-        if ($feld['key'] === 'beschreibung_intern' && !$istAdmin) {
+        // beschreibung_intern und Ankaufswert nur fuer Admins
+        if (in_array($feld['key'], ['beschreibung_intern', 'ankaufswert'], true) && !$istAdmin) {
             return false;
         }
         $wert = $werk[$feld['key']] ?? null;

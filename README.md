@@ -226,6 +226,9 @@ Visual refinements, no database change (schema stays 9).
   two or more groups. The group overview no longer offers Excel and image
   downloads to restricted users (on the group page they remain available if
   enabled for the user).
+- Restricted users no longer see the purchase value ("Ankaufswert"): neither
+  in the sums at the top of a group nor on the detail page of a work. The price
+  remains visible. Exports are still governed by the export profiles.
 
 ## New in version 1.2.2
 
@@ -637,6 +640,9 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
   es erst ab zwei Gruppen. Die Gruppenübersicht bietet eingeschränkten Benutzern
   keinen Excel- und Bilder-Download mehr an (auf der Gruppenseite weiterhin,
   sofern für den Benutzer freigeschaltet).
+- Eingeschränkte Benutzer sehen den Ankaufswert nicht mehr: weder in den Summen
+  oben in einer Gruppe noch in der Detailansicht eines Werks. Der Preis bleibt
+  sichtbar. Für Exporte gelten weiterhin die Export-Profile.
 
 ## Neu in Version 1.2.2
 
