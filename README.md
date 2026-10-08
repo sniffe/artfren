@@ -217,6 +217,8 @@ Visual refinements, no database change (schema stays 9).
 - Cause of the oversized trash icon fixed: icons in buttons now have a fixed
   size, and any icon without a size rule falls back to text size.
 - Footer with version number centred and with spacing.
+- Public gallery: the overview page shows the images again (the field filter
+  for public data had also removed the image reference).
 
 ## New in version 1.2.2
 
@@ -619,6 +621,8 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
   haben eine feste Größe, und jedes Symbol ohne eigene Größenregel fällt auf
   Textgröße zurück.
 - Fußzeile mit Versionsnummer zentriert und mit Abstand.
+- Öffentliche Galerie: Die Übersichtsseite zeigt wieder die Bilder (der
+  Feldfilter für öffentliche Daten hatte auch den Bildverweis entfernt).
 
 ## Neu in Version 1.2.2
 

@@ -169,8 +169,11 @@ final class WebGruppe
             // 'never' → nie öffentlich
         }
 
+        // bild_id und bild_anzahl sind keine Werkfelder, sondern technische Angaben
+        // für die Bildkachel (Hauptbild, "+n"-Hinweis). Ohne sie bleibt die
+        // Galerie-Übersicht ohne Bilder. Der Dateiname bleibt bewusst intern.
         $erlaubt = array_unique(array_merge(
-            ['id', 'maler', 'titel'],
+            ['id', 'maler', 'titel', 'bild_id', 'bild_anzahl'],
             $immer,
             array_intersect($erlaubteFelder, $waehlbar)
         ));
