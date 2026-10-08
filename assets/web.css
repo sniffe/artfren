@@ -207,7 +207,14 @@ a { color: var(--farbe-akzent); }
 /* ---------- Responsive ---------- */
 @media (max-width: 600px) {
     .web-header h1 { font-size: 1.5rem; }
-    .web-karten { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--abstand-s); }
     .web-detail { flex-direction: column; }
     .web-detail-nav { padding: var(--abstand-s) var(--abstand-s) 0; }
+}
+
+/* Smartphone (hoch: schmal, quer: niedrig): ein Werk unter dem anderen, jedes
+   Bild in voller Breite und im eigenen Seitenverhältnis statt in einer 4:3-Kachel. */
+@media (max-width: 600px), (max-height: 500px) {
+    .web-karten { grid-template-columns: 1fr; gap: var(--abstand-xl); }
+    .web-karte__bild { aspect-ratio: auto; min-height: 160px; }
+    .web-karte__bild img { width: auto; height: auto; max-height: 75vh; }
 }

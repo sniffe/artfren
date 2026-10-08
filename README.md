@@ -219,6 +219,8 @@ Visual refinements, no database change (schema stays 9).
 - Footer with version number centred and with spacing.
 - Public gallery: the overview page shows the images again (the field filter
   for public data had also removed the image reference).
+- Public gallery on smartphones (portrait and landscape): one work below the
+  other, each image at full width in its own proportions.
 
 ## New in version 1.2.2
 
@@ -623,6 +625,8 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
 - Fußzeile mit Versionsnummer zentriert und mit Abstand.
 - Öffentliche Galerie: Die Übersichtsseite zeigt wieder die Bilder (der
   Feldfilter für öffentliche Daten hatte auch den Bildverweis entfernt).
+- Öffentliche Galerie am Smartphone (hoch und quer): ein Werk unter dem
+  anderen, jedes Bild in voller Breite und im eigenen Seitenverhältnis.
 
 ## Neu in Version 1.2.2
 
