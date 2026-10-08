@@ -13,10 +13,19 @@
         });
     });
 
-    // Klick auf Hintergrund schließt Dialog
+    // Klick auf Hintergrund oder auf das X schließt den Dialog.
+    // (Kein onclick im HTML: Die Sicherheitsrichtlinie der Seite blockiert Inline-Skripte.)
     dialog.addEventListener('click', function (e) {
-        if (e.target === dialog) { dialog.close(); }
+        if (e.target === dialog || e.target.closest('[data-dialog-schliessen]')) { dialog.close(); }
     });
+
+    // Nach "PDF erstellen" schließen; der Link öffnet das PDF trotzdem.
+    var erstellenLink = document.getElementById('pdf-erstellen-link');
+    if (erstellenLink) {
+        erstellenLink.addEventListener('click', function () {
+            setTimeout(function () { dialog.close(); }, 0);
+        });
+    }
 
     // ── Profil-Auswahl → Felder + Schalter aktualisieren ──────────────────────
     var profilSelect = document.getElementById('pdf-profil');

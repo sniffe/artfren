@@ -12,6 +12,7 @@ return [
     // ── Allgemein ────────────────────────────────────────────────────────────
     'allg.speichern'            => 'Speichern',
     'allg.abbrechen'            => 'Abbrechen',
+    'allg.schliessen'           => 'Schließen',
     'allg.loeschen'             => 'Löschen',
     'allg.bearbeiten'           => 'Bearbeiten',
     'allg.zurueck'              => '← zurück',

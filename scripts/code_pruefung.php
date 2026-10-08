@@ -17,6 +17,7 @@ declare(strict_types=1);
 //   5. Übersetzungen: de/en vollständig, alle im Code benutzten Schlüssel vorhanden
 //   6. src/dateiliste.txt passt zum aktuellen Stand (sonst meldet "System" Fehlalarme)
 //   7. Versionsnummer in src/config.php und README.md stimmen überein
+//   8. Inline-Skripte (onclick usw.) in Vorlagen, die die Sicherheitsrichtlinie blockiert
 
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
@@ -138,6 +139,11 @@ foreach ($syntaxOk as $pfad) {
             // HTML-Attribut mit typografischem Anführungszeichen: class=”liste”
             if (preg_match('/[\w-]=\s*[\x{201C}\x{201D}\x{2018}\x{2019}]/u', $textzeile)) {
                 $melde('Typografische Anführungszeichen in HTML-Attributen', $hier);
+            }
+            // onclick="…" & Co.: Die Sicherheitsrichtlinie (script-src 'self')
+            // blockiert Inline-Skripte, der Knopf täte im Browser nichts.
+            if (preg_match('/\son(click|change|submit|input|load|keyup|keydown|focus|blur|mouse\w+)\s*=\s*["\']/i', $textzeile)) {
+                $melde('Inline-Skripte (onclick usw.), die die Sicherheitsrichtlinie blockiert', $hier);
             }
             // Deutsches Anführungszeichen unten, oben aber gerades " statt “
             if (preg_match('/\x{201E}[^\x{201C}"\x{201E}]*"/u', $textzeile)) {

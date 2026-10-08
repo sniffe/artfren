@@ -41,11 +41,15 @@ $geldFelder     = array_values(array_filter($pdfFelder, static fn(array $f): boo
     .liste-kopf { font-size: 10pt; margin-bottom: 16px; }
     .liste-kopf h1 { font-size: 14pt; color: #1C1B1A; margin: 0 0 4px; }
     .liste-meta { font-size: 9pt; color: #6B6862; }
-    table.werkliste { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    table.werkliste th { background: #f0ede8; padding: 4px 6px; text-align: left; border-bottom: 2px solid #C8C4BC; }
-    table.werkliste td { padding: 4px 6px; border-bottom: 1px solid #E2E0DC; vertical-align: top; }
-    table.werkliste tr.summe-zeile td { border-top: 2px solid #C8C4BC; border-bottom: none; font-weight: bold; font-size: 9pt; }
+    /* Feste Spaltenbreiten (in der Kopfzeile) und Umbruch langer Wörter: Die Tabelle
+       bleibt immer innerhalb der Seite, egal wie viele Felder gewählt sind. */
+    table.werkliste { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    table.werkliste th { background: #f0ede8; padding: 4px 4px; text-align: left; vertical-align: bottom; border-bottom: 2px solid #C8C4BC; font-size: 0.92em; }
+    table.werkliste td { padding: 4px 4px; border-bottom: 1px solid #E2E0DC; vertical-align: top; }
+    table.werkliste th, table.werkliste td { word-wrap: break-word; overflow-wrap: break-word; }
+    table.werkliste tr.summe-zeile td { border-top: 2px solid #C8C4BC; border-bottom: none; font-weight: bold; }
     .num { text-align: right; }
+    table.werkliste td.num { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -63,12 +67,32 @@ $zeilenZahl = 0;
         · <?= Helpers::e(I18n::plural(count($werke), 'pdf.liste_werke', ['n' => count($werke)])) ?>
     </div>
 </div>
-<table class="werkliste">
+<?php
+// Spaltenbreiten nach Inhalt gewichten, Schriftgröße nach Spaltenzahl.
+$gewicht = static function (array $f): float {
+    if ($f['typ'] === 'langtext') { return 4.0; }
+    if ($f['typ'] === 'geld') { return 1.9; }
+    return match ($f['key']) {
+        'titel' => 3.0,
+        'maler', 'technik' => 2.2,
+        'ort', 'herkunft', 'ankauf', 'copyright' => 2.0,
+        'entstehungsjahr', 'ankaufjahr' => 2.1,
+        'werktyp', 'web_freigabe', 'status_farbe' => 1.8,
+        default => 1.5,
+    };
+};
+$gewichte = array_map($gewicht, $pdfFelder);
+$summeGewichte = 0.6 + array_sum($gewichte);
+$spalten = count($pdfFelder);
+$schrift = $spalten <= 6 ? '9pt' : ($spalten <= 9 ? '8pt' : ($spalten <= 12 ? '7pt' : '6pt'));
+$prozent = static fn(float $g): string => number_format($g / $summeGewichte * 100, 2, '.', '') . '%';
+?>
+<table class="werkliste" style="font-size:<?= $schrift ?>;">
     <thead>
         <tr>
-            <th style="width:24px;">#</th>
-            <?php foreach ($pdfFelder as $f): ?>
-                <th class="<?= $f['typ'] === 'geld' ? 'num' : '' ?>"><?= Helpers::e(t($f['label'])) ?></th>
+            <th style="width:<?= $prozent(0.6) ?>;">#</th>
+            <?php foreach ($pdfFelder as $n => $f): ?>
+                <th class="<?= $f['typ'] === 'geld' ? 'num' : '' ?>" style="width:<?= $prozent($gewichte[$n]) ?>;"><?= Helpers::e(t($f['label'])) ?></th>
             <?php endforeach; ?>
         </tr>
     </thead>
@@ -123,7 +147,7 @@ $zeilenZahl = 0;
                 <td class="num">
                     <?= Helpers::formatGeld($summen[$f['key']]) ?>
                     <?php if ($ohneAngabe[$f['key']] > 0): ?>
-                        <br><span style="font-size:8pt; font-weight:normal;"><?= Helpers::e(t('pdf.ohne_angabe', ['m' => $ohneAngabe[$f['key']]])) ?></span>
+                        <br><span style="font-size:0.85em; font-weight:normal;"><?= Helpers::e(t('pdf.ohne_angabe', ['m' => $ohneAngabe[$f['key']]])) ?></span>
                     <?php endif; ?>
                 </td>
             <?php else: ?>

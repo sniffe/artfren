@@ -12,6 +12,7 @@ return [
     // ── General ──────────────────────────────────────────────────────────────
     'allg.speichern'            => 'Save',
     'allg.abbrechen'            => 'Cancel',
+    'allg.schliessen'           => 'Close',
     'allg.loeschen'             => 'Delete',
     'allg.bearbeiten'           => 'Edit',
     'allg.zurueck'              => '← back',

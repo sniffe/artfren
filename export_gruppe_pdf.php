@@ -132,6 +132,7 @@ $optionen->set('chroot', APP_ROOT . '/vendor/dompdf/dompdf');
 
 $dompdf = new Dompdf($optionen);
 $dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
+// Liste mit vielen Spalten im Querformat, damit nichts abgeschnitten wird.
+$dompdf->setPaper('A4', ($layout === 'liste' && count($pdfFelder) > 6) ? 'landscape' : 'portrait');
 $dompdf->render();
 $dompdf->stream(Export::dateiname($gruppe['name'], 'pdf'), ['Attachment' => true]);

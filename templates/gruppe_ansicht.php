@@ -298,7 +298,7 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
         style="width:min(700px,95vw); max-height:90vh; overflow-y:auto; padding:var(--abstand-l); border-radius:var(--radius); border:1px solid var(--farbe-linie);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--abstand-m);">
         <h2 style="margin:0;"><?= Helpers::e(t('pdf.dialog_titel')) ?></h2>
-        <button type="button" class="btn btn--klein" onclick="this.closest('dialog').close()">✕</button>
+        <button type="button" class="btn btn--klein" data-dialog-schliessen aria-label="<?= Helpers::e(t('allg.schliessen')) ?>">✕</button>
     </div>
 
     <?php if ($pdfProfile): ?>
