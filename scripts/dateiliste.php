@@ -19,15 +19,10 @@ if ($code !== 0) {
     exit(1);
 }
 
-// Nicht für den Betrieb nötig: Dokumentation, Composer-Dateien, CLI-Skripte.
+// Auswahl und Prüfsummen legt Wartung::erzeugeDateiliste() fest; dieselbe
+// Funktion nutzt scripts/code_pruefung.php, um eine veraltete Liste zu erkennen.
 // Versteckte Dateien (.htaccess) prüft Wartung::fehlendeSchutzdateien() eigens.
-$ausnahmen = ['README.md', 'composer.json', 'composer.lock', App\Wartung::DATEILISTE];
-$dateien = array_values(array_filter($dateien, static fn(string $pfad): bool =>
-    !in_array($pfad, $ausnahmen, true)
-    && !str_starts_with($pfad, 'scripts/')
-    && !preg_match('~(^|/)\.~', $pfad)
-));
-sort($dateien, SORT_STRING);
+$inhalt = App\Wartung::erzeugeDateiliste($dateien);
 
-file_put_contents(APP_ROOT . '/' . App\Wartung::DATEILISTE, implode("\n", $dateien) . "\n");
-echo count($dateien) . ' Dateien in ' . App\Wartung::DATEILISTE . PHP_EOL;
+file_put_contents(APP_ROOT . '/' . App\Wartung::DATEILISTE, $inhalt);
+echo substr_count($inhalt, "\n") . ' Dateien mit Prüfsumme in ' . App\Wartung::DATEILISTE . PHP_EOL;

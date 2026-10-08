@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.1.
+groups, two user roles, export and backup functions. Version 1.2.2.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -84,7 +84,9 @@ is preserved through all updates.
   (download via FTP and search for the error ID).
 
 For developers: before each new version, run `php scripts/dateiliste.php` to keep
-`src/dateiliste.txt` (the basis for the completeness check) up to date.
+`src/dateiliste.txt` (the basis for the completeness check) up to date, then
+`php scripts/code_pruefung.php`. It must end with "OK". GitHub runs the same check
+on every push (see "New in version 1.2.2").
 
 ### Updating to 1.1
 
@@ -118,7 +120,7 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
    database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.1`, schema version `9 / 9`,
+5. **Verify** – under **System**: application version `1.2.2`, schema version `9 / 9`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -202,6 +204,25 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.2
+
+Safeguards so that a defect like the one in 1.2.0 cannot go live unnoticed again.
+No new features and no database change (schema stays 9).
+
+- **Code check** `php scripts/code_pruefung.php`: checks PHP syntax, typographic
+  quotation marks in code, HTML attributes and JavaScript, German quotation marks
+  closed with a straight `"`, calls to classes or methods that do not exist,
+  translation keys used in the code but missing in `lang/`, an outdated
+  `src/dateiliste.txt` and the version number in `src/config.php` and this README.
+- **GitHub Action** `.github/workflows/code-pruefung.yml` runs the check on every
+  push. A red cross next to a commit means: do not release.
+- **Self-test under System**: `src/dateiliste.txt` now contains a checksum for each
+  file. Besides missing files, **System** also lists files that are present but do
+  not match this version (interrupted upload, file from an older version, edited on
+  the server).
+- Release checklist: the code check must be green before the tag is set.
+- Corrected German quotation marks in about 30 interface texts.
 
 ## New in version 1.2.1
 
@@ -314,7 +335,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.1.
+Version 1.2.2.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -400,7 +421,9 @@ eintragen – ab dann bleibt er bei allen Updates erhalten.
 
 Für Entwickler: Vor jeder neuen Version `php scripts/dateiliste.php`
 ausführen, damit `src/dateiliste.txt` (Grundlage der
-Vollständigkeitsprüfung) aktuell ist.
+Vollständigkeitsprüfung) aktuell ist, danach `php scripts/code_pruefung.php`.
+Die Prüfung muss mit „OK“ enden. GitHub führt sie bei jedem Push ebenfalls aus
+(siehe „Neu in Version 1.2.2“).
 
 ### Update auf 1.1
 
@@ -436,7 +459,7 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
    wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.1`, Schema-Version `9 / 9`,
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.2`, Schema-Version `9 / 9`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -568,6 +591,26 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.2
+
+Absicherungen, damit ein Fehler wie in 1.2.0 nicht noch einmal unbemerkt live
+geht. Keine neuen Funktionen und keine Datenbankänderung (Schema bleibt 9).
+
+- **Codeprüfung** `php scripts/code_pruefung.php`: prüft PHP-Syntax,
+  typografische Anführungszeichen in Code, HTML-Attributen und JavaScript,
+  deutsche Anführungszeichen, die mit einem geraden `"` schließen, Aufrufe von
+  Klassen oder Methoden, die es nicht gibt, Übersetzungsschlüssel, die im Code
+  benutzt werden, aber in `lang/` fehlen, eine veraltete `src/dateiliste.txt`
+  und die Versionsnummer in `src/config.php` und diesem README.
+- **GitHub Action** `.github/workflows/code-pruefung.yml` führt die Prüfung bei
+  jedem Push aus. Ein rotes Kreuz neben einem Commit heißt: nicht veröffentlichen.
+- **Selbsttest unter System**: `src/dateiliste.txt` enthält jetzt je Datei eine
+  Prüfsumme. Unter **System** erscheinen neben fehlenden auch Dateien, die zwar
+  vorhanden sind, aber nicht zu dieser Version passen (abgebrochener Upload,
+  Datei einer älteren Version, auf dem Server geändert).
+- Release-Checkliste: Die Codeprüfung muss grün sein, bevor der Tag gesetzt wird.
+- Deutsche Anführungszeichen in rund 30 Oberflächentexten korrigiert.
 
 ## Neu in Version 1.2.1
 

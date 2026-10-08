@@ -37,7 +37,12 @@ final class Wartung
      * Vergleicht die Programmdateien auf dem Server mit der Dateiliste der
      * Version. Null, wenn die Dateiliste selbst fehlt.
      *
-     * @return array{gesamt: int, fehlend: string[]}|null
+     * "abweichend" sind Dateien, die vorhanden sind, deren Inhalt aber nicht
+     * zur Version passt: abgebrochener Upload, Datei einer älteren Version
+     * oder von Hand auf dem Server geändert. Ältere Dateilisten ohne
+     * Prüfsummen (nur Pfade) prüfen weiterhin nur die Vollständigkeit.
+     *
+     * @return array{gesamt: int, fehlend: string[], abweichend: string[]}|null
      */
     public static function fehlendeProgrammdateien(): ?array
     {
@@ -46,12 +51,63 @@ final class Wartung
             return null;
         }
         $fehlend = [];
-        foreach ($liste as $pfad) {
-            if (!is_file(APP_ROOT . '/' . $pfad)) {
+        $abweichend = [];
+        foreach ($liste as $zeile) {
+            [$soll, $pfad] = self::zerlegeZeile($zeile);
+            $datei = APP_ROOT . '/' . $pfad;
+            if (!is_file($datei)) {
                 $fehlend[] = $pfad;
+            } elseif ($soll !== null && self::pruefsumme($datei) !== $soll) {
+                $abweichend[] = $pfad;
             }
         }
-        return ['gesamt' => count($liste), 'fehlend' => $fehlend];
+        return ['gesamt' => count($liste), 'fehlend' => $fehlend, 'abweichend' => $abweichend];
+    }
+
+    /**
+     * Prüfsumme einer Programmdatei. Zeilenenden werden vereinheitlicht, damit
+     * ein FTP-Programm im Textmodus (CRLF statt LF) keinen Fehlalarm auslöst.
+     */
+    public static function pruefsumme(string $datei): ?string
+    {
+        $inhalt = @file_get_contents($datei);
+        if ($inhalt === false) {
+            return null;
+        }
+        return hash('sha256', str_replace("\r\n", "\n", $inhalt));
+    }
+
+    /**
+     * Inhalt der Dateiliste für die angegebenen Pfade (relativ zum
+     * Programmordner): je Zeile "Prüfsumme  Pfad", sortiert. Dokumentation,
+     * Composer-Dateien, CLI-Skripte und versteckte Dateien gehören nicht dazu.
+     *
+     * @param string[] $pfade
+     */
+    public static function erzeugeDateiliste(array $pfade): string
+    {
+        $pfade = array_values(array_filter($pfade, static fn(string $pfad): bool =>
+            $pfad !== self::DATEILISTE
+            && !in_array($pfad, ['composer.json', 'composer.lock'], true)
+            && !str_ends_with($pfad, '.md')
+            && !str_starts_with($pfad, 'scripts/')
+            && !preg_match('~(^|/)\.~', $pfad)
+        ));
+        sort($pfade, SORT_STRING);
+        $zeilen = [];
+        foreach ($pfade as $pfad) {
+            $zeilen[] = (self::pruefsumme(APP_ROOT . '/' . $pfad) ?? '-') . '  ' . $pfad;
+        }
+        return implode("\n", $zeilen) . "\n";
+    }
+
+    /** @return array{0: ?string, 1: string} [Prüfsumme oder null, Pfad] */
+    private static function zerlegeZeile(string $zeile): array
+    {
+        if (preg_match('/^([0-9a-f]{64})  (.+)$/', $zeile, $m)) {
+            return [$m[1], $m[2]];
+        }
+        return [null, trim($zeile)];
     }
 
     /**

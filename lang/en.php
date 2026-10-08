@@ -538,6 +538,8 @@ return [
     'system.ordner_src'         => 'Application code',
     'system.ordner_hauptordner' => 'Root folder',
     'system.fehlend_bsp'        => 'e.g. {pfade}',
+    'system.dateien_abweichend' => '{n} of {gesamt} application files do not match this version.',
+    'system.abweichend_hinweis' => 'Possible causes: an interrupted upload, a file from an older version, or a file edited directly on the server. Please re-upload the files listed from the downloaded package and choose "Overwrite".',
     'system.sicherheit_beschr'  => 'Checks via a real external request whether protected folders are accessible – e.g. because the host does not process .htaccess.',
     'system.sicherheit_geschuetzt'   => 'protected',
     'system.sicherheit_oeffentlich'  => 'PUBLICLY ACCESSIBLE',

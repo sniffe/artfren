@@ -35,16 +35,30 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
     <h3><?= Helpers::e(t('system.vollstaendigkeit')) ?></h3>
     <?php if ($vollstaendigkeit === null): ?>
         <p class="text-sekundaer"><?= Helpers::e(t('system.dateiliste_fehlt', ['datei' => \App\Wartung::DATEILISTE])) ?></p>
-    <?php elseif ($vollstaendigkeit['fehlend'] === []): ?>
+    <?php elseif ($vollstaendigkeit['fehlend'] === [] && $vollstaendigkeit['abweichend'] === []): ?>
         <p class="status-ok"><?= Helpers::e(\App\I18n::plural($vollstaendigkeit['gesamt'], 'system.alle_vorhanden', ['n' => $vollstaendigkeit['gesamt']])) ?></p>
     <?php else: ?>
-        <div class="flash flash--fehler"><?= Helpers::e(t('system.dateien_fehlen', ['fehlend' => count($vollstaendigkeit['fehlend']), 'gesamt' => $vollstaendigkeit['gesamt']])) ?></div>
-        <ul class="warnung-liste">
-            <?php foreach ($fehlendNachOrdner as $ordner => $pfade): ?>
-                <li><code><?= Helpers::e($ordner) ?></code>: <?= count($pfade) ?> <?= Helpers::e(t('system.fehlend_label')) ?><br>
-                    <span class="text-klein text-sekundaer"><?= Helpers::e(t('system.fehlend_bsp', ['pfade' => implode(', ', array_slice($pfade, 0, 5)) . (count($pfade) > 5 ? ' …' : '')])) ?></span></li>
-            <?php endforeach; ?>
-        </ul>
+        <?php if ($vollstaendigkeit['fehlend'] !== []): ?>
+            <div class="flash flash--fehler"><?= Helpers::e(t('system.dateien_fehlen', ['fehlend' => count($vollstaendigkeit['fehlend']), 'gesamt' => $vollstaendigkeit['gesamt']])) ?></div>
+            <ul class="warnung-liste">
+                <?php foreach ($fehlendNachOrdner as $ordner => $pfade): ?>
+                    <li><code><?= Helpers::e($ordner) ?></code>: <?= count($pfade) ?> <?= Helpers::e(t('system.fehlend_label')) ?><br>
+                        <span class="text-klein text-sekundaer"><?= Helpers::e(t('system.fehlend_bsp', ['pfade' => implode(', ', array_slice($pfade, 0, 5)) . (count($pfade) > 5 ? ' …' : '')])) ?></span></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+        <?php if ($vollstaendigkeit['abweichend'] !== []): ?>
+            <div class="flash flash--fehler"><?= Helpers::e(t('system.dateien_abweichend', ['n' => count($vollstaendigkeit['abweichend']), 'gesamt' => $vollstaendigkeit['gesamt']])) ?></div>
+            <p class="text-klein text-sekundaer"><?= Helpers::e(t('system.abweichend_hinweis')) ?></p>
+            <ul class="warnung-liste">
+                <?php foreach (array_slice($vollstaendigkeit['abweichend'], 0, 20) as $pfad): ?>
+                    <li><code><?= Helpers::e($pfad) ?></code></li>
+                <?php endforeach; ?>
+                <?php if (count($vollstaendigkeit['abweichend']) > 20): ?>
+                    <li class="text-sekundaer">…</li>
+                <?php endif; ?>
+            </ul>
+        <?php endif; ?>
     <?php endif; ?>
     <?php if ($fehlendeSchutzdateien): ?>
         <div class="flash flash--fehler"><?= Helpers::e(t('system.schutzdateien_fehlen', ['dateien' => implode(', ', $fehlendeSchutzdateien)])) ?></div>

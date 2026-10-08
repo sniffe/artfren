@@ -7,7 +7,7 @@ declare(strict_types=1);
 // "System → Einstellungen" geändert und in der Datenbank gespeichert – ein
 // Update überschreibt sie daher nicht. Diese Datei muss man nicht anpassen.
 define('APP_NAME', 'Kunstverwaltung');
-define('APP_VERSION', '1.2.1');
+define('APP_VERSION', '1.2.2');
 
 define('APP_ROOT', dirname(__DIR__));
 define('DATA_PATH', APP_ROOT . '/data');

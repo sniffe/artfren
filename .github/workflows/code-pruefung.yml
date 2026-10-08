@@ -1,0 +1,26 @@
+# Prüft bei jedem Push und Pull Request den Programmcode mit
+# scripts/code_pruefung.php. Schlägt die Prüfung fehl, zeigt GitHub beim
+# Commit ein rotes Kreuz; die Details stehen unter "Actions".
+name: Codeprüfung
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          # Kleinste PHP-Version des Hostings
+          php-version: '8.3'
+          extensions: pdo_sqlite, zip, gd, mbstring
+          coverage: none
+          tools: none
+
+      - name: Codeprüfung
+        run: php scripts/code_pruefung.php
