@@ -40,7 +40,7 @@ if ($fehler !== null) {
 } elseif ($name === null) {
     Helpers::flashSet('hinweis', t('werk.bild_kein_bild'));
 } else {
-    Protokoll::schreibe('werk_bild', “{$werk['maler']} – {$werk['titel']}: {$name}”);
+    Protokoll::schreibe('werk_bild', "{$werk['maler']} – {$werk['titel']}: {$name}");
     Helpers::flashSet('erfolg', t('werk.bild_zugewiesen', ['name' => $name, 'werk' => $werk['titel']]));
 }
 Helpers::redirect($zurueck);

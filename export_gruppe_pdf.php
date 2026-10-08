@@ -42,7 +42,7 @@ if (!$istAdmin) {
     $getFelder = null;
     // Profil muss für eingeschränkte Benutzer freigegeben sein
     if ($profil !== null && !$profil['fuer_eingeschraenkte']) {
-        Protokoll::schreibe('export_verweigert', "PDF-Profil „{$profil['name']}" für „{$gruppe['name']}"");
+        Protokoll::schreibe('export_verweigert', "PDF-Profil „{$profil['name']}“ für „{$gruppe['name']}“");
         Helpers::abbrechen(403, t('export.keine_rechte'));
     }
 } else {
@@ -98,7 +98,7 @@ if ($spracheQuelle !== null && !empty($spracheQuelle['sprache'])) {
     I18n::setze((string) $spracheQuelle['sprache']);
 }
 
-Protokoll::schreibe('export_gruppe', "PDF „{$gruppe['name']}" ({$layout})");
+Protokoll::schreibe('export_gruppe', "PDF „{$gruppe['name']}“ ({$layout})");
 session_write_close();
 @set_time_limit(300);
 

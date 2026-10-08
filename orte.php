@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Helpers::flashSet('fehler', t('orte.keine_auswahl'));
         } else {
             $anzahl = $bereinigung->zusammenfuehren($quellen, $ziel);
-            Protokoll::schreibe('orte_zusammengefuehrt', implode(', ', $quellen) . “ → {$ziel} ({$anzahl} Werke)”);
+            Protokoll::schreibe('orte_zusammengefuehrt', implode(', ', $quellen) . " → {$ziel} ({$anzahl} Werke)");
             Helpers::flashSet('erfolg', t('orte.zusammengefuehrt', ['n' => $anzahl, 'ziel' => $ziel]));
         }
     } elseif ($aktion === 'alias_loeschen') {

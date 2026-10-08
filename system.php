@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset(I18n::SPRACHEN[$neueSprache])) {
                 Einstellungen::setze('standard_sprache', $neueSprache);
             }
-            Protokoll::schreibe('einstellungen', “Name: „{$vorher}” → „{$name}”, HTTPS: “ . ($httpsGewuenscht ? 'ja' : 'nein'));
+            Protokoll::schreibe('einstellungen', "Name: „{$vorher}“ → „{$name}“, HTTPS: " . ($httpsGewuenscht ? 'ja' : 'nein'));
             Helpers::flashSet('erfolg', t('system.gespeichert'));
         }
     } elseif ($aktion === 'aufraeumen') {

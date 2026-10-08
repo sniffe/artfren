@@ -10,7 +10,7 @@ use App\ExportProfile;
 use App\Helpers;
 use App\Protokoll;
 
-Auth::requireAdmin();
+$admin = Auth::requireAdmin();
 $pdo = Database::get();
 
 $aktion = (string) ($_POST['aktion'] ?? '');
@@ -26,13 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Helpers::flashSet('fehler', $fehler);
             Helpers::redirect('/export_profile.php?' . ($id ? "aktion=bearbeiten&id={$id}" : 'aktion=neu'));
         }
-        $neueId = ExportProfile::speichern($pdo, $_POST + ['erstellt_von' => Auth::benutzer()['id']], $id);
+        $neueId = ExportProfile::speichern($pdo, $_POST + ['erstellt_von' => (int) $admin['id']], $id);
         $name = mb_substr(trim((string) ($_POST['name'] ?? '')), 0, 80);
         if ($id === null) {
-            Protokoll::schreibe('exportprofil_angelegt', "„{$name}"");
+            Protokoll::schreibe('exportprofil_angelegt', "„{$name}“");
             Helpers::flashSet('erfolg', t('profil.angelegt'));
         } else {
-            Protokoll::schreibe('exportprofil_geaendert', "„{$name}"");
+            Protokoll::schreibe('exportprofil_geaendert', "„{$name}“");
             Helpers::flashSet('erfolg', t('profil.geaendert_flash'));
         }
         Helpers::redirect('/export_profile.php');
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $profil = ExportProfile::finde($pdo, $id);
         if ($profil) {
             ExportProfile::loeschen($pdo, $id);
-            Protokoll::schreibe('exportprofil_geloescht', "„{$profil['name']}"");
+            Protokoll::schreibe('exportprofil_geloescht', "„{$profil['name']}“");
             Helpers::flashSet('erfolg', t('profil.geloescht'));
         }
         Helpers::redirect('/export_profile.php');
@@ -53,9 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['id'] ?? 0);
         $profil = ExportProfile::finde($pdo, $id);
         if ($profil) {
-            $benutzer = Auth::benutzer();
-            $neueId = ExportProfile::duplizieren($pdo, $id, (int) $benutzer['id']);
-            Protokoll::schreibe('exportprofil_dupliziert', "„{$profil['name']}"");
+            $neueId = ExportProfile::duplizieren($pdo, $id, (int) $admin['id']);
+            Protokoll::schreibe('exportprofil_dupliziert', "„{$profil['name']}“");
             Helpers::flashSet('erfolg', t('profil.dupliziert'));
             Helpers::redirect('/export_profile.php?aktion=bearbeiten&id=' . $neueId);
         }

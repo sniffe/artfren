@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $darfExcel = isset($_POST['darf_excel']) ? 1 : 0;
             $darfBilder = isset($_POST['darf_bilder_export']) ? 1 : 0;
             $repo->aktualisiereExportRechte($zielId, $darfExcel, $darfBilder);
-            $details = “„{$ziel['benutzername']}”” . ($rolle !== $ziel['rolle'] ? “, Rolle → {$rolle}” : '');
+            $details = "„{$ziel['benutzername']}“" . ($rolle !== $ziel['rolle'] ? ", Rolle → {$rolle}" : '');
             Protokoll::schreibe('benutzer_geaendert', $details);
             Helpers::flashSet('erfolg', t('benutzer_bearbeiten.gespeichert'));
             // Hat sich der Admin selbst herabgestuft, gibt es die Verwaltung für ihn nicht mehr.
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fehler = Auth::passwortFehler($passwort, (string) ($_POST['passwort_wiederholen'] ?? ''));
         if ($fehler === null) {
             Auth::setzePasswort($zielId, $passwort);
-            Protokoll::schreibe('passwort_zurueckgesetzt', “„{$ziel['benutzername']}””);
+            Protokoll::schreibe('passwort_zurueckgesetzt', "„{$ziel['benutzername']}“");
             Helpers::flashSet('erfolg', t('benutzer_bearbeiten.passwort_gesetzt', ['name' => $ziel['benutzername']]));
             Helpers::redirect('/benutzer.php');
         }

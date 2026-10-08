@@ -118,13 +118,13 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 <?php endif; ?>
 <main class="hauptinhalt <?= !empty($breit) ? 'hauptinhalt--breit' : '' ?>">
     <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::fehlendeSchutzdateien() !== []): ?>
-        <div class=”flash flash--fehler”><?= Helpers::e(t('layout.schutzdateien_fehlen')) ?> <a href=”/system.php”><?= Helpers::e(t('layout.schutzdateien_link')) ?></a></div>
+        <div class="flash flash--fehler"><?= Helpers::e(t('layout.schutzdateien_fehlen')) ?> <a href="/system.php"><?= Helpers::e(t('layout.schutzdateien_link')) ?></a></div>
     <?php endif; ?>
     <?php if ($istAdmin && ($aktuelleSeite ?? '') !== 'system' && \App\Wartung::veralteteDateien() !== []): ?>
-        <div class=”flash flash--hinweis”><?= Helpers::e(t('layout.veraltete_dateien')) ?> <a href=”/system.php”><?= Helpers::e(t('layout.veraltete_dateien_link')) ?></a></div>
+        <div class="flash flash--hinweis"><?= Helpers::e(t('layout.veraltete_dateien')) ?> <a href="/system.php"><?= Helpers::e(t('layout.veraltete_dateien_link')) ?></a></div>
     <?php endif; ?>
     <?php if ($backupErinnerung): ?>
-        <div class=”flash flash--hinweis”><?= Helpers::e(t('layout.backup_fehlt')) ?> <a href=”/backup.php”><?= Helpers::e(t('layout.backup_link')) ?></a></div>
+        <div class="flash flash--hinweis"><?= Helpers::e(t('layout.backup_fehlt')) ?> <a href="/backup.php"><?= Helpers::e(t('layout.backup_link')) ?></a></div>
     <?php endif; ?>
     <?php foreach ($flashes as $flash): ?>
         <div class="flash flash--<?= Helpers::e($flash['typ']) ?>"><?= Helpers::e($flash['nachricht']) ?></div>

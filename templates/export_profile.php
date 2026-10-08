@@ -84,6 +84,7 @@ if ($getAktion !== 'neu' && $getAktion !== 'bearbeiten' && $getAktion !== 'anseh
     <?php endforeach; ?>
     </tbody>
 </table>
+<?php endif; ?>
 <?php
     return;
 }

@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Einzeilige Textfelder: Whitespace kollabieren
     $text = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\s+/u', ' ', (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
     // Mehrzeilige Textfelder: Zeilenumbrüche erhalten, nur normalisieren
-    $langtext = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\r\n?/', “\n”, (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
+    $langtext = static fn(string $feld): ?string => ($w = trim((string) preg_replace('/\r\n?/', "\n", (string) ($_POST[$feld] ?? '')))) === '' ? null : $w;
 
     foreach (['ort', 'maler', 'titel', 'format', 'technik', 'ankauf', 'herkunft', 'copyright'] as $feld) {
         $eingabe[$feld] = $text($feld);
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $bildFehler ??= $fe;
         }
-        Protokoll::schreibe('werk_angelegt', $details . ($bildName !== null ? “ · Bild „{$bildName}”” : '') . ($extraAnzahl > 0 ? “ · {$extraAnzahl} weitere Bilder” : ''));
+        Protokoll::schreibe('werk_angelegt', $details . ($bildName !== null ? " · Bild „{$bildName}“" : '') . ($extraAnzahl > 0 ? " · {$extraAnzahl} weitere Bilder" : ''));
 
         if ($bildFehler !== null) {
             // Das Werk ist gespeichert – nur das Bild nicht. Direkt zum Nachreichen.
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $details .= ' (' . implode(', ', $geaendert) . ')';
             }
             if ($extraAnzahl > 0) {
-                $details .= “ · {$extraAnzahl} Bild” . ($extraAnzahl > 1 ? 'er' : '') . ' hinzugefügt';
+                $details .= " · {$extraAnzahl} Bild" . ($extraAnzahl > 1 ? 'er' : '') . ' hinzugefügt';
             }
             Protokoll::schreibe('werk_bearbeitet', $details);
             $geaendertGesamt = $geaendert !== [] || $extraAnzahl > 0 || !empty($_POST['bild_entfernen']) || !empty($_POST['bild_beschriftung']);

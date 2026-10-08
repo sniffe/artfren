@@ -31,23 +31,23 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
 ?>
 <h2><?= Helpers::e(t('system.titel')) ?></h2>
 
-<div class=”karte”>
+<div class="karte">
     <h3><?= Helpers::e(t('system.vollstaendigkeit')) ?></h3>
     <?php if ($vollstaendigkeit === null): ?>
-        <p class=”text-sekundaer”><?= Helpers::e(t('system.dateiliste_fehlt', ['datei' => \App\Wartung::DATEILISTE])) ?></p>
+        <p class="text-sekundaer"><?= Helpers::e(t('system.dateiliste_fehlt', ['datei' => \App\Wartung::DATEILISTE])) ?></p>
     <?php elseif ($vollstaendigkeit['fehlend'] === []): ?>
-        <p class=”status-ok”><?= Helpers::e(\App\I18n::plural($vollstaendigkeit['gesamt'], 'system.alle_vorhanden', ['n' => $vollstaendigkeit['gesamt']])) ?></p>
+        <p class="status-ok"><?= Helpers::e(\App\I18n::plural($vollstaendigkeit['gesamt'], 'system.alle_vorhanden', ['n' => $vollstaendigkeit['gesamt']])) ?></p>
     <?php else: ?>
-        <div class=”flash flash--fehler”><?= Helpers::e(t('system.dateien_fehlen', ['fehlend' => count($vollstaendigkeit['fehlend']), 'gesamt' => $vollstaendigkeit['gesamt']])) ?></div>
-        <ul class=”warnung-liste”>
+        <div class="flash flash--fehler"><?= Helpers::e(t('system.dateien_fehlen', ['fehlend' => count($vollstaendigkeit['fehlend']), 'gesamt' => $vollstaendigkeit['gesamt']])) ?></div>
+        <ul class="warnung-liste">
             <?php foreach ($fehlendNachOrdner as $ordner => $pfade): ?>
                 <li><code><?= Helpers::e($ordner) ?></code>: <?= count($pfade) ?> <?= Helpers::e(t('system.fehlend_label')) ?><br>
-                    <span class=”text-klein text-sekundaer”><?= Helpers::e(t('system.fehlend_bsp', ['pfade' => implode(', ', array_slice($pfade, 0, 5)) . (count($pfade) > 5 ? ' …' : '')])) ?></span></li>
+                    <span class="text-klein text-sekundaer"><?= Helpers::e(t('system.fehlend_bsp', ['pfade' => implode(', ', array_slice($pfade, 0, 5)) . (count($pfade) > 5 ? ' …' : '')])) ?></span></li>
             <?php endforeach; ?>
         </ul>
     <?php endif; ?>
     <?php if ($fehlendeSchutzdateien): ?>
-        <div class=”flash flash--fehler”><?= Helpers::e(t('system.schutzdateien_fehlen', ['dateien' => implode(', ', $fehlendeSchutzdateien)])) ?></div>
+        <div class="flash flash--fehler"><?= Helpers::e(t('system.schutzdateien_fehlen', ['dateien' => implode(', ', $fehlendeSchutzdateien)])) ?></div>
     <?php endif; ?>
 </div>
 
@@ -118,7 +118,7 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
                 <?php endforeach; ?>
             </ul>
             <?php if (in_array(Sicherheitscheck::OEFFENTLICH, $pruefung['ergebnis'], true)): ?>
-                <div class=”flash flash--fehler”><?= Helpers::e(t('system.sicherheit_fehler')) ?></div>
+                <div class="flash flash--fehler"><?= Helpers::e(t('system.sicherheit_fehler')) ?></div>
             <?php endif; ?>
             <p class="text-klein text-sekundaer"><?= Helpers::e(t('system.sicherheit_zuletzt', ['datum' => date('d.m.Y H:i', (int) $pruefung['zeit'])])) ?></p>
         <?php endif; ?>
@@ -128,7 +128,7 @@ $protokoll = array_slice($protokoll, 0, $proSeite);
             <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('system.sicherheit_starten')) ?></button>
         </form>
         <?php if (!$httpsAktiv): ?>
-            <div class=”flash flash--hinweis mt-m”><?= Helpers::e(t(‘system.https_warnung’)) ?></div>
+            <div class="flash flash--hinweis mt-m"><?= Helpers::e(t('system.https_warnung')) ?></div>
         <?php endif; ?>
     </div>
 

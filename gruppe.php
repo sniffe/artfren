@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $repo->setzeMitglieder((int) $gruppe['id'], Helpers::idListe($_POST['werk_ids'] ?? []));
         $anzahl = count(WerkRepository::neu()->mitgliedIds((int) $gruppe['id']));
-        Protokoll::schreibe('gruppe_mitglieder', “„{$gruppe['name']}”: jetzt {$anzahl} Werke”);
+        Protokoll::schreibe('gruppe_mitglieder', "„{$gruppe['name']}“: jetzt {$anzahl} Werke");
         Helpers::flashSet('erfolg', t('gruppe.mitglieder_aktualisiert', ['n' => $anzahl]));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id'] . '&mitglieder_gespeichert=1');
     }
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gruppe = $repo->finde($aktionGruppeId);
         if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webAktivieren((int) $gruppe['id']);
-        Protokoll::schreibe('web_veroeffentlicht', “„{$gruppe['name']}””);
+        Protokoll::schreibe('web_veroeffentlicht', "„{$gruppe['name']}“");
         Helpers::flashSet('erfolg', t('gruppe.web_aktiviert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gruppe = $repo->finde($aktionGruppeId);
         if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webDeaktivieren((int) $gruppe['id']);
-        Protokoll::schreibe('web_zurueckgezogen', “„{$gruppe['name']}””);
+        Protokoll::schreibe('web_zurueckgezogen', "„{$gruppe['name']}“");
         Helpers::flashSet('erfolg', t('gruppe.web_deaktiviert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gruppe = $repo->finde($aktionGruppeId);
         if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->webLinkErneuern((int) $gruppe['id']);
-        Protokoll::schreibe('web_link_erneuert', “„{$gruppe['name']}””);
+        Protokoll::schreibe('web_link_erneuert', "„{$gruppe['name']}“");
         Helpers::flashSet('erfolg', t('gruppe.web_link_erneuert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $titel = trim((string) ($_POST['web_titel'] ?? ''));
         $einstellungen['web_titel'] = $titel !== '' ? $titel : null;
 
-        $einleitung = trim((string) preg_replace('/\r\n?/', “\n”, (string) ($_POST['web_einleitung'] ?? '')));
+        $einleitung = trim((string) preg_replace('/\r\n?/', "\n", (string) ($_POST['web_einleitung'] ?? '')));
         $einstellungen['web_einleitung'] = $einleitung !== '' ? $einleitung : null;
 
         $bilder_modus = ($_POST['web_bilder_modus'] ?? 'haupt') === 'alle' ? 'alle' : 'haupt';
@@ -126,13 +126,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $einstellungen['web_ablauf'] = $dt ? $dt->format('Y-m-d 23:59:59') : null;
         } elseif (in_array($ablaufTyp, ['7', '14', '30'], true)) {
             $tage = (int) $ablaufTyp;
-            $einstellungen['web_ablauf'] = (new \DateTimeImmutable(“+{$tage} days”, new \DateTimeZone('UTC')))->format('Y-m-d 23:59:59');
+            $einstellungen['web_ablauf'] = (new \DateTimeImmutable("+{$tage} days", new \DateTimeZone('UTC')))->format('Y-m-d 23:59:59');
         } else {
             $einstellungen['web_ablauf'] = null;
         }
 
         $repo->webEinstellungenSpeichern((int) $gruppe['id'], $einstellungen);
-        Protokoll::schreibe('web_felder_geaendert', “„{$gruppe['name']}””);
+        Protokoll::schreibe('web_felder_geaendert', "„{$gruppe['name']}“");
         Helpers::flashSet('erfolg', t('gruppe.web_gespeichert'));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }
@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gruppe = $repo->finde($aktionGruppeId);
         if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $anzahl = $repo->alleWerkeFreigeben((int) $gruppe['id']);
-        Protokoll::schreibe('web_felder_geaendert', “„{$gruppe['name']}”: {$anzahl} Werke freigegeben”);
+        Protokoll::schreibe('web_felder_geaendert', "„{$gruppe['name']}“: {$anzahl} Werke freigegeben");
         Helpers::flashSet('erfolg', t('gruppe.alle_freigegeben', ['n' => $anzahl]));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
     }

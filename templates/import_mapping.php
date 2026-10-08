@@ -18,14 +18,14 @@ require __DIR__ . '/_import_reiter.php';
 <h2><?= Helpers::e(t('import.spalten_zuordnen')) ?></h2>
 
 <?php if (!empty($info)): ?>
-    <p class=”text-sekundaer”>
+    <p class="text-sekundaer">
         <?= Helpers::e(t('import.datei_info', ['name' => $dateiname ?? '', 'format' => $info['format'], 'zeile' => (int) $info['kopfzeile'], 'daten' => $gesamtzeilen])) ?>
         <?php if ($info['farbige_zeilen'] > 0): ?>
             <?= Helpers::e(t('import.farbige_zeilen', ['n' => (int) $info['farbige_zeilen'], 'spalte' => TabellenImport::FARB_SPALTE])) ?>
         <?php endif; ?>
     </p>
 <?php endif; ?>
-<p class=”text-sekundaer”><?= Helpers::e(t('import.vorschau', ['n' => count($zeilen)])) ?></p>
+<p class="text-sekundaer"><?= Helpers::e(t('import.vorschau', ['n' => count($zeilen)])) ?></p>
 
 <?php if ($fehler): ?>
     <div class="flash flash--fehler"><?= Helpers::e($fehler) ?></div>

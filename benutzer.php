@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Helpers::flashSet('fehler', $fehler);
         } else {
             $repo->anlegen($benutzername, $echterName, $email, $passwort, $rolle, Helpers::idListe($_POST['gruppen'] ?? []));
-            Protokoll::schreibe('benutzer_angelegt', “„{$benutzername}” ({$rolle})”);
+            Protokoll::schreibe('benutzer_angelegt', "„{$benutzername}“ ({$rolle})");
             Helpers::flashSet('erfolg', t('benutzer.angelegt'));
         }
         Helpers::redirect('/benutzer.php');
@@ -49,12 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Helpers::flashSet('fehler', t('benutzer.eigener_loeschen'));
         } else {
             $repo->loeschen((int) $ziel['id']);
-            Protokoll::schreibe('benutzer_geloescht', “„{$ziel['benutzername']}””);
+            Protokoll::schreibe('benutzer_geloescht', "„{$ziel['benutzername']}“");
             Helpers::flashSet('erfolg', t('benutzer.geloescht'));
         }
     } elseif ($aktion === 'entsperren') {
         Auth::unlockUser((int) $ziel['id']);
-        Protokoll::schreibe('benutzer_entsperrt', “„{$ziel['benutzername']}””);
+        Protokoll::schreibe('benutzer_entsperrt', "„{$ziel['benutzername']}“");
         Helpers::flashSet('erfolg', t('benutzer.entsperrt'));
     }
 
