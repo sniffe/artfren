@@ -221,22 +221,22 @@ $geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
         </span>
     </span>
     <div class="toolbar-aktionen">
-        <button type="button" class="btn" data-auswahl-leeren><?= Helpers::e(t('werke.auswahl_leeren')) ?></button>
+        <button type="button" class="btn btn--klein" data-auswahl-leeren><?= Helpers::e(t('werke.auswahl_leeren')) ?></button>
         <?php if ($gruppe): ?>
             <form method="post" action="/gruppe.php" data-auswahl-formular>
                 <?= Helpers::csrfField() ?>
                 <input type="hidden" name="aktion" value="mitglieder_speichern">
                 <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
-                <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('werke.mitglieder_speichern')) ?></button>
+                <button type="submit" class="btn btn--klein btn--primaer"><?= Helpers::e(t('werke.mitglieder_speichern')) ?></button>
             </form>
-            <a href="/gruppe.php?id=<?= $gruppeId ?>" class="btn"><?= Helpers::e(t('allg.abbrechen')) ?></a>
+            <a href="/gruppe.php?id=<?= $gruppeId ?>" class="btn btn--klein"><?= Helpers::e(t('allg.abbrechen')) ?></a>
         <?php else: ?>
-            <a href="/gruppe_neu.php" class="btn btn--primaer"><?= Helpers::e(t('werke.gruppe_anlegen')) ?></a>
+            <a href="/gruppe_neu.php" class="btn btn--klein btn--akzent"><?= Helpers::e(t('werke.gruppe_anlegen')) ?></a>
             <form method="post" action="/papierkorb.php" data-auswahl-formular
                   data-bestaetigen="<?= Helpers::e(t('werke.papierkorb_frage')) ?>">
                 <?= Helpers::csrfField() ?>
                 <input type="hidden" name="aktion" value="bulk_papierkorb">
-                <button type="submit" class="btn btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werke.in_papierkorb')) ?></button>
+                <button type="submit" class="btn btn--klein btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werke.in_papierkorb')) ?></button>
             </form>
         <?php endif; ?>
     </div>

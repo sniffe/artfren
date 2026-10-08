@@ -27,12 +27,14 @@ h1, h2, h3 {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--abstand-xl); /* Luft zwischen Sammlungsname und erstem Menüpunkt */
     padding: var(--abstand-m) var(--abstand-l);
     border-bottom: 1px solid var(--farbe-linie);
     background: var(--farbe-flaeche);
 }
 
 .kopf__marke {
+    flex-shrink: 0;
     font-family: var(--schrift-serif);
     font-style: italic;
     font-size: var(--schrift-groesse-gross);
@@ -143,16 +145,28 @@ h1, h2, h3 {
 
 .hauptinhalt { max-width: 1200px; margin: 0 auto; padding: var(--abstand-l); }
 .hauptinhalt--breit { max-width: 1500px; }
+.app-footer { padding: var(--abstand-l); text-align: center; }
 
 .flash { padding: var(--abstand-s) var(--abstand-m); border-radius: var(--radius); margin-bottom: var(--abstand-m); font-size: var(--schrift-groesse-klein); }
 .flash--erfolg { background: color-mix(in srgb, var(--farbe-status-gruen) 15%, var(--farbe-flaeche)); border: 1px solid var(--farbe-status-gruen); color: var(--farbe-text); }
 .flash--fehler { background: color-mix(in srgb, var(--farbe-status-rot) 15%, var(--farbe-flaeche)); border: 1px solid var(--farbe-status-rot); color: var(--farbe-text); }
 .flash--hinweis { background: color-mix(in srgb, var(--farbe-akzent) 12%, var(--farbe-flaeche)); border: 1px solid var(--farbe-akzent); color: var(--farbe-text); }
 
+/* ---------- Symbole ---------- */
+
+/* Absicherung: Ein Symbol ohne eigene Größenregel würde der Browser auf
+   300×150 Pixel aufblasen. Ohne Gewicht (:where), damit jede gezielte Regel
+   wie .ikon-link svg weiterhin gilt. */
+:where(svg[aria-hidden="true"]:not([width])) { width: 1em; height: 1em; }
+
 /* ---------- Buttons & Formulare ---------- */
 
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1.4;
     padding: 7px 16px;
     border-radius: var(--radius);
     border: 1px solid var(--farbe-linie);
@@ -167,7 +181,12 @@ h1, h2, h3 {
 .btn--primaer:hover { opacity: .9; color: var(--farbe-akzent-text); }
 .btn--gefahr { border-color: var(--farbe-status-rot); color: var(--farbe-status-rot); }
 .btn--gefahr:hover { background: var(--farbe-status-rot); color: #fff; }
-.btn--klein { padding: 3px 10px; font-size: 12px; }
+.btn--klein { padding: 3px 10px; font-size: 12px; gap: 5px; }
+.btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn--klein svg { width: 12px; height: 12px; }
+/* Hervorgehoben, aber ohne Füllung – für Aktionen, die nicht dominieren sollen. */
+.btn--akzent { border-color: var(--farbe-akzent); color: var(--farbe-akzent); }
+.btn--akzent:hover { background: color-mix(in srgb, var(--farbe-akzent) 8%, var(--farbe-flaeche)); }
 
 label { display: block; font-size: var(--schrift-groesse-klein); color: var(--farbe-text-sekundaer); margin-bottom: 2px; }
 input[type=text], input[type=search], input[type=password], input[type=email], input[type=number], input[type=file], select, textarea {
@@ -234,7 +253,8 @@ table.werkliste th a { color: inherit; }
 table.werkliste th a.sortiert { color: var(--farbe-akzent); }
 
 .seiten-nav { display: flex; gap: var(--abstand-s); margin-top: var(--abstand-m); align-items: center; font-size: var(--schrift-groesse-klein); }
-.auswahl-leiste { position: sticky; bottom: 0; background: var(--farbe-flaeche); border-top: 1px solid var(--farbe-linie); box-shadow: 0 -4px 12px rgb(0 0 0 / .06); padding: var(--abstand-m); display: flex; justify-content: space-between; align-items: center; gap: var(--abstand-s); flex-wrap: wrap; margin-top: var(--abstand-m); }
+.auswahl-leiste { position: sticky; bottom: 0; background: var(--farbe-flaeche); border-top: 1px solid var(--farbe-linie); box-shadow: 0 -2px 8px rgb(0 0 0 / .04); padding: var(--abstand-s) var(--abstand-m); display: flex; justify-content: space-between; align-items: center; gap: var(--abstand-s); flex-wrap: wrap; margin-top: var(--abstand-m); font-size: var(--schrift-groesse-klein); }
+.auswahl-leiste form, .toolbar-aktionen form { margin: 0; }
 .treffer-auswahl { display: flex; gap: var(--abstand-s); flex-wrap: wrap; align-items: center; margin-bottom: var(--abstand-s); }
 
 /* ---------- Vitrine: großformatige Betrachtung ---------- */
