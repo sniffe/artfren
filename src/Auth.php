@@ -191,7 +191,26 @@ final class Auth
     /** Eingeschränkte Benutzer haben keinen Zugriff auf die Werkliste. */
     public static function startseite(array $benutzer): string
     {
-        return self::isAdmin($benutzer) ? '/werke.php' : '/gruppen.php';
+        if (self::isAdmin($benutzer)) {
+            return '/werke.php';
+        }
+        // Mit nur einer freigegebenen Gruppe direkt dorthin, ohne Übersicht.
+        $einzige = self::einzigeGruppeId($benutzer);
+        return $einzige !== null ? '/gruppe.php?id=' . $einzige : '/gruppen.php';
+    }
+
+    /**
+     * Die eine Gruppe eines eingeschränkten Benutzers, wenn er genau eine sieht.
+     * Null für Admins und für Benutzer mit keiner oder mehreren Gruppen – dann
+     * ist die Gruppenübersicht sinnvoll.
+     */
+    public static function einzigeGruppeId(array $benutzer): ?int
+    {
+        if (self::isAdmin($benutzer)) {
+            return null;
+        }
+        $ids = self::sichtbareGruppenIds($benutzer);
+        return count($ids) === 1 ? $ids[0] : null;
     }
 
     /** @return int[] Gruppen, die ein eingeschränkter Benutzer sehen darf. */

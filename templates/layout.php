@@ -77,7 +77,9 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
     <div class="nav-inhalt" id="nav-inhalt">
         <nav class="nav">
             <?php if ($istAdmin): ?><?= $navLink('/werke.php', 'werke', t('nav.werke')) ?><?php endif; ?>
-            <?= $navLink('/gruppen.php', 'gruppen', t('nav.gruppen')) ?>
+            <?php if ($aktuellerBenutzer === null || Auth::einzigeGruppeId($aktuellerBenutzer) === null): ?>
+                <?= $navLink('/gruppen.php', 'gruppen', t('nav.gruppen')) ?>
+            <?php endif; ?>
             <?php if ($istAdmin): ?>
             <details class="nav-klappe" <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'open' : '' ?>>
                 <summary class="nav__link <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'aktiv' : '' ?>"><?= Helpers::e(t('nav.daten')) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>

@@ -30,8 +30,10 @@ use App\Helpers;
             <td><?= (int) $g['anzahl_werke'] ?></td>
             <td class="text-klein"><?= Helpers::e(Helpers::formatDatum($g['erstellt_am'], 'd.m.Y')) ?></td>
             <td class="aktionen">
+                <?php if ($istAdmin): /* Eingeschränkte Benutzer: Excel/Bilder nur auf der Gruppenseite, sofern freigeschaltet. */ ?>
                 <a href="/export_gruppe.php?id=<?= $id ?>&amp;format=xlsx" class="btn btn--klein" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>">Excel</a>
                 <a href="/export_gruppe.php?id=<?= $id ?>&amp;format=bilder" class="btn btn--klein" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('export.bilder')) ?></a>
+                <?php endif; ?>
                 <a href="/export_gruppe_pdf.php?id=<?= $id ?>" class="btn btn--klein">PDF</a>
                 <?php if ($istAdmin): ?>
                     <details class="aufklappen">

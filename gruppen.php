@@ -58,6 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     Helpers::redirect('/gruppen.php');
 }
 
+// Eingeschränkter Benutzer mit nur einer Gruppe: Übersicht überspringen.
+$einzige = Auth::einzigeGruppeId($benutzer);
+if ($einzige !== null) {
+    Helpers::redirect('/gruppe.php?id=' . $einzige);
+}
+
 render('gruppen_liste', [
     'titel' => t('gruppen.titel'),
     'aktuelleSeite' => 'gruppen',

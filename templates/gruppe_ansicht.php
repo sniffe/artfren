@@ -22,7 +22,9 @@ $gruppeId = (int) $gruppe['id'];
 ?>
 <div class="toolbar">
     <div>
-        <p class="text-klein text-sekundaer"><a href="/gruppen.php"><?= Helpers::e(t('gruppe.zurueck')) ?></a></p>
+        <?php if (\App\Auth::einzigeGruppeId($aktuellerBenutzer) === null): ?>
+            <p class="text-klein text-sekundaer"><a href="/gruppen.php"><?= Helpers::e(t('gruppe.zurueck')) ?></a></p>
+        <?php endif; ?>
         <h2 class="gruppenname"><?= Helpers::e($gruppe['name']) ?></h2>
         <p class="text-sekundaer text-klein">
             <?= Helpers::e(\App\I18n::plural(count($werke), 'gruppe.werke_zaehler', ['n' => count($werke)])) ?>

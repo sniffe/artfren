@@ -221,6 +221,11 @@ Visual refinements, no database change (schema stays 9).
   for public data had also removed the image reference).
 - Public gallery on smartphones (portrait and landscape): one work below the
   other, each image at full width in its own proportions.
+- Restricted users with only one group go straight to that group after login;
+  the group overview, the "Groups" menu item and the back link only appear with
+  two or more groups. The group overview no longer offers Excel and image
+  downloads to restricted users (on the group page they remain available if
+  enabled for the user).
 
 ## New in version 1.2.2
 
@@ -627,6 +632,11 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
   Feldfilter für öffentliche Daten hatte auch den Bildverweis entfernt).
 - Öffentliche Galerie am Smartphone (hoch und quer): ein Werk unter dem
   anderen, jedes Bild in voller Breite und im eigenen Seitenverhältnis.
+- Eingeschränkte Benutzer mit nur einer Gruppe landen nach der Anmeldung direkt
+  in dieser Gruppe; Gruppenübersicht, Menüpunkt „Gruppen“ und Zurück-Link gibt
+  es erst ab zwei Gruppen. Die Gruppenübersicht bietet eingeschränkten Benutzern
+  keinen Excel- und Bilder-Download mehr an (auf der Gruppenseite weiterhin,
+  sofern für den Benutzer freigeschaltet).
 
 ## Neu in Version 1.2.2
 
