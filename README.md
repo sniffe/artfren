@@ -235,6 +235,12 @@ Visual refinements, no database change (schema stays 9).
   only used if it is released for restricted users, otherwise the first released
   profile. Previously a default profile not released for them (or, without any
   profile, all PDF fields including the purchase value) could end up in their PDF.
+- PDF dialog: the close button (X) works, and the dialog closes after "Create PDF".
+- PDF list layout no longer cuts off columns on the right: from 7 columns it
+  uses landscape, column widths follow the content, long words wrap and the font
+  size adapts to the number of columns.
+- Code check: also reports inline scripts (onclick etc.) that the page's
+  security policy blocks.
 
 ## New in version 1.2.2
 
@@ -656,6 +662,13 @@ Optische Verbesserungen, keine Datenbankänderung (Schema bleibt 9).
   das erste freigegebene Profil. Bisher konnte ein nicht freigegebenes
   Standard-Profil (oder ohne Profil alle PDF-Felder samt Ankaufswert) in ihrem
   PDF landen.
+- PDF-Dialog: Der Schließen-Knopf (X) funktioniert, und der Dialog schließt
+  sich nach „PDF erstellen“.
+- PDF-Layout „Liste“ schneidet rechts keine Spalten mehr ab: ab 7 Spalten im
+  Querformat, Spaltenbreiten nach Inhalt, lange Wörter brechen um, Schriftgröße
+  passt sich der Spaltenzahl an.
+- Codeprüfung meldet zusätzlich Inline-Skripte (onclick usw.), die die
+  Sicherheitsrichtlinie der Seite blockiert.
 
 ## Neu in Version 1.2.2
 
