@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.0.
+groups, two user roles, export and backup functions. Version 1.2.1.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -118,7 +118,7 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
    database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.0`, schema version `9 / 9`,
+5. **Verify** – under **System**: application version `1.2.1`, schema version `9 / 9`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -202,6 +202,14 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.1
+
+Bugfix release, no new features and no database change (schema stays 9). Version 1.2.0
+did not start (HTTP error 500): typographic quotation marks had slipped into the PHP
+code and HTML templates, `src/I18n.php` mixed two namespace styles, one template was
+missing an `endif`, and saving or duplicating export profiles called a method that does
+not exist. Updating from 1.2.0 or 1.1: upload all program files as usual.
 
 ## New in version 1.2
 
@@ -306,7 +314,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.0.
+Version 1.2.1.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -428,7 +436,7 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
    wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.0`, Schema-Version `9 / 9`,
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.1`, Schema-Version `9 / 9`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -560,6 +568,15 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.1
+
+Fehlerbehebung, keine neuen Funktionen und keine Datenbankänderung (Schema bleibt 9).
+Version 1.2.0 startete nicht (HTTP-Fehler 500): Typografische Anführungszeichen waren in
+den PHP-Code und die HTML-Vorlagen geraten, `src/I18n.php` mischte zwei
+Namespace-Schreibweisen, in einer Vorlage fehlte ein `endif`, und das Speichern oder
+Duplizieren von Export-Profilen rief eine nicht vorhandene Methode auf. Update von 1.2.0
+oder 1.1: alle Programmdateien wie gewohnt hochladen.
 
 ## Neu in Version 1.2
 
