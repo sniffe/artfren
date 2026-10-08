@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.3.
+groups, two user roles, export and backup functions. Version 1.2.4.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -120,7 +120,7 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
    database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.3`, schema version `9 / 9`,
+5. **Verify** – under **System**: application version `1.2.4`, schema version `9 / 9`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -204,6 +204,17 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.4
+
+Update fixes, no database change (schema stays 9).
+
+- After an update the browser automatically loads the new stylesheets and
+  scripts (version tag on every file). Previously it could keep using the old,
+  cached design, which broke the layout (for example huge icons in the menu).
+- System completeness check: no more false alarms after an update from the
+  GitHub ZIP. The libraries in `vendor/` leave out their tests and developer
+  tools from that download; the file list now matches it exactly.
 
 ## New in version 1.2.3
 
@@ -372,7 +383,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.3.
+Version 1.2.4.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -496,7 +507,7 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
    wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.3`, Schema-Version `9 / 9`,
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.4`, Schema-Version `9 / 9`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -628,6 +639,19 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.4
+
+Korrekturen rund ums Update, keine Datenbankänderung (Schema bleibt 9).
+
+- Nach einem Update lädt der Browser die neuen Gestaltungs- und Skriptdateien
+  automatisch (Versionskennung an jeder Datei). Bisher konnte er die alte,
+  zwischengespeicherte Gestaltung weiterverwenden, und das Layout zerfiel
+  (zum Beispiel riesige Symbole im Menü).
+- Vollständigkeitsprüfung unter System: keine Fehlalarme mehr nach einem Update
+  aus dem GitHub-ZIP. Die Bibliotheken in `vendor/` lassen in diesem Download
+  ihre Tests und Entwicklerwerkzeuge weg; die Dateiliste entspricht ihm jetzt
+  genau.
 
 ## Neu in Version 1.2.3
 

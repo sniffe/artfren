@@ -144,9 +144,9 @@ $oeffentlich = $pruefung !== null ? array_keys($pruefung, App\Sicherheitscheck::
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Installation · <?= e($appName) ?></title>
-<link rel="stylesheet" href="/assets/fonts.css">
-<link rel="stylesheet" href="/assets/tokens.css">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/fonts.css?v=<?= rawurlencode(APP_VERSION) ?>">
+<link rel="stylesheet" href="/assets/tokens.css?v=<?= rawurlencode(APP_VERSION) ?>">
+<link rel="stylesheet" href="/assets/style.css?v=<?= rawurlencode(APP_VERSION) ?>">
 </head>
 <body>
 <main class="hauptinhalt" style="max-width:640px;">

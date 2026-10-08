@@ -19,13 +19,13 @@ $hatLogo     = Einstellungen::logoPfad() !== null;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $seitentitel ?></title>
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <link rel="stylesheet" href="/assets/tokens.css">
-    <link rel="stylesheet" href="/assets/looks.css">
-    <link rel="stylesheet" href="/assets/web.css">
+    <link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/tokens.css') ?>">
+    <link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/looks.css') ?>">
+    <link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/web.css') ?>">
     <?php if ($akzentfarbe !== null): ?>
     <style>:root{--farbe-akzent:<?= Helpers::e($akzentfarbe) ?>;--farbe-akzent-text:<?= Helpers::e(Einstellungen::akzentTextfarbe()) ?>}</style>
     <?php endif; ?>
-    <script src="/assets/theme-init.js"></script>
+    <script src="<?= \App\Helpers::asset('/assets/theme-init.js') ?>"></script>
 </head>
 <body>
 <?php echo $inhalt; ?>
@@ -56,6 +56,6 @@ if ($hatImpressum || $hatDatenschutz):
     <?php endif; ?>
 </footer>
 <?php endif; ?>
-<script src="/assets/app.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/app.js') ?>"></script>
 </body>
 </html>

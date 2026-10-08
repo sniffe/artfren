@@ -269,5 +269,5 @@ $geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
 </dialog>
 <datalist id="liste-freie-bilder"><?php foreach ($freieBilder as $b): ?><option value="<?= Helpers::e($b) ?>"><?php endforeach; ?></datalist>
 
-<script src="/assets/auswahl.js"></script>
-<script src="/assets/bild-dialog.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/auswahl.js') ?>"></script>
+<script src="<?= \App\Helpers::asset('/assets/bild-dialog.js') ?>"></script>

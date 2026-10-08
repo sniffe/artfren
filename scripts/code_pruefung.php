@@ -219,7 +219,8 @@ foreach ($pluralKeys as $key => $ort) {
 
 // ── 6. Dateiliste ────────────────────────────────────────────────────────────
 if ($mitGit && $gibtEs('App\\Wartung')) {
-    $soll = App\Wartung::erzeugeDateiliste($dateien);
+    require_once __DIR__ . '/_programmdateien.php';
+    $soll = App\Wartung::erzeugeDateiliste(kv_programmdateien(APP_ROOT) ?? $dateien);
     $ist = (string) @file_get_contents(APP_ROOT . '/' . App\Wartung::DATEILISTE);
     if (str_replace("\r\n", "\n", $ist) !== $soll) {
         $melde('Dateiliste veraltet', App\Wartung::DATEILISTE . ' neu erzeugen: php scripts/dateiliste.php (danach committen)');

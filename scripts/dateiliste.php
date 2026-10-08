@@ -13,8 +13,11 @@ if (PHP_SAPI !== 'cli') {
 require __DIR__ . '/../src/config.php';
 require APP_ROOT . '/src/Wartung.php';
 
-exec('git -C ' . escapeshellarg(APP_ROOT) . ' ls-files', $dateien, $code);
-if ($code !== 0) {
+require __DIR__ . '/_programmdateien.php';
+
+// Dateien wie im GitHub-Download (ohne export-ignore der Bibliotheken).
+$dateien = kv_programmdateien(APP_ROOT);
+if ($dateien === null) {
     fwrite(STDERR, "git ls-files fehlgeschlagen\n");
     exit(1);
 }

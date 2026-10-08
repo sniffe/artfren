@@ -364,9 +364,9 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
         <?php endif; ?>
     </div>
 </dialog>
-<script src="/assets/pdf-dialog.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/pdf-dialog.js') ?>"></script>
 
 <?php if ($auswahlVerwerfen): ?>
     <div data-auswahl-loeschen="<?= Helpers::e(implode(' ', $auswahlVerwerfen)) ?>" hidden></div>
-    <script src="/assets/auswahl.js"></script>
+    <script src="<?= \App\Helpers::asset('/assets/auswahl.js') ?>"></script>
 <?php endif; ?>

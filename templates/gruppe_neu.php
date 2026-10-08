@@ -20,4 +20,4 @@ use App\Helpers;
         <a href="/werke.php" class="btn"><?= Helpers::e(t('gruppe_neu.auswahl_bearbeiten')) ?></a>
     </form>
 </div>
-<script src="/assets/auswahl.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/auswahl.js') ?>"></script>

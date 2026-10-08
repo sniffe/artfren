@@ -98,4 +98,4 @@ $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['n
     </div>
 </div>
 
-<script src="/assets/web-galerie.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/web-galerie.js') ?>"></script>

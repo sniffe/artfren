@@ -50,14 +50,14 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= Helpers::e($titel) ?> · <?= Helpers::e(\App\Einstellungen::appName()) ?></title>
-<link rel="stylesheet" href="/assets/fonts.css">
-<link rel="stylesheet" href="/assets/tokens.css">
-<link rel="stylesheet" href="/assets/looks.css">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/fonts.css') ?>">
+<link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/tokens.css') ?>">
+<link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/looks.css') ?>">
+<link rel="stylesheet" href="<?= \App\Helpers::asset('/assets/style.css') ?>">
 <?php if ($akzentfarbe !== null): ?>
 <style>:root{--farbe-akzent:<?= Helpers::e($akzentfarbe) ?>;--farbe-akzent-text:<?= Helpers::e(\App\Einstellungen::akzentTextfarbe()) ?>}</style>
 <?php endif; ?>
-<script src="/assets/theme-init.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/theme-init.js') ?>"></script>
 </head>
 <body>
 <?php readfile(APP_ROOT . '/assets/icons.svg'); ?>
@@ -136,6 +136,6 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
 <footer class="app-footer">
     <span class="text-sekundaer text-klein"><?= Helpers::e(\App\Einstellungen::appName()) ?> &middot; <?= Helpers::e(t('layout.version', ['v' => APP_VERSION])) ?></span>
 </footer>
-<script src="/assets/app.js"></script>
+<script src="<?= \App\Helpers::asset('/assets/app.js') ?>"></script>
 </body>
 </html>

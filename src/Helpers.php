@@ -13,6 +13,17 @@ final class Helpers
         'gruen' => 'Grün',
     ];
 
+    /**
+     * Adresse einer Gestaltungs- oder Skriptdatei mit Versionskennung
+     * (Änderungszeitpunkt der Datei). Nach einem Update lädt der Browser so
+     * automatisch die neue Fassung statt einer zwischengespeicherten alten.
+     */
+    public static function asset(string $pfad): string
+    {
+        $zeit = @filemtime(APP_ROOT . $pfad);
+        return $pfad . '?v=' . ($zeit !== false ? $zeit : rawurlencode(APP_VERSION));
+    }
+
     public static function e(?string $value): string
     {
         return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
