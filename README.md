@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.5.
+groups, two user roles, export and backup functions. Version 1.2.6.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -119,8 +119,8 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
 3. **Upload files** – upload all version 1.2 files via FTP and overwrite everything.
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
-   database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.5`, schema version `9 / 9`,
+   database is saved beforehand (`pre-migration-*-to-10-*.sqlite`).
+5. **Verify** – under **System**: application version `1.2.6`, schema version `10 / 10`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -204,6 +204,22 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.6
+
+New function "Clean up artists" (menu **Data**), schema 10 (the database
+is updated automatically, with a snapshot beforehand).
+
+- Works like "Clean up locations": suggestions for similar spellings of the
+  same artist, merging with a chosen correct spelling, manual merging or
+  renaming of any selected artists.
+- Detects typos, differences in capitalisation or punctuation and swapped
+  first and last names ("Baldinger Peter" / "Peter Baldinger"). Names with
+  different numbers are never suggested. Fields with several artists stay
+  unchanged.
+- Old spellings are remembered: a later import of the unchanged Excel file
+  assigns them to the merged artist instead of creating duplicate works.
+  Remembered spellings can be removed individually.
 
 ## New in version 1.2.5
 
@@ -394,7 +410,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.5.
+Version 1.2.6.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -517,8 +533,8 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
 3. **Dateien hochladen** – alle Dateien der Version 1.2 per FTP hochladen und
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
-   wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.5`, Schema-Version `9 / 9`,
+   wird ein Snapshot gespeichert (`pre-migration-*-to-10-*.sqlite`).
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.6`, Schema-Version `10 / 10`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -650,6 +666,22 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.6
+
+Neue Funktion „Künstler bereinigen“ (Menü **Daten**), Schema 10 (die
+Datenbank wird automatisch aktualisiert, vorher mit Snapshot).
+
+- Funktioniert wie „Orte bereinigen“: Vorschläge für ähnliche Schreibweisen
+  desselben Künstlers, Zusammenführen mit gewählter richtiger Schreibweise,
+  manuelles Zusammenführen oder Umbenennen beliebiger angehakter Künstler.
+- Erkennt Tippfehler, abweichende Groß- und Kleinschreibung oder Satzzeichen
+  und vertauschte Vor- und Nachnamen („Baldinger Peter“ / „Peter
+  Baldinger“). Namen mit unterschiedlichen Zahlen werden nie vorgeschlagen.
+  Felder mit mehreren Künstlern bleiben unverändert.
+- Alte Schreibweisen werden gemerkt: Ein späterer Import der unveränderten
+  Excel-Datei ordnet sie dem zusammengeführten Künstler zu, statt doppelte
+  Werke anzulegen. Gemerkte Schreibweisen lassen sich einzeln entfernen.
 
 ## Neu in Version 1.2.5
 

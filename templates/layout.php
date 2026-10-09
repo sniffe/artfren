@@ -81,13 +81,14 @@ if ($istAdmin && $aktuelleSeite !== 'backup') {
                 <?= $navLink('/gruppen.php', 'gruppen', t('nav.gruppen')) ?>
             <?php endif; ?>
             <?php if ($istAdmin): ?>
-            <details class="nav-klappe" <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'open' : '' ?>>
-                <summary class="nav__link <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'backup']) ? 'aktiv' : '' ?>"><?= Helpers::e(t('nav.daten')) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
+            <details class="nav-klappe" <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'kuenstler', 'backup']) ? 'open' : '' ?>>
+                <summary class="nav__link <?= $gruppeAktiv(['import', 'export', 'bilder', 'orte', 'kuenstler', 'backup']) ? 'aktiv' : '' ?>"><?= Helpers::e(t('nav.daten')) ?> <?= Helpers::icon('pfeil-unten', 'nav-klappe__pfeil') ?></summary>
                 <div class="nav-klappe__inhalt">
                     <a href="/import.php" class="<?= $aktuelleSeite === 'import' ? 'aktiv' : '' ?>"><?= Helpers::icon('hochladen') ?> <?= Helpers::e(t('nav.import')) ?></a>
                     <a href="/export_gesamt.php" class="<?= $aktuelleSeite === 'export' ? 'aktiv' : '' ?>"><?= Helpers::icon('herunterladen') ?> <?= Helpers::e(t('nav.export')) ?></a>
                     <a href="/bilder_upload.php" class="<?= $aktuelleSeite === 'bilder' ? 'aktiv' : '' ?>"><?= Helpers::icon('bild') ?> <?= Helpers::e(t('nav.bilder_hochladen')) ?></a>
                     <a href="/orte.php" class="<?= $aktuelleSeite === 'orte' ? 'aktiv' : '' ?>"><?= Helpers::icon('lupe') ?> <?= Helpers::e(t('nav.orte_bereinigen')) ?></a>
+                    <a href="/kuenstler.php" class="<?= $aktuelleSeite === 'kuenstler' ? 'aktiv' : '' ?>"><?= Helpers::icon('lupe') ?> <?= Helpers::e(t('nav.kuenstler_bereinigen')) ?></a>
                     <a href="/backup.php" class="<?= $aktuelleSeite === 'backup' ? 'aktiv' : '' ?>"><?= Helpers::icon('datenbank') ?> <?= Helpers::e(t('nav.backup')) ?></a>
                 </div>
             </details>

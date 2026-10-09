@@ -6,6 +6,7 @@
 /** @var int $uebersprungen */
 /** @var array $ungueltigeDateinamen */
 /** @var int $aliasErsetzt */
+/** @var int $kuenstlerAliasErsetzt */
 /** @var string[] $nichtZugeordnet */
 declare(strict_types=1);
 
@@ -42,6 +43,9 @@ require __DIR__ . '/_import_reiter.php';
     ) ?>
     <?php if ($aliasErsetzt): ?>
         <?= Helpers::e(t('import.alias_ersetzt', ['n' => $aliasErsetzt])) ?>
+    <?php endif; ?>
+    <?php if (!empty($kuenstlerAliasErsetzt)): ?>
+        <?= Helpers::e(t('import.kuenstler_alias_ersetzt', ['n' => $kuenstlerAliasErsetzt])) ?>
     <?php endif; ?>
 </p>
 

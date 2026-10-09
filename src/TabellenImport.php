@@ -400,16 +400,13 @@ final class TabellenImport
     /** Ersetzt abweichende Ort-Schreibweisen durch den zusammengeführten Namen. */
     public static function wendeOrtAliaseAn(PDO $pdo, array &$zeilen): int
     {
-        $aliase = $pdo->query('SELECT alias, ziel FROM ort_alias')->fetchAll(PDO::FETCH_KEY_PAIR);
-        $ersetzt = 0;
-        foreach ($zeilen as &$eintrag) {
-            $schluessel = Helpers::ortSchluessel($eintrag['daten']['ort']);
-            if (isset($aliase[$schluessel]) && $aliase[$schluessel] !== $eintrag['daten']['ort']) {
-                $eintrag['daten']['ort'] = $aliase[$schluessel];
-                $ersetzt++;
-            }
-        }
-        return $ersetzt;
+        return (new OrtBereinigung($pdo))->wendeAliaseAn($zeilen);
+    }
+
+    /** Ersetzt abweichende Künstler-Schreibweisen durch den zusammengeführten Namen. */
+    public static function wendeKuenstlerAliaseAn(PDO $pdo, array &$zeilen): int
+    {
+        return (new KuenstlerBereinigung($pdo))->wendeAliaseAn($zeilen);
     }
 
     // --------------------------------------------------------------- Abgleich

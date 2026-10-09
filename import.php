@@ -95,6 +95,7 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
     $gelesen = TabellenImport::leseAlleZeilen($pfad, $mapping);
     $zeilen = $gelesen['zeilen'];
     $aliasErsetzt = TabellenImport::wendeOrtAliaseAn($pdo, $zeilen);
+    $kuenstlerAliasErsetzt = TabellenImport::wendeKuenstlerAliaseAn($pdo, $zeilen);
     $gemappt = array_values(array_filter($mapping));
     $abgleich = TabellenImport::berechneAbgleich($pdo, $zeilen, $gemappt);
 
@@ -109,6 +110,7 @@ if ($aktion === 'abgleich' || $aktion === 'uebernehmen') {
             'uebersprungen' => $gelesen['uebersprungen'],
             'ungueltigeDateinamen' => $gelesen['ungueltigeDateinamen'],
             'aliasErsetzt' => $aliasErsetzt,
+            'kuenstlerAliasErsetzt' => $kuenstlerAliasErsetzt,
             'nichtZugeordnet' => array_diff(array_keys(array_filter(TabellenImport::zielfelder(), static fn($k) => $k !== '', ARRAY_FILTER_USE_KEY)), $gemappt),
         ]);
         exit;
