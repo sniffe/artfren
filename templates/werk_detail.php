@@ -52,13 +52,6 @@ $sichtbareFelder = array_filter(
     <?php if ($istAdmin): ?>
         <div class="toolbar-aktionen">
             <a href="/werk_bearbeiten.php?id=<?= (int) $werk['id'] ?>&amp;zurueck=<?= rawurlencode('/werk.php?id=' . (int) $werk['id']) ?>" class="btn btn--klein btn--akzent"><?= Helpers::icon('stift') ?> <?= Helpers::e(t('werk.bearbeiten')) ?></a>
-            <form method="post" action="/papierkorb.php"
-                  data-bestaetigen="<?= Helpers::e(t('werk.papierkorb_frage', ['titel' => $werk['titel'] ?? t('werk.unbenannt')])) ?>">
-                <?= Helpers::csrfField() ?>
-                <input type="hidden" name="aktion" value="bulk_papierkorb">
-                <input type="hidden" name="werk_ids[]" value="<?= (int) $werk['id'] ?>">
-                <button type="submit" class="btn btn--klein btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werk.in_papierkorb')) ?></button>
-            </form>
         </div>
     <?php endif; ?>
 </div>

@@ -32,7 +32,7 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 - [ ] Alles hochladen und vorhandene Dateien überschreiben. `data/`, `bilder/`, `backups/` bringen nur ihre Schutzdatei mit, deine Daten bleiben.
 - [ ] Eine Seite im Browser aufrufen. Die Migrationen laufen automatisch.
 - [ ] Unter **System** prüfen:
-  - Anwendungsversion `1.2.4`
+  - Anwendungsversion `1.2.5`
   - Schema-Version `9 / 9`
   - In `data/` liegt eine Datei `pre-migration-*-to-9-*.sqlite` (Snapshot vor der Migration)
   - Vollständigkeitsprüfung ohne Befund: keine fehlenden und keine abweichenden Dateien, keine rote Warnung zu fehlenden Schutzdateien
@@ -79,11 +79,11 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 
 - [ ] In der Live-App **nochmals** ein Backup mit Bildern erstellen und herunterladen.
 - [ ] Dieselbe ZIP-Datei wie auf Staging verwenden, versteckte Dateien anzeigen, alles hochladen und überschreiben.
-- [ ] Unter **System**: Version 1.2.4, Schema 9 / 9, Snapshot vorhanden, keine Warnungen.
+- [ ] Unter **System**: Version 1.2.5, Schema 9 / 9, Snapshot vorhanden, keine Warnungen.
 - [ ] Kurztest: Werkliste, ein Werk, eine Gruppe, ein PDF.
 - [ ] Standardsprache unter **System** prüfen.
 - [ ] Rechte der eingeschränkten Benutzer setzen (Excel, Bilder) und Export-Profile für sie freigeben.
-- [ ] Tag `v1.2.4` setzen, und zwar erst jetzt und nur bei grüner Codeprüfung: auf GitHub unter **Releases** → **Draft a new release**, Tag `v1.2.4` neu anlegen, Target Branch `v1.2`. (Claude Code kann aus seiner Sitzung heraus keine Tags setzen.)
+- [ ] Tag `v1.2.5` setzen, und zwar erst jetzt und nur bei grüner Codeprüfung: auf GitHub unter **Releases** → **Draft a new release**, Tag `v1.2.5` neu anlegen, Target Branch `v1.2`. (Claude Code kann aus seiner Sitzung heraus keine Tags setzen.)
 
 ---
 

@@ -142,16 +142,20 @@ $geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
     <tbody>
     <?php foreach ($werke as $w):
         $thumb = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 't');
+        // Am Handy wird das Bild bildschirmbreit gezeigt – dafür die mittlere Größe.
+        $bildMittel = $thumb ? Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 'm') : null;
         $zeilenUrl = $url() . '#werk-' . (int) $w['id'];
         $werkText = trim(($w['maler'] ?? '') . ' – ' . ($w['titel'] ?? ''), ' –'); ?>
         <tr id="werk-<?= (int) $w['id'] ?>"
             data-ankaufswert="<?= $w['ankaufswert'] !== null ? Helpers::e((string) $w['ankaufswert']) : '' ?>"
             data-wert="<?= $w['wert'] !== null ? Helpers::e((string) $w['wert']) : '' ?>">
-            <td data-label="<?= Helpers::e(t('werke.auswahl_label')) ?>"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="<?= Helpers::e(t('werke.auswahl_aria')) ?>"></td>
-            <td data-label="<?= Helpers::e(t('werke.spalte_bild')) ?>">
+            <td class="zelle-auswahl" data-label="<?= Helpers::e(t('werke.auswahl_label')) ?>"><input type="checkbox" data-werk-id="<?= (int) $w['id'] ?>" aria-label="<?= Helpers::e(t('werke.auswahl_aria')) ?>"></td>
+            <td class="zelle-bild" data-label="<?= Helpers::e(t('werke.spalte_bild')) ?>">
                 <?php if ($thumb): ?>
                     <div class="thumb-wrapper">
-                        <img class="thumb" src="<?= Helpers::e($thumb) ?>" alt="" loading="lazy">
+                        <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="thumb-link" tabindex="-1" aria-hidden="true"><img class="thumb" src="<?= Helpers::e($thumb) ?>"
+                             srcset="<?= Helpers::e($thumb) ?> 96w, <?= Helpers::e($bildMittel) ?> 800w"
+                             sizes="(max-width: 720px) 100vw, 48px" alt="" loading="lazy"></a>
                         <?php if (($w['bild_anzahl'] ?? 1) > 1): ?>
                             <span class="bild-anzahl-badge">+<?= (int) $w['bild_anzahl'] - 1 ?></span>
                         <?php endif; ?>
@@ -166,9 +170,9 @@ $geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
                             aria-label="<?= Helpers::e(t('werke.bild_hochladen')) ?>">+</button>
                 <?php endif; ?>
             </td>
-            <td data-label="<?= Helpers::e(t('werke.spalte_ort')) ?>"><?= Helpers::e($w['ort']) ?></td>
-            <td data-label="<?= Helpers::e(t('feld.maler')) ?>"><?= Helpers::e($w['maler']) ?></td>
-            <td data-label="<?= Helpers::e(t('feld.titel')) ?>"><?= Helpers::e($w['titel']) ?></td>
+            <td class="zelle-ort" data-label="<?= Helpers::e(t('werke.spalte_ort')) ?>"><?= Helpers::e($w['ort']) ?></td>
+            <td class="zelle-maler" data-label="<?= Helpers::e(t('feld.maler')) ?>"><?= Helpers::e($w['maler']) ?></td>
+            <td class="zelle-titel" data-label="<?= Helpers::e(t('feld.titel')) ?>"><?= Helpers::e($w['titel']) ?></td>
             <td data-label="<?= Helpers::e(t('feld.format')) ?>"><?= Helpers::e($w['format']) ?></td>
             <td data-label="<?= Helpers::e(t('feld.technik')) ?>"><?= Helpers::e($w['technik']) ?></td>
             <td data-label="<?= Helpers::e(t('werke.spalte_jahr')) ?>" class="num"><?= Helpers::e((string) $w['entstehungsjahr']) ?></td>
@@ -176,7 +180,7 @@ $geldLocale = \App\I18n::aktiv() === 'de' ? 'de-DE' : 'en-US';
             <td data-label="<?= Helpers::e(t('feld.ankauf')) ?>"><?= Helpers::e((string) ($w['ankauf'] ?? '')) ?></td>
             <td data-label="<?= Helpers::e($thLabel('feld.ankaufswert')) ?>" class="num"><?= Helpers::formatGeld($w['ankaufswert'] !== null ? (float) $w['ankaufswert'] : null) ?></td>
             <td data-label="<?= Helpers::e($thLabel('feld.wert')) ?>" class="num"><?= Helpers::formatGeld($w['wert'] !== null ? (float) $w['wert'] : null) ?></td>
-            <td data-label="" style="white-space:nowrap;">
+            <td class="zelle-aktionen" data-label="" style="white-space:nowrap;">
                 <?php if ($w['status_farbe']): ?><span class="status-punkt status-punkt--<?= Helpers::e($w['status_farbe']) ?>" title="<?= Helpers::e(Helpers::statusLabel($w['status_farbe'])) ?>"></span><?php endif; ?>
                 <a href="/werk.php?id=<?= (int) $w['id'] ?>" class="ikon-link" title="<?= Helpers::e(t('werk.ansehen')) ?>" aria-label="<?= Helpers::e(t('werk.ansehen')) ?>"><?= Helpers::icon('auge') ?></a>
                 <a href="/werk_bearbeiten.php?id=<?= (int) $w['id'] ?>&amp;zurueck=<?= rawurlencode($zeilenUrl) ?>" class="ikon-link" title="<?= Helpers::e(t('allg.bearbeiten')) ?>" aria-label="<?= Helpers::e(t('allg.bearbeiten')) ?>"><?= Helpers::icon('stift') ?></a>

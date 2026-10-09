@@ -164,11 +164,26 @@ $feld = static function (string $name, string $label, string $wert, string $extr
         </div>
     </div>
 
-    <div class="toolbar-aktionen mt-m">
-        <button type="submit" class="btn btn--primaer"><?= Helpers::e($neu ? t('werk_bearb.anlegen_btn') : t('werk_bearb.speichern_btn')) ?></button>
-        <a href="<?= Helpers::e($zurueck) ?>" class="btn"><?= Helpers::e(t('allg.abbrechen')) ?></a>
+    <div class="toolbar mt-m">
+        <div class="toolbar-aktionen">
+            <button type="submit" class="btn btn--primaer"><?= Helpers::e($neu ? t('werk_bearb.anlegen_btn') : t('werk_bearb.speichern_btn')) ?></button>
+            <a href="<?= Helpers::e($zurueck) ?>" class="btn"><?= Helpers::e(t('allg.abbrechen')) ?></a>
+        </div>
+        <?php if (!$neu): ?>
+            <?php /* Gehört zum eigenen Formular unten (form-Attribut), da Formulare nicht verschachtelt werden dürfen. */ ?>
+            <button type="submit" form="werk-papierkorb" class="btn btn--klein btn--gefahr"><?= Helpers::icon('papierkorb') ?> <?= Helpers::e(t('werk.in_papierkorb')) ?></button>
+        <?php endif; ?>
     </div>
 </form>
+
+<?php if (!$neu): ?>
+<form method="post" action="/papierkorb.php" id="werk-papierkorb" hidden
+      data-bestaetigen="<?= Helpers::e(t('werk.papierkorb_frage', ['titel' => $werk['titel'] ?? t('werk.unbenannt')])) ?>">
+    <?= Helpers::csrfField() ?>
+    <input type="hidden" name="aktion" value="bulk_papierkorb">
+    <input type="hidden" name="werk_ids[]" value="<?= (int) $werk['id'] ?>">
+</form>
+<?php endif; ?>
 
 <datalist id="liste-orte"><?php foreach ($orte as $o): ?><option value="<?= Helpers::e($o) ?>"><?php endforeach; ?></datalist>
 <datalist id="liste-maler"><?php foreach ($malerListe as $m): ?><option value="<?= Helpers::e($m) ?>"><?php endforeach; ?></datalist>

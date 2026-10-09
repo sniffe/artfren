@@ -398,18 +398,47 @@ svg { fill: currentColor; }
 @media (max-width: 720px) {
     .kopf { flex-wrap: wrap; gap: var(--abstand-s); }
     .nav-hamburger { display: inline-flex; }
-    .nav-inhalt { display: none; width: 100%; flex-direction: column; align-items: flex-start; gap: 0; order: 10; }
+    /* flex-basis 100 %: das aufgeklappte Menü steht immer in einer eigenen Zeile
+       unter dem Sammlungsnamen (mit flex: 1 passte es sonst daneben). */
+    .nav-inhalt { display: none; flex: 0 0 100%; width: 100%; flex-direction: column; align-items: flex-start; gap: 0; order: 10; }
     .nav-inhalt.nav-inhalt--offen { display: flex; }
     .nav { flex-direction: column; align-items: flex-start; gap: 0; width: 100%; }
     .nav__link { padding: 10px 0; width: 100%; }
     .nav-klappe { width: 100%; }
     .nav-klappe__inhalt { position: static; box-shadow: none; border: none; border-left: 2px solid var(--farbe-linie); margin-left: var(--abstand-m); padding: 0; }
     .nav-klappe--benutzer { width: 100%; border-top: 1px solid var(--farbe-linie); margin-top: var(--abstand-s); padding-top: var(--abstand-s); }
+    /* Werkliste als Kacheln: Bild bildschirmbreit oben, darunter Künstler und
+       Titel wie ein Etikett, dann die übrigen Angaben. Leere Angaben entfallen. */
+    table.werkliste { background: transparent; }
     table.werkliste thead { display: none; }
-    table.werkliste tr { display: block; border-bottom: 2px solid var(--farbe-linie); padding: var(--abstand-s) 0; }
-    table.werkliste td { display: flex; justify-content: space-between; border-bottom: none; padding: 2px var(--abstand-s); }
-    table.werkliste td::before { content: attr(data-label); color: var(--farbe-text-sekundaer); font-size: 12px; margin-right: var(--abstand-s); }
-    .vitrine-detail { flex-direction: column; }
+    table.werkliste tbody tr { display: flex; flex-direction: column; position: relative; background: var(--farbe-flaeche); border: 1px solid var(--farbe-linie); margin-bottom: var(--abstand-l); padding-bottom: var(--abstand-s); }
+    table.werkliste tr:hover td { background: transparent; }
+    table.werkliste td { display: flex; justify-content: space-between; gap: var(--abstand-s); border-bottom: none; padding: 2px var(--abstand-m); text-align: right; }
+    table.werkliste td::before { content: attr(data-label); color: var(--farbe-text-sekundaer); font-size: 12px; text-align: left; flex-shrink: 0; }
+    table.werkliste td:empty { display: none; }
+    table.werkliste td.zelle-bild { order: -3; display: block; padding: 0; margin-bottom: var(--abstand-s); }
+    table.werkliste td.zelle-bild::before { content: none; }
+    table.werkliste .thumb-wrapper, table.werkliste .thumb-link { display: block; }
+    table.werkliste img.thumb { display: block; width: 100%; height: auto; max-height: 75vh; object-fit: contain; border: none; border-bottom: 1px solid var(--farbe-linie); background: var(--farbe-flaeche); }
+    table.werkliste .platzhalter-thumb { display: flex; width: 100%; height: 120px; border: none; border-bottom: 1px dashed var(--farbe-linie); }
+    table.werkliste td.zelle-auswahl { position: absolute; top: var(--abstand-s); left: var(--abstand-s); z-index: 1; padding: 6px; background: var(--farbe-flaeche); border-radius: var(--radius); box-shadow: 0 1px 4px rgb(0 0 0 / .15); }
+    table.werkliste td.zelle-auswahl::before { content: none; }
+    table.werkliste td.zelle-auswahl input { width: 20px; height: 20px; margin: 0; }
+    table.werkliste td.zelle-maler { order: -2; display: block; text-align: left; font-variant: small-caps; letter-spacing: .04em; color: var(--farbe-text-sekundaer); }
+    table.werkliste td.zelle-titel { order: -1; display: block; text-align: left; font-family: var(--schrift-serif); font-style: italic; font-size: var(--schrift-groesse-gross); line-height: 1.25; margin-bottom: var(--abstand-s); }
+    table.werkliste td.zelle-maler::before, table.werkliste td.zelle-titel::before { content: none; }
+    table.werkliste td.zelle-aktionen { justify-content: flex-end; gap: var(--abstand-s); margin-top: var(--abstand-s); padding-top: var(--abstand-s); border-top: 1px solid var(--farbe-linie); }
+    table.werkliste td.zelle-aktionen::before { content: none; }
+    table.werkliste td.zelle-aktionen .ikon-link { width: 40px; height: 40px; }
+    table.werkliste td.zelle-aktionen .ikon-link svg { width: 18px; height: 18px; }
+    table.werkliste tfoot tr { display: block; }
+    table.werkliste tfoot td { justify-content: flex-start; }
+
+    /* Detailansicht: Bild bildschirmbreit */
+    .vitrine-detail { flex-direction: column; align-items: stretch; gap: var(--abstand-l); }
+    .vitrine-detail .passepartout { flex: none; width: 100%; min-height: 0; padding: var(--abstand-s); }
+    .vitrine-detail .passepartout img { width: 100%; height: auto; max-height: 80vh; }
+    .vitrine-detail .werk-etikett { flex: none; }
     .auswahl-leiste { padding: var(--abstand-s); font-size: var(--schrift-groesse-klein); }
     .auswahl-leiste .btn { padding: 5px 10px; }
     table.liste .aktionen { flex-wrap: wrap; }

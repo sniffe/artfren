@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.4.
+groups, two user roles, export and backup functions. Version 1.2.5.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -120,7 +120,7 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
    database is saved beforehand (`pre-migration-*-to-9-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.4`, schema version `9 / 9`,
+5. **Verify** – under **System**: application version `1.2.5`, schema version `9 / 9`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -204,6 +204,17 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.5
+
+Mobile design and editing, no database change (schema stays 9).
+
+- List of works on smartphones: one tile per work with the image at full
+  screen width, below it artist and title like a label, then the details.
+  Empty details are left out. The checkbox sits on the image.
+- Work detail page on smartphones: image at full screen width.
+- Mobile menu opens below the collection name instead of next to it.
+- "Move to trash" is now on the edit page instead of the detail page.
 
 ## New in version 1.2.4
 
@@ -383,7 +394,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.4.
+Version 1.2.5.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -507,7 +518,7 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
    wird ein Snapshot gespeichert (`pre-migration-*-to-9-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.4`, Schema-Version `9 / 9`,
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.5`, Schema-Version `9 / 9`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -639,6 +650,18 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.5
+
+Mobiles Design und Bearbeiten, keine Datenbankänderung (Schema bleibt 9).
+
+- Werkliste am Smartphone: eine Kachel je Werk mit bildschirmbreitem Bild,
+  darunter Künstler und Titel wie ein Etikett, dann die Angaben. Leere Angaben
+  entfallen. Das Auswahlkästchen liegt auf dem Bild.
+- Detailansicht eines Werks am Smartphone: Bild bildschirmbreit.
+- Mobiles Menü öffnet sich unter dem Sammlungsnamen statt daneben.
+- „In den Papierkorb“ steht jetzt auf der Bearbeiten-Seite statt auf der
+  Ansehen-Seite.
 
 ## Neu in Version 1.2.4
 
