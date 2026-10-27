@@ -12,6 +12,7 @@ use App\Database;
 use App\Einstellungen;
 use App\Felder;
 use App\GruppeRepository;
+use App\GruppenRegeln;
 use App\WebGruppe;
 
 $token = (string) ($_GET['t'] ?? '');
@@ -111,6 +112,12 @@ if (!$adminVorschau && $rest === '') {
 $erlaubteFelder = WebGruppe::erlaubteFelder($gruppe);
 $gruppeId = (int) $gruppe['id'];
 
+// Filter, die der Admin anbietet und deren Feld in dieser Galerie sichtbar ist;
+// die Auswahl des Gasts steht in der Adresse und gilt auch für Vor/Zurück.
+$filterAngebot = GruppenRegeln::angebotFuerGalerie(GruppenRegeln::fuerGruppe($pdo, $gruppeId)['angebot'], $erlaubteFelder);
+$filter = GruppenRegeln::filterAusAnfrage($_GET, $filterAngebot);
+$filterQuery = GruppenRegeln::alsQuery($filter);
+
 // ── Routing: Detail ───────────────────────────────────────────────────────
 if (preg_match('#^werk/(\d+)$#', $rest, $m)) {
     $werkId = (int) $m[1];
@@ -132,7 +139,7 @@ if (preg_match('#^werk/(\d+)$#', $rest, $m)) {
     }
 
     // Prev/Next
-    $alleWerkeIds = array_column($repo->werkeOeffentlich($gruppeId), 'id');
+    $alleWerkeIds = array_column($repo->werkeOeffentlich($gruppeId, $filter), 'id');
     $pos  = array_search($werkId, $alleWerkeIds, true);
     $prevId = ($pos !== false && $pos > 0) ? $alleWerkeIds[(int) $pos - 1] : null;
     $nextId = ($pos !== false && $pos < count($alleWerkeIds) - 1) ? $alleWerkeIds[(int) $pos + 1] : null;
@@ -148,13 +155,14 @@ if (preg_match('#^werk/(\d+)$#', $rest, $m)) {
         'token'           => $token,
         'prevId'          => $prevId,
         'nextId'          => $nextId,
+        'filterQuery'     => $filterQuery,
         'adminVorschau'   => $adminVorschau,
     ], $frameAncestors);
     exit;
 }
 
 // ── Routing: Grid ─────────────────────────────────────────────────────────
-$werke = $repo->werkeOeffentlich($gruppeId);
+$werke = $repo->werkeOeffentlich($gruppeId, $filter);
 $werkeReduziert = array_map(
     static fn($w) => WebGruppe::reduziereWerk($w, $erlaubteFelder),
     $werke
@@ -166,6 +174,11 @@ renderPublic('web_galerie', [
     'werke'         => $werkeReduziert,
     'token'         => $token,
     'adminVorschau' => $adminVorschau,
+    'filterAngebot' => $filterAngebot,
+    'filter'        => $filter,
+    'filterQuery'   => $filterQuery,
+    'filterWerte'   => $filterAngebot !== [] ? $repo->filterWerte($gruppeId, $filterAngebot, true) : [],
+    'gesamtAnzahl'  => $filter !== null ? count($repo->werkeOeffentlich($gruppeId)) : count($werke),
 ], $frameAncestors);
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────────

@@ -68,18 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ['feld' => (string) ($_POST['sortierung_feld_2'] ?? ''), 'richtung' => (string) ($_POST['sortierung_richtung_2'] ?? '')],
               ]]
             : null;
-        $filter = null;
-        if (!isset($_POST['filter_entfernen'])) {
-            $filter = [];
-            foreach (GruppenRegeln::FILTER_LISTEN as $feld) {
-                $filter[$feld] = (array) ($_POST['filter_' . $feld] ?? []);
-            }
-            foreach (GruppenRegeln::FILTER_BEREICHE as $feld) {
-                $filter[$feld] = ['von' => $_POST['filter_' . $feld . '_von'] ?? '', 'bis' => $_POST['filter_' . $feld . '_bis'] ?? ''];
-            }
-            $filter['titel_enthaelt'] = (string) ($_POST['filter_titel_enthaelt'] ?? '');
-        }
-        GruppenRegeln::speichern(Database::get(), (int) $gruppe['id'], $sortierung, $filter);
+        GruppenRegeln::speichern(Database::get(), (int) $gruppe['id'], $sortierung, (array) ($_POST['angebot'] ?? []));
         $regeln = GruppenRegeln::fuerGruppe(Database::get(), (int) $gruppe['id']);
         Protokoll::schreibe('gruppe_regeln', "„{$gruppe['name']}“: " . json_encode($regeln, JSON_UNESCAPED_UNICODE));
         Helpers::flashSet('erfolg', t('gruppe.regeln_gespeichert'));
@@ -187,7 +176,10 @@ if ($gruppe === null || !Auth::darfGruppeSehen($benutzer, $id)) {
 $istAdmin = Auth::isAdmin($benutzer);
 $pdo = Database::get();
 $werkRepo = WerkRepository::neu();
-$werke = $werkRepo->fuerGruppeExport($id);
+// Sortierung und Filterangebot der Gruppe; die Filterauswahl des Betrachters steht in der Adresse.
+$regeln = GruppenRegeln::fuerGruppe($pdo, $id);
+$filter = GruppenRegeln::filterAusAnfrage($_GET, $regeln['angebot']);
+$werke = $werkRepo->fuerGruppeExport($id, $filter);
 $werkeSortiert   = $istAdmin ? $repo->fuerGruppeSortiert($id) : [];
 $webStats        = $istAdmin ? $repo->webWerkStats($id) : ['gesamt' => 0, 'freigegeben' => 0];
 $webFeldOptionen = $istAdmin ? \App\WebGruppe::feldPickerOptionen() : [];
@@ -206,7 +198,7 @@ render('gruppe_ansicht', [
     'werke' => $werke,
     'bilderAnzahl' => count(\App\Export::bilderZuWerken($werke)['dateien']),
     'istAdmin' => $istAdmin,
-    'summen' => $werkRepo->summeFuerGruppe($id),
+    'summen' => $werkRepo->summeFuerGruppe($id, $filter),
     'werkeSortiert' => $werkeSortiert,
     'webStats' => $webStats,
     'webFeldOptionen' => $webFeldOptionen,
@@ -214,9 +206,11 @@ render('gruppe_ansicht', [
     'baseUrl' => $baseUrl,
     'freigegebenFuer' => $istAdmin ? $repo->freigegebenFuer($id) : [],
     'pdfProfile' => $pdfProfile,
-    'regeln' => GruppenRegeln::fuerGruppe($pdo, $id) ?? ['sortierung' => null, 'filter' => null],
-    'filterWerte' => $istAdmin ? $repo->filterWerte($id) : [],
-    'mitgliederAnzahl' => $istAdmin ? count($werkRepo->mitgliedIds($id)) : count($werke),
+    'regeln' => $regeln,
+    'filter' => $filter,
+    'filterQuery' => GruppenRegeln::alsQuery($filter),
+    'filterWerte' => $regeln['angebot'] !== [] ? $repo->filterWerte($id, $regeln['angebot']) : [],
+    'gesamtAnzahl' => $filter !== null ? $repo->anzahlSichtbar($id) : count($werke),
     'auswahlVerwerfen' => array_filter([
         isset($_GET['neu']) ? 'auswahl_neu' : null,
         isset($_GET['mitglieder_gespeichert']) ? 'auswahl_gruppe_' . $id : null,

@@ -6,6 +6,7 @@
 /** @var string $token */
 /** @var int|null $prevId */
 /** @var int|null $nextId */
+/** @var string $filterQuery  Filterauswahl des Gasts, gilt für Übersicht und Vor/Zurück */
 /** @var bool $adminVorschau */
 declare(strict_types=1);
 
@@ -20,15 +21,16 @@ $gruppenTitel = !empty($gruppe['web_titel']) ? $gruppe['web_titel'] : $gruppe['n
 <div class="web-vorschau-banner"><?= Helpers::e(t('pubweb.vorschau_admin')) ?></div>
 <?php endif; ?>
 <div class="web-detail-nav">
-    <a href="/w/<?= Helpers::e($token) ?>" class="web-detail-nav__zurueck">← <?= Helpers::e($gruppenTitel) ?></a>
+    <?php $q = ($filterQuery ?? '') !== '' ? '?' . $filterQuery : ''; ?>
+    <a href="/w/<?= Helpers::e($token) ?><?= Helpers::e($q) ?>" class="web-detail-nav__zurueck">← <?= Helpers::e($gruppenTitel) ?></a>
     <div class="web-detail-nav__prev-next">
         <?php if ($prevId): ?>
-            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $prevId ?>" id="prev-link" title="<?= Helpers::e(t('pubweb.vorheriges_werk')) ?>">←</a>
+            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $prevId ?><?= Helpers::e($q) ?>" id="prev-link" title="<?= Helpers::e(t('pubweb.vorheriges_werk')) ?>">←</a>
         <?php else: ?>
             <span class="web-detail-nav__leer">←</span>
         <?php endif; ?>
         <?php if ($nextId): ?>
-            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $nextId ?>" id="next-link" title="<?= Helpers::e(t('pubweb.naechstes_werk')) ?>">→</a>
+            <a href="/w/<?= Helpers::e($token) ?>/werk/<?= (int) $nextId ?><?= Helpers::e($q) ?>" id="next-link" title="<?= Helpers::e(t('pubweb.naechstes_werk')) ?>">→</a>
         <?php else: ?>
             <span class="web-detail-nav__leer">→</span>
         <?php endif; ?>

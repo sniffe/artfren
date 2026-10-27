@@ -12,9 +12,11 @@
 /** @var string[] $erlaubteFelder */
 /** @var string $baseUrl */
 /** @var array[] $pdfProfile */
-/** @var array $regeln  ['sortierung' => ?array, 'filter' => ?array] aus GruppenRegeln */
-/** @var array $filterWerte  vorkommende Werte je Filterliste (nur Admin) */
-/** @var int $mitgliederAnzahl */
+/** @var array $regeln  ['sortierung' => ?array, 'angebot' => string[]] aus GruppenRegeln */
+/** @var ?array $filter  Filterauswahl des Betrachters (aus der Adresse) */
+/** @var string $filterQuery  Auswahl als Query-String für Export-Links */
+/** @var array $filterWerte  vorkommende Werte je angebotener Filterliste */
+/** @var int $gesamtAnzahl  Werke ohne Auswahl */
 declare(strict_types=1);
 
 use App\ExportProfile;
@@ -44,9 +46,6 @@ $gruppeId = (int) $gruppe['id'];
                 <?php endif; ?>
             <?php endif; ?>
         </p>
-        <?php if ($istAdmin && $regeln['filter'] !== null): ?>
-            <p class="gruppe-filter-hinweis text-klein"><?= Helpers::e(t('gruppe.filter_aktiv', ['n' => count($werke), 'm' => $mitgliederAnzahl])) ?> · <a href="#regeln"><?= Helpers::e(t('gruppe.filter_ansehen')) ?></a></p>
-        <?php endif; ?>
     </div>
     <?php
     $darfExcel  = $istAdmin; // Excel nur für Admins, eingeschränkte Benutzer erhalten PDF
@@ -54,10 +53,10 @@ $gruppeId = (int) $gruppe['id'];
     ?>
     <div class="toolbar-aktionen">
         <?php if ($darfExcel): ?>
-            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx" class="btn" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></a>
+            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=xlsx<?= $filterQuery !== '' ? '&amp;' . Helpers::e($filterQuery) : '' ?>" class="btn" title="<?= Helpers::e(t('gruppen.excel_titel')) ?>"><?= Helpers::e(t('gruppe.excel')) ?></a>
         <?php endif; ?>
         <?php if ($bilderAnzahl > 0 && $darfBilder): ?>
-            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder" class="btn" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('gruppe.bilder_zip', ['n' => $bilderAnzahl])) ?></a>
+            <a href="/export_gruppe.php?id=<?= $gruppeId ?>&amp;format=bilder<?= $filterQuery !== '' ? '&amp;' . Helpers::e($filterQuery) : '' ?>" class="btn" title="<?= Helpers::e(t('gruppen.bilder_titel')) ?>"><?= Helpers::e(t('gruppe.bilder_zip', ['n' => $bilderAnzahl])) ?></a>
         <?php endif; ?>
         <button type="button" class="btn" data-pdf-dialog="<?= $gruppeId ?>"><?= Helpers::e(t('gruppe.pdf')) ?></button>
         <?php if ($istAdmin): ?>
@@ -65,6 +64,16 @@ $gruppeId = (int) $gruppe['id'];
         <?php endif; ?>
     </div>
 </div>
+
+<?php if ($regeln['angebot'] !== []): ?>
+<?php
+$filterAngebot   = $regeln['angebot'];
+$filterTreffer   = count($werke);
+$filterAktion    = '/gruppe.php';
+$filterVersteckt = ['id' => $gruppeId];
+require __DIR__ . '/_filterleiste.php';
+?>
+<?php endif; ?>
 
 <div class="vitrine-karten">
     <?php foreach ($werke as $w): $bild = Helpers::bildUrl($w['bild_id'], $w['bild_dateiname'], 'm'); ?>
@@ -84,7 +93,7 @@ $gruppeId = (int) $gruppe['id'];
         </a>
     <?php endforeach; ?>
     <?php if (!$werke): ?>
-        <p class="text-sekundaer"><?= Helpers::e(t('gruppe.leer')) ?></p>
+        <p class="text-sekundaer"><?= Helpers::e(t($filter !== null ? 'filter.keine_treffer' : 'gruppe.leer')) ?></p>
     <?php endif; ?>
 </div>
 
@@ -242,7 +251,6 @@ $gruppeId = (int) $gruppe['id'];
 <?php
 $sortNachFeldern = ($regeln['sortierung']['modus'] ?? '') === 'felder';
 $sortFelder = $regeln['sortierung']['felder'] ?? [];
-$filter = $regeln['filter'] ?? [];
 $richtungen = ['asc' => t('gruppe.richtung_auf'), 'desc' => t('gruppe.richtung_ab')];
 ?>
 <div class="karte" id="regeln" style="max-width:900px;">
@@ -280,47 +288,18 @@ $richtungen = ['asc' => t('gruppe.richtung_auf'), 'desc' => t('gruppe.richtung_a
         </fieldset>
 
         <fieldset style="border:1px solid var(--farbe-linie); padding:var(--abstand-s) var(--abstand-m); margin-bottom:var(--abstand-m);">
-            <legend style="font-weight:600; padding:0 var(--abstand-xs);"><?= Helpers::e(t('gruppe.filter')) ?></legend>
-            <div class="feldreihe">
-                <?php foreach (GruppenRegeln::FILTER_LISTEN as $f): $aktiv = $filter[$f] ?? []; ?>
-                <div class="feld">
-                    <span class="label" style="display:block; font-weight:600;"><?= Helpers::e(Felder::label($f)) ?></span>
-                    <?php if ($filterWerte[$f] ?? []): ?>
-                    <div class="checkliste" style="max-height:200px; overflow-y:auto; border:1px solid var(--farbe-linie); padding:var(--abstand-xs) var(--abstand-s);">
-                        <?php foreach ($filterWerte[$f] as $w): ?>
-                            <label><input type="checkbox" name="filter_<?= $f ?>[]" value="<?= Helpers::e($w['wert']) ?>" <?= in_array($w['wert'], $aktiv, true) ? 'checked' : '' ?>>
-                                <?= Helpers::e($w['wert']) ?> <span class="text-sekundaer text-klein">(<?= (int) $w['anzahl'] ?>)</span></label>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php else: ?>
-                        <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.filter_keine_werte')) ?></p>
-                    <?php endif; ?>
-                </div>
+            <legend style="font-weight:600; padding:0 var(--abstand-xs);"><?= Helpers::e(t('gruppe.angebot_titel')) ?></legend>
+            <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.angebot_hinweis')) ?></p>
+            <div class="checkliste">
+                <?php foreach (GruppenRegeln::ANGEBOT as $f): ?>
+                    <label><input type="checkbox" name="angebot[]" value="<?= $f ?>" <?= in_array($f, $regeln['angebot'], true) ? 'checked' : '' ?>>
+                        <?= Helpers::e($f === 'titel' ? t('filter.titel_enthaelt') : Felder::label($f)) ?></label>
                 <?php endforeach; ?>
-            </div>
-            <div class="feldreihe">
-                <?php foreach (GruppenRegeln::FILTER_BEREICHE as $f): $schritt = $f === 'entstehungsjahr' ? '1' : '0.01'; ?>
-                <div class="feld">
-                    <label for="filter-<?= $f ?>-von"><?= Helpers::e(Felder::label($f)) ?> <?= Helpers::e(t('gruppe.filter_von')) ?></label>
-                    <input type="number" id="filter-<?= $f ?>-von" name="filter_<?= $f ?>_von" step="<?= $schritt ?>" value="<?= Helpers::e((string) ($filter[$f]['von'] ?? '')) ?>">
-                </div>
-                <div class="feld">
-                    <label for="filter-<?= $f ?>-bis"><?= Helpers::e(Felder::label($f)) ?> <?= Helpers::e(t('gruppe.filter_bis')) ?></label>
-                    <input type="number" id="filter-<?= $f ?>-bis" name="filter_<?= $f ?>_bis" step="<?= $schritt ?>" value="<?= Helpers::e((string) ($filter[$f]['bis'] ?? '')) ?>">
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <div class="feld" style="max-width:400px;">
-                <label for="filter-titel"><?= Helpers::e(t('gruppe.filter_titel_enthaelt')) ?></label>
-                <input type="text" id="filter-titel" name="filter_titel_enthaelt" maxlength="100" value="<?= Helpers::e((string) ($filter['titel_enthaelt'] ?? '')) ?>">
             </div>
         </fieldset>
 
         <div class="toolbar-aktionen">
             <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('gruppe.regeln_speichern')) ?></button>
-            <?php if ($regeln['filter'] !== null): ?>
-                <button type="submit" name="filter_entfernen" value="1" class="btn"><?= Helpers::e(t('gruppe.filter_entfernen')) ?></button>
-            <?php endif; ?>
         </div>
     </form>
 </div>
@@ -393,6 +372,7 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
 ?>
 <dialog id="pdf-dialog"
         data-gruppe-id="<?= $gruppeId ?>"
+        data-filter-query="<?= Helpers::e($filterQuery) ?>"
         data-csrf="<?= Helpers::e(Helpers::csrfToken()) ?>"
         data-profil-name-frage="<?= Helpers::e(t('pdf.profil_name_frage')) ?>"
         style="width:min(700px,95vw); max-height:90vh; overflow-y:auto; padding:var(--abstand-l); border-radius:var(--radius); border:1px solid var(--farbe-linie);">

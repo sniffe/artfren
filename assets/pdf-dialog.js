@@ -115,6 +115,8 @@
         dialog.querySelectorAll('input[name="felder[]"]:checked').forEach(function (cb) {
             felderParts.push('felder[]=' + encodeURIComponent(cb.value));
         });
+        // Aktuelle Filterauswahl der Gruppenansicht: Das PDF enthält dieselben Werke.
+        if (dialog.dataset.filterQuery) { felderParts.push(dialog.dataset.filterQuery); }
         var basis = '/export_gruppe_pdf.php?' + params.toString();
         return felderParts.length > 0 ? basis + '&' + felderParts.join('&') : basis;
     }

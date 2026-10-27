@@ -6,17 +6,20 @@ namespace App;
 use PDO;
 
 /**
- * Sortier- und Filterregeln einer Gruppe (gruppen.sortierung_regel, gruppen.filter_regel).
+ * Sortierung und Filterangebot einer Gruppe (gruppen.sortierung_regel, gruppen.filter_angebot)
+ * und die Filterauswahl eines Betrachters.
  *
- * Einzige Quelle für die Bedingungen und die Reihenfolge, mit denen die Werke einer
- * Gruppe überall gelistet werden: Gruppenansicht, Summen, PDF, Excel/ZIP, öffentliche
- * Galerie (Raster, Detail, Vor/Zurück, Bilder) und Zählungen. Die Admin-Sortierliste
- * (GruppeRepository::fuerGruppeSortiert) zeigt bewusst weiterhin alle Mitglieder.
+ * Einzige Quelle für Bedingungen und Reihenfolge, mit denen die Werke einer Gruppe gelistet
+ * werden: Gruppenansicht, Summen, PDF, Excel/ZIP, öffentliche Galerie und Zählungen.
  *
- * Ein Filter blendet Werke nur aus; sie bleiben Mitglieder der Gruppe.
+ * - Die Sortierung legt der Admin je Gruppe fest (von Hand oder nach Feldern).
+ * - Der Admin legt fest, welche Filter angeboten werden. Betrachter (Admins, eingeschränkte
+ *   Benutzer, Galerie-Gäste) wählen selbst; die Auswahl kommt aus der Adresse (f_*-Parameter),
+ *   wird nie gespeichert und schränkt nur ein, was der Betrachter ohnehin sehen darf.
+ * - Der Ankaufswert ist nie Sortier- oder Filterfeld. In der Galerie wird ein Filter nur
+ *   angeboten, wenn das Feld dort sichtbar ist (sonst verriete er verborgene Angaben).
+ *
  * Spaltennamen stammen nur aus den Whitelists unten, nie aus Eingaben.
- * Der Ankaufswert ist nie Sortier- oder Filterfeld: Reihenfolge oder ausgeblendete
- * Werke würden ihn sonst für eingeschränkte Benutzer und Galeriebesucher erraten lassen.
  */
 final class GruppenRegeln
 {
@@ -24,16 +27,19 @@ final class GruppenRegeln
     public const SORTIER_FELDER = ['maler', 'titel', 'ort', 'technik', 'werktyp', 'format', 'herkunft', 'entstehungsjahr', 'ankaufjahr', 'wert'];
 
     /** Filter als Werteliste (ODER innerhalb der Liste). */
-    public const FILTER_LISTEN = ['maler', 'technik', 'herkunft'];
+    public const FILTER_LISTEN = ['maler', 'technik', 'herkunft', 'ort', 'werktyp', 'format'];
 
     /** Filter als Bereich von/bis. */
     public const FILTER_BEREICHE = ['entstehungsjahr', 'wert'];
+
+    /** Alle anbietbaren Filter in fester Reihenfolge; 'titel' ist die Suche „Titel enthält“. */
+    public const ANGEBOT = ['maler', 'technik', 'herkunft', 'ort', 'werktyp', 'format', 'entstehungsjahr', 'wert', 'titel'];
 
     private const TEXT_FELDER = ['maler', 'titel', 'ort', 'technik', 'werktyp', 'format', 'herkunft'];
     private const MAX_LISTE = 200;
     private const MAX_TEXT = 200;
 
-    /** @var array<int, array{sortierung: ?array, filter: ?array}> Zwischenspeicher je Anfrage */
+    /** @var array<int, array{sortierung: ?array, angebot: string[]}> Zwischenspeicher je Anfrage */
     private static array $cache = [];
 
     // ------------------------------------------------------------ Normalisieren
@@ -60,8 +66,19 @@ final class GruppenRegeln
     }
 
     /**
-     * Filterregel prüfen und vereinheitlichen. Unbekannte Schlüssel fallen weg.
-     * Rückgabe null = kein Filter.
+     * Filterangebot prüfen: Liste erlaubter Schlüssel in fester Reihenfolge.
+     * @return string[] (leer = keine Filter angeboten)
+     */
+    public static function normalisiereAngebot(mixed $eingabe): array
+    {
+        $daten = self::alsArray($eingabe) ?? [];
+        $gewaehlt = array_map('strval', array_filter($daten, 'is_scalar'));
+        return array_values(array_filter(self::ANGEBOT, static fn(string $k): bool => in_array($k, $gewaehlt, true)));
+    }
+
+    /**
+     * Filterauswahl prüfen und vereinheitlichen (Listen, Bereiche, titel_enthaelt).
+     * Unbekannte Schlüssel fallen weg. Rückgabe null = keine Auswahl.
      */
     public static function normalisiereFilter(mixed $eingabe): ?array
     {
@@ -110,13 +127,76 @@ final class GruppenRegeln
         return $ergebnis === [] ? null : $ergebnis;
     }
 
-    // ------------------------------------------------------------ Lesen
+    /**
+     * Filterauswahl eines Betrachters aus der Anfrage (f_maler[], f_entstehungsjahr_von,
+     * f_titel …), beschränkt auf die angebotenen Filter. Rückgabe null = nicht gefiltert.
+     *
+     * @param string[] $angebot
+     */
+    public static function filterAusAnfrage(array $anfrage, array $angebot): ?array
+    {
+        $roh = [];
+        foreach (self::FILTER_LISTEN as $feld) {
+            if (in_array($feld, $angebot, true)) {
+                $roh[$feld] = (array) ($anfrage['f_' . $feld] ?? []);
+            }
+        }
+        foreach (self::FILTER_BEREICHE as $feld) {
+            if (in_array($feld, $angebot, true)) {
+                $roh[$feld] = ['von' => $anfrage['f_' . $feld . '_von'] ?? '', 'bis' => $anfrage['f_' . $feld . '_bis'] ?? ''];
+            }
+        }
+        if (in_array('titel', $angebot, true)) {
+            $roh['titel_enthaelt'] = is_scalar($anfrage['f_titel'] ?? null) ? (string) $anfrage['f_titel'] : '';
+        }
+        return self::normalisiereFilter($roh);
+    }
+
+    /** Filterauswahl als Query-String (ohne führendes ?), z. B. für Export-Links und Vor/Zurück. */
+    public static function alsQuery(?array $filter): string
+    {
+        if ($filter === null) {
+            return '';
+        }
+        $teile = [];
+        foreach (self::FILTER_LISTEN as $feld) {
+            foreach ($filter[$feld] ?? [] as $w) {
+                $teile[] = 'f_' . $feld . '[]=' . rawurlencode($w);
+            }
+        }
+        foreach (self::FILTER_BEREICHE as $feld) {
+            foreach (['von', 'bis'] as $g) {
+                if (isset($filter[$feld][$g])) {
+                    $teile[] = 'f_' . $feld . '_' . $g . '=' . rawurlencode((string) $filter[$feld][$g]);
+                }
+            }
+        }
+        if (($filter['titel_enthaelt'] ?? '') !== '') {
+            $teile[] = 'f_titel=' . rawurlencode($filter['titel_enthaelt']);
+        }
+        return implode('&', $teile);
+    }
+
+    /**
+     * Angebot für die Galerie: nur Filter, deren Feld dort sichtbar ist.
+     * @param string[] $angebot @param string[] $sichtbareFelder (WebGruppe::erlaubteFelder)
+     * @return string[]
+     */
+    public static function angebotFuerGalerie(array $angebot, array $sichtbareFelder): array
+    {
+        $oeffentlich = array_column(Felder::alle(), 'oeffentlich', 'key');
+        return array_values(array_filter($angebot, static fn(string $k): bool =>
+            ($oeffentlich[$k] ?? 'never') === 'immer'
+            || (($oeffentlich[$k] ?? 'never') === 'waehlbar' && in_array($k, $sichtbareFelder, true))));
+    }
+
+    // ------------------------------------------------------------ Lesen und Speichern
 
     /**
      * Regeln aus einer Gruppenzeile, mit Standardwerten. Ungültiges JSON gilt als
      * nicht gesetzt, wird einmal protokolliert und in der Datenbank geleert.
      *
-     * @return array{sortierung: ?array, filter: ?array}
+     * @return array{sortierung: ?array, angebot: string[]}
      */
     public static function ausGruppe(array $gruppe): array
     {
@@ -124,34 +204,32 @@ final class GruppenRegeln
         if (isset(self::$cache[$id])) {
             return self::$cache[$id];
         }
-        $regeln = [];
-        foreach (['sortierung' => 'sortierung_regel', 'filter' => 'filter_regel'] as $art => $spalte) {
+        $regeln = ['sortierung' => null, 'angebot' => []];
+        foreach (['sortierung' => 'sortierung_regel', 'angebot' => 'filter_angebot'] as $art => $spalte) {
             $roh = $gruppe[$spalte] ?? null;
             if ($roh === null || $roh === '') {
-                $regeln[$art] = null;
                 continue;
             }
             $daten = json_decode((string) $roh, true);
             if (!is_array($daten)) {
                 self::verwerfeUngueltig($id, $spalte);
-                $regeln[$art] = null;
                 continue;
             }
-            $regeln[$art] = $art === 'sortierung' ? self::normalisiereSortierung($daten) : self::normalisiereFilter($daten);
+            $regeln[$art] = $art === 'sortierung' ? self::normalisiereSortierung($daten) : self::normalisiereAngebot($daten);
         }
         return self::$cache[$id] = $regeln;
     }
 
-    /** Regeln einer Gruppe anhand der ID (null, wenn es die Gruppe nicht gibt). */
-    public static function fuerGruppe(PDO $pdo, int $gruppeId): ?array
+    /** Regeln einer Gruppe anhand der ID (Standardwerte, wenn es die Gruppe nicht gibt). */
+    public static function fuerGruppe(PDO $pdo, int $gruppeId): array
     {
         if (isset(self::$cache[$gruppeId])) {
             return self::$cache[$gruppeId];
         }
-        $stmt = $pdo->prepare('SELECT id, sortierung_regel, filter_regel FROM gruppen WHERE id = :id');
+        $stmt = $pdo->prepare('SELECT id, sortierung_regel, filter_angebot FROM gruppen WHERE id = :id');
         $stmt->execute(['id' => $gruppeId]);
         $zeile = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $zeile === false ? null : self::ausGruppe($zeile);
+        return $zeile === false ? ['sortierung' => null, 'angebot' => []] : self::ausGruppe($zeile);
     }
 
     /** Zwischenspeicher leeren (nach dem Speichern neuer Regeln). */
@@ -164,15 +242,15 @@ final class GruppenRegeln
         }
     }
 
-    /** Neue Regeln speichern (nur normalisiertes JSON oder NULL). */
-    public static function speichern(PDO $pdo, int $gruppeId, mixed $sortierung, mixed $filter): void
+    /** Sortierung und Filterangebot speichern (nur normalisiertes JSON oder NULL). */
+    public static function speichern(PDO $pdo, int $gruppeId, mixed $sortierung, mixed $angebot): void
     {
         $s = self::normalisiereSortierung($sortierung);
-        $f = self::normalisiereFilter($filter);
-        $pdo->prepare('UPDATE gruppen SET sortierung_regel = :s, filter_regel = :f, geaendert_am = datetime(\'now\') WHERE id = :id')
+        $a = self::normalisiereAngebot($angebot);
+        $pdo->prepare('UPDATE gruppen SET sortierung_regel = :s, filter_angebot = :a, geaendert_am = datetime(\'now\') WHERE id = :id')
             ->execute([
                 's'  => $s === null ? null : json_encode($s, JSON_UNESCAPED_UNICODE),
-                'f'  => $f === null ? null : json_encode($f, JSON_UNESCAPED_UNICODE),
+                'a'  => $a === [] ? null : json_encode($a),
                 'id' => $gruppeId,
             ]);
         self::vergiss($gruppeId);
@@ -204,7 +282,7 @@ final class GruppenRegeln
     }
 
     /**
-     * Zusätzliche WHERE-Bedingungen des Filters (mit führendem „ AND “ oder leer)
+     * Zusätzliche WHERE-Bedingungen einer Filterauswahl (mit führendem „ AND “ oder leer)
      * und benannte Parameter.
      *
      * @return array{0: string, 1: array<string, mixed>}
@@ -251,16 +329,16 @@ final class GruppenRegeln
     }
 
     /**
-     * Gemeinsame Bausteine für jede Abfrage der sichtbaren Werke einer Gruppe.
-     * Die Abfrage muss „FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id“
-     * enthalten. where: Mitgliedschaft, nicht gelöscht, Filter.
+     * Gemeinsame Bausteine für jede Abfrage der Werke einer Gruppe. Die Abfrage muss
+     * „FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id“ enthalten.
+     * where: Mitgliedschaft, nicht gelöscht, optional die Filterauswahl des Betrachters.
      *
      * @return array{where: string, params: array<string, mixed>, order: string, regeln: array}
      */
-    public static function teile(PDO $pdo, int $gruppeId): array
+    public static function teile(PDO $pdo, int $gruppeId, ?array $filter = null): array
     {
-        $regeln = self::fuerGruppe($pdo, $gruppeId) ?? ['sortierung' => null, 'filter' => null];
-        [$filterSql, $params] = self::sqlWhere($regeln['filter']);
+        $regeln = self::fuerGruppe($pdo, $gruppeId);
+        [$filterSql, $params] = self::sqlWhere($filter);
         $params['gr_gid'] = $gruppeId;
         return [
             'where'  => 'gk.gruppe_id = :gr_gid AND k.geloescht_am IS NULL' . $filterSql,
@@ -268,12 +346,6 @@ final class GruppenRegeln
             'order'  => self::sqlOrder($regeln['sortierung']),
             'regeln' => $regeln,
         ];
-    }
-
-    /** Ist für die Gruppe ein Filter gesetzt? */
-    public static function hatFilter(PDO $pdo, int $gruppeId): bool
-    {
-        return (self::fuerGruppe($pdo, $gruppeId)['filter'] ?? null) !== null;
     }
 
     // ------------------------------------------------------------ intern

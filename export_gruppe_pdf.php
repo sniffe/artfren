@@ -12,6 +12,7 @@ use App\Export;
 use App\ExportProfile;
 use App\Felder;
 use App\GruppeRepository;
+use App\GruppenRegeln;
 use App\Helpers;
 use App\I18n;
 use App\Protokoll;
@@ -131,7 +132,9 @@ Protokoll::schreibe('export_gruppe', "PDF „{$gruppe['name']}“ ({$layout})");
 session_write_close();
 @set_time_limit(300);
 
-$werke = WerkRepository::neu()->fuerGruppe($id);
+// Export folgt der Filterauswahl des Betrachters (nur angebotene Filter; schränkt nur ein).
+$exportFilter = GruppenRegeln::filterAusAnfrage($_GET, GruppenRegeln::fuerGruppe($pdo, $id)['angebot']);
+$werke = WerkRepository::neu()->fuerGruppe($id, $exportFilter);
 foreach ($werke as &$werk) {
     // Mittlere Größe (800 px) statt Original: hält Speicherbedarf und PDF-Größe klein.
     $pfad = $werk['bild_dateiname'] ? Bilder::pfad($werk['bild_dateiname'], 'm') : null;

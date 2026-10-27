@@ -50,7 +50,7 @@ if (WebGruppe::brauchPasswort($gruppe) && !WebGruppe::hatCookieZugang($gruppe) &
     exit;
 }
 
-// Bild muss zu einem öffentlichen, nicht herausgefilterten Werk dieser Gruppe gehören
+// Bild muss zu einem öffentlichen Werk dieser Gruppe gehören
 $dateiname = GruppeRepository::neu()->bildOeffentlich((int) $gruppe['id'], $bildId);
 
 if ($dateiname === null) {

@@ -9,7 +9,9 @@ require __DIR__ . '/src/bootstrap.php';
 
 use App\Auth;
 use App\Export;
+use App\Database;
 use App\GruppeRepository;
+use App\GruppenRegeln;
 use App\Helpers;
 use App\Protokoll;
 use App\WerkRepository;
@@ -41,7 +43,9 @@ session_write_close();
 @set_time_limit(0);
 
 $repo = WerkRepository::neu();
-$werke = $repo->fuerGruppeExport($id);
+// Export folgt der Filterauswahl des Betrachters (nur angebotene Filter; schränkt nur ein).
+$filter = GruppenRegeln::filterAusAnfrage($_GET, GruppenRegeln::fuerGruppe(Database::get(), $id)['angebot']);
+$werke = $repo->fuerGruppeExport($id, $filter);
 if ($format === 'bilder') {
     Export::sendeBilderZip($werke, Export::dateiname($gruppe['name'] . '_bilder', 'zip'));
 } else {

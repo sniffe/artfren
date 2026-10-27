@@ -218,3 +218,7 @@ a { color: var(--farbe-akzent); }
     .web-karte__bild { aspect-ratio: auto; min-height: 160px; }
     .web-karte__bild img { width: auto; height: auto; max-height: 75vh; }
 }
+
+/* Filterleiste der Galerie (1.2.7) */
+.filterleiste .btn { display: inline-block; padding: .35em .9em; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; font: inherit; text-decoration: none; cursor: pointer; }
+.filterleiste .btn--primaer { font-weight: 600; }

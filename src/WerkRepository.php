@@ -63,16 +63,19 @@ final class WerkRepository
         return $werk === false ? null : $werk;
     }
 
-    /** Sichtbare Werke einer Gruppe nach ihren Sortier- und Filterregeln (GruppenRegeln). */
-    public function fuerGruppe(int $gruppeId): array
+    /**
+     * Werke einer Gruppe in der Reihenfolge der Gruppe (GruppenRegeln), optional
+     * eingeschränkt durch die Filterauswahl des Betrachters.
+     */
+    public function fuerGruppe(int $gruppeId, ?array $filter = null): array
     {
-        return $this->gruppenAbfrage(self::basis(), $gruppeId);
+        return $this->gruppenAbfrage(self::basis(), $gruppeId, $filter);
     }
 
     /** Gemeinsame Abfrage aller Gruppenlisten, damit Bedingungen und Reihenfolge nicht auseinanderlaufen. */
-    private function gruppenAbfrage(string $select, int $gruppeId): array
+    private function gruppenAbfrage(string $select, int $gruppeId, ?array $filter): array
     {
-        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter);
         $stmt = $this->pdo->prepare(
             $select . " JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
              WHERE {$teile['where']} ORDER BY {$teile['order']}"
@@ -199,10 +202,10 @@ final class WerkRepository
         return (array) $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /** Summen für die sichtbaren Werke einer Gruppe (für Gruppenansicht; Filter wie die Liste). */
-    public function summeFuerGruppe(int $gruppeId): array
+    /** Summen für die Werke einer Gruppe (für Gruppenansicht; mit derselben Filterauswahl wie die Liste). */
+    public function summeFuerGruppe(int $gruppeId, ?array $filter = null): array
     {
-        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter);
         $stmt = $this->pdo->prepare(
             "SELECT COALESCE(SUM(k.ankaufswert), 0) AS ankaufswert,
                     COALESCE(SUM(k.wert), 0) AS wert,
@@ -405,10 +408,10 @@ final class WerkRepository
         }
     }
 
-    /** Export für eine Gruppe mit bild_dateiname_2..8 (Regeln wie fuerGruppe). */
-    public function fuerGruppeExport(int $gruppeId): array
+    /** Export für eine Gruppe mit bild_dateiname_2..8 (Reihenfolge und Filter wie fuerGruppe). */
+    public function fuerGruppeExport(int $gruppeId, ?array $filter = null): array
     {
-        return $this->gruppenAbfrage(self::basis(true), $gruppeId);
+        return $this->gruppenAbfrage(self::basis(true), $gruppeId, $filter);
     }
 
     /** Verschiebt ein Werk in den Papierkorb (Soft-Delete). */

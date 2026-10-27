@@ -3,6 +3,11 @@
 /** @var array[] $werke */
 /** @var string $token */
 /** @var bool $adminVorschau */
+/** @var string[] $filterAngebot  angebotene und hier sichtbare Filter */
+/** @var ?array $filter */
+/** @var string $filterQuery */
+/** @var array $filterWerte */
+/** @var int $gesamtAnzahl */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -20,14 +25,23 @@ $einleitung   = $gruppe['web_einleitung'] ?? '';
     <?php endif; ?>
 </header>
 
+<?php if ($filterAngebot !== []): ?>
+<?php
+$filterTreffer   = count($werke);
+$filterAktion    = '/w/' . $token;
+$filterVersteckt = [];
+require __DIR__ . '/_filterleiste.php';
+?>
+<?php endif; ?>
+
 <?php if (!$werke): ?>
-    <p class="web-leer"><?= Helpers::e(t('pubweb.galerie_leer')) ?></p>
+    <p class="web-leer"><?= Helpers::e(t($filter !== null ? 'filter.keine_treffer' : 'pubweb.galerie_leer')) ?></p>
 <?php else: ?>
 <div class="web-karten" id="web-karten">
     <?php foreach ($werke as $w): ?>
         <?php
         $bUrl  = \App\WebGruppe::webBildUrl($token, $w['bild_id'] ?? null, 'm');
-        $wUrl  = '/w/' . $token . '/werk/' . (int) $w['id'];
+        $wUrl  = '/w/' . $token . '/werk/' . (int) $w['id'] . ($filterQuery !== '' ? '?' . $filterQuery : '');
         $meta  = Helpers::werkMeta($w['technik'] ?? null, $w['entstehungsjahr'] ?? null);
         ?>
         <a class="web-karte" href="<?= Helpers::e($wUrl) ?>">

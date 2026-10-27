@@ -29,7 +29,7 @@ final class GruppeRepository
     {
         $sql = 'SELECT g.*, (SELECT COUNT(*) FROM gruppe_kunstwerk gk JOIN kunstwerke k ON k.id = gk.kunstwerk_id WHERE gk.gruppe_id = g.id AND k.geloescht_am IS NULL) AS anzahl_werke FROM gruppen g';
         if (Auth::isAdmin($benutzer)) {
-            return $this->mitGefilterterAnzahl($this->pdo->query($sql . ' ORDER BY g.name COLLATE NOCASE')->fetchAll());
+            return $this->pdo->query($sql . ' ORDER BY g.name COLLATE NOCASE')->fetchAll();
         }
         $ids = Auth::sichtbareGruppenIds($benutzer);
         if ($ids === []) {
@@ -37,36 +37,26 @@ final class GruppeRepository
         }
         $stmt = $this->pdo->prepare($sql . ' WHERE g.id IN (' . Helpers::platzhalter($ids) . ') ORDER BY g.name COLLATE NOCASE');
         $stmt->execute($ids);
-        return $this->mitGefilterterAnzahl($stmt->fetchAll());
-    }
-
-    /** Gruppen mit Filter: Anzahl der sichtbaren Werke statt aller Mitglieder. */
-    private function mitGefilterterAnzahl(array $gruppen): array
-    {
-        foreach ($gruppen as &$g) {
-            if (GruppenRegeln::ausGruppe($g)['filter'] !== null) {
-                $g['anzahl_werke'] = $this->anzahlSichtbar((int) $g['id']);
-            }
-        }
-        unset($g);
-        return $gruppen;
+        return $stmt->fetchAll();
     }
 
     /**
-     * Vorkommende Werte der Filterlisten (Maler, Technik, Herkunft) unter den
-     * Mitgliedern der Gruppe, alphabetisch, mit Anzahl Werke. Ungefiltert, damit
-     * der Admin auch gerade ausgeblendete Werte wählen kann.
+     * Vorkommende Werte der angebotenen Filterlisten unter den Werken, die der Betrachter
+     * sehen darf (alle Mitglieder bzw. in der Galerie nur web-freigegebene), alphabetisch,
+     * mit Anzahl. Unabhängig von der aktuellen Auswahl, damit man sie erweitern kann.
      *
+     * @param string[] $angebot
      * @return array<string, array<int, array{wert: string, anzahl: int}>>
      */
-    public function filterWerte(int $gruppeId): array
+    public function filterWerte(int $gruppeId, array $angebot, bool $nurWeb = false): array
     {
         $werte = [];
-        foreach (GruppenRegeln::FILTER_LISTEN as $feld) {   // Spaltenname aus der Whitelist
+        $web = $nurWeb ? ' AND k.web_freigabe = 1' : '';
+        foreach (array_intersect(GruppenRegeln::FILTER_LISTEN, $angebot) as $feld) {   // Spaltenname aus der Whitelist
             $stmt = $this->pdo->prepare(
                 "SELECT k.{$feld} AS wert, COUNT(*) AS anzahl
                  FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-                 WHERE gk.gruppe_id = :g AND k.geloescht_am IS NULL AND k.{$feld} IS NOT NULL AND k.{$feld} <> ''
+                 WHERE gk.gruppe_id = :g AND k.geloescht_am IS NULL{$web} AND k.{$feld} IS NOT NULL AND k.{$feld} <> ''
                  GROUP BY k.{$feld} ORDER BY kv_lower(k.{$feld})"
             );
             $stmt->execute(['g' => $gruppeId]);
@@ -78,10 +68,10 @@ final class GruppeRepository
         return $werte;
     }
 
-    /** Anzahl der sichtbaren (nicht gelöschten, nicht herausgefilterten) Werke. */
-    public function anzahlSichtbar(int $gruppeId): int
+    /** Anzahl der (nicht gelöschten) Werke, optional mit Filterauswahl. */
+    public function anzahlSichtbar(int $gruppeId, ?array $filter = null): int
     {
-        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter);
         $stmt = $this->pdo->prepare(
             "SELECT COUNT(*) FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id WHERE {$teile['where']}"
         );
@@ -236,12 +226,12 @@ final class GruppeRepository
     }
 
     /**
-     * Liefert alle für Web freigegebenen, sichtbaren Werke der Gruppe in der
-     * Reihenfolge ihrer Regeln (GruppenRegeln).
+     * Liefert alle für Web freigegebenen Werke der Gruppe in der Reihenfolge der Gruppe,
+     * optional eingeschränkt durch die Filterauswahl des Galerie-Gasts.
      */
-    public function werkeOeffentlich(int $gruppeId): array
+    public function werkeOeffentlich(int $gruppeId, ?array $filter = null): array
     {
-        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter);
         $stmt = $this->pdo->prepare(
             self::OEFFENTLICH_SELECT . " WHERE {$teile['where']} AND k.web_freigabe = 1 ORDER BY {$teile['order']}"
         );
@@ -249,10 +239,7 @@ final class GruppeRepository
         return $stmt->fetchAll();
     }
 
-    /**
-     * Einzelnes öffentliches Werk einer Gruppe (Sicherheitsprüfung: muss zur Gruppe
-     * gehören und darf nicht herausgefiltert sein; sonst null → 404).
-     */
+    /** Einzelnes öffentliches Werk einer Gruppe (Sicherheitsprüfung: muss zur Gruppe gehören). */
     public function werkOeffentlich(int $gruppeId, int $werkId): ?array
     {
         $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
@@ -264,7 +251,7 @@ final class GruppeRepository
         return $row === false ? null : $row;
     }
 
-    /** Alle Bilder eines öffentlichen Werks (Sicherheitsprüfung: sichtbares Werk der Gruppe). */
+    /** Alle Bilder eines öffentlichen Werks (Sicherheitsprüfung: Werk in der Gruppe). */
     public function bilderOeffentlich(int $gruppeId, int $werkId): array
     {
         $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
@@ -294,7 +281,7 @@ final class GruppeRepository
         return $datei === false ? null : (string) $datei;
     }
 
-    /** Anzahl der sichtbaren Werke und der davon für das Web freigegebenen. */
+    /** Anzahl der Werke und der davon für das Web freigegebenen. */
     public function webWerkStats(int $gruppeId): array
     {
         $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
