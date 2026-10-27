@@ -27,6 +27,10 @@
         });
     }
 
+    // Hat der Benutzer in diesem Dialog schon eine Feld-Checkbox angefasst (oder ein
+    // Profil gewählt)? Dann ändert der Wechsel zum Kachellayout die Auswahl nicht mehr.
+    var felderBeruehrt = false;
+
     // ── Profil-Auswahl → Felder + Schalter aktualisieren ──────────────────────
     var profilSelect = document.getElementById('pdf-profil');
     if (profilSelect) {
@@ -43,8 +47,40 @@
             setSwitch('pdf-summe',      opt.dataset.summe       !== '0');
             var layout = document.getElementById('pdf-layout');
             if (layout) { layout.value = opt.dataset.layout || 'einzelblatt'; }
+            var raster = document.getElementById('pdf-kachel-raster');
+            if (raster) { raster.value = opt.dataset.kachelRaster || '2x2'; }
+            felderBeruehrt = true;
+            zeigeRaster();
             var updateBtn = document.getElementById('pdf-profil-update');
             if (updateBtn) { updateBtn.hidden = false; }
+            aktualisiereLink();
+        });
+    }
+
+    // Raster-Auswahl nur beim Kachellayout zeigen.
+    function zeigeRaster() {
+        var feld = document.getElementById('pdf-kachel-raster-feld');
+        var layout = document.getElementById('pdf-layout');
+        if (feld && layout) { feld.hidden = layout.value !== 'kachel'; }
+    }
+
+    dialog.querySelectorAll('input[name="felder[]"]').forEach(function (cb) {
+        cb.addEventListener('change', function () { felderBeruehrt = true; });
+    });
+
+    // Wechsel zum Kachellayout: Standardauswahl (Bild, Titelblock, nur Format),
+    // solange der Benutzer die Felder noch nicht selbst geändert hat.
+    var layoutSelect = document.getElementById('pdf-layout');
+    if (layoutSelect) {
+        layoutSelect.addEventListener('change', function () {
+            if (layoutSelect.value === 'kachel' && !felderBeruehrt) {
+                dialog.querySelectorAll('input[name="felder[]"]').forEach(function (cb) {
+                    cb.checked = cb.value === 'format';
+                });
+                setSwitch('pdf-bild', true);
+                setSwitch('pdf-titelblock', true);
+            }
+            zeigeRaster();
             aktualisiereLink();
         });
     }
@@ -55,7 +91,7 @@
     }
 
     // ── Jede Änderung → Link neu bauen ────────────────────────────────────────
-    dialog.querySelectorAll('input[name="felder[]"], #pdf-bild, #pdf-titelblock, #pdf-leer, #pdf-summe, #pdf-layout').forEach(function (el) {
+    dialog.querySelectorAll('input[name="felder[]"], #pdf-bild, #pdf-titelblock, #pdf-leer, #pdf-summe, #pdf-kachel-raster').forEach(function (el) {
         el.addEventListener('change', aktualisiereLink);
     });
 
@@ -69,6 +105,7 @@
         params.set('leer_ausblenden', el('pdf-leer')       ? (el('pdf-leer').checked        ? '1' : '0') : '1');
         params.set('summe',           el('pdf-summe')      ? (el('pdf-summe').checked       ? '1' : '0') : '1');
         params.set('layout',          el('pdf-layout')     ? (el('pdf-layout').value || 'einzelblatt') : 'einzelblatt');
+        params.set('kachel_raster',   el('pdf-kachel-raster') ? (el('pdf-kachel-raster').value || '2x2') : '2x2');
         // felder[] mit wörtlichen Klammern – PHP parst %5B%5D NICHT als Array
         var felderParts = [];
         dialog.querySelectorAll('input[name="felder[]"]:checked').forEach(function (cb) {
@@ -120,6 +157,7 @@
         body.set('leer_ausblenden', el('pdf-leer')       && el('pdf-leer').checked        ? '1' : '');
         body.set('summe',           el('pdf-summe')      && el('pdf-summe').checked       ? '1' : '');
         body.set('layout',          el('pdf-layout') ? (el('pdf-layout').value || 'einzelblatt') : 'einzelblatt');
+        body.set('kachel_raster',   el('pdf-kachel-raster') ? (el('pdf-kachel-raster').value || '2x2') : '2x2');
         fetch('/export_profile.php', { method: 'POST', body: body })
             .then(function () { window.location.reload(); });
     }

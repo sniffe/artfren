@@ -62,6 +62,7 @@ if ($getFelder !== null) {
     $leerAusblenden  = ($_GET['leer_ausblenden']   ?? '1') !== '0';
     $zeigeSumme      = ($_GET['summe']             ?? '1') !== '0';
     $layout          = ExportProfile::layout($_GET['layout'] ?? '');
+    $kachelRaster    = ExportProfile::kachelRaster($_GET['kachel_raster'] ?? '');
     $spracheQuelle   = $profil; // Sprachpräferenz aus explizit gewähltem Profil
 } elseif ($profil !== null) {
     $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool => in_array($f['key'], ExportProfile::felderAusProfil($profil), true)));
@@ -70,6 +71,7 @@ if ($getFelder !== null) {
     $leerAusblenden  = (bool) $profil['leer_ausblenden'];
     $zeigeSumme      = (bool) $profil['summe'];
     $layout          = ExportProfile::layout($profil['layout']);
+    $kachelRaster    = ExportProfile::kachelRaster($profil['kachel_raster'] ?? '');
     $spracheQuelle   = $profil;
 } else {
     // Fallback: Standard-Profil. Eingeschränkte Benutzer bekommen es nur, wenn es
@@ -89,6 +91,7 @@ if ($getFelder !== null) {
         $leerAusblenden  = (bool) $standardProfil['leer_ausblenden'];
         $zeigeSumme      = (bool) $standardProfil['summe'];
         $layout          = ExportProfile::layout($standardProfil['layout']);
+        $kachelRaster    = ExportProfile::kachelRaster($standardProfil['kachel_raster'] ?? '');
         $spracheQuelle   = $standardProfil;
     } else {
         // Letzter Fallback: in_pdf-Felder, alle Schalter an. Den Ankaufswert
@@ -100,6 +103,7 @@ if ($getFelder !== null) {
         $leerAusblenden  = true;
         $zeigeSumme      = true;
         $layout          = ExportProfile::LAYOUTS[0];
+        $kachelRaster    = ExportProfile::KACHEL_RASTER[0];
     }
 }
 
@@ -132,7 +136,11 @@ $optionen->set('chroot', APP_ROOT . '/vendor/dompdf/dompdf');
 
 $dompdf = new Dompdf($optionen);
 $dompdf->loadHtml($html);
-// Liste mit vielen Spalten im Querformat, damit nichts abgeschnitten wird.
-$dompdf->setPaper('A4', ($layout === 'liste' && count($pdfFelder) > 6) ? 'landscape' : 'portrait');
+// Liste mit vielen Spalten im Querformat, damit nichts abgeschnitten wird;
+// Kacheln 3x2 immer quer, 2x2 hoch.
+$querformat = $layout === 'kachel'
+    ? $kachelRaster === '3x2'
+    : ($layout === 'liste' && count($pdfFelder) > 6);
+$dompdf->setPaper('A4', $querformat ? 'landscape' : 'portrait');
 $dompdf->render();
 $dompdf->stream(Export::dateiname($gruppe['name'], 'pdf'), ['Attachment' => true]);

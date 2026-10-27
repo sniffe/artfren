@@ -127,6 +127,10 @@ if ($getAktion === 'ansehen' && $profil !== null):
         <dd><?= $profil['leer_ausblenden'] ? t('allg.ja') : t('allg.nein') ?></dd>
         <dt class="text-sekundaer text-klein"><?= Helpers::e(t('profil.layout_label')) ?></dt>
         <dd><?= Helpers::e(t('profil.layout_' . $profil['layout'])) ?></dd>
+        <?php if ($profil['layout'] === 'kachel'): ?>
+        <dt class="text-sekundaer text-klein"><?= Helpers::e(t('pdf.kachel_raster')) ?></dt>
+        <dd><?= Helpers::e(t('pdf.kachel_' . ExportProfile::kachelRaster($profil['kachel_raster'] ?? ''))) ?></dd>
+        <?php endif; ?>
         <dt class="text-sekundaer text-klein"><?= Helpers::e(t('profil.sprache')) ?></dt>
         <dd><?= Helpers::e($profil['sprache'] ? (I18n::SPRACHEN[$profil['sprache']] ?? $profil['sprache']) : t('profil.sprache_exporter')) ?></dd>
     </dl>
@@ -146,7 +150,7 @@ $feldKeys = $istNeu ? $standardFelder : ExportProfile::felderAusProfil($profil);
 <p class="text-klein text-sekundaer"><a href="/export_profile.php"><?= Helpers::e(t('profil.titel')) ?></a></p>
 <h2><?= Helpers::e($istNeu ? t('profil.neu') : $profil['name']) ?></h2>
 
-<form method="post" action="/export_profile.php">
+<form method="post" action="/export_profile.php" id="profil-formular" data-neu="<?= $istNeu ? '1' : '0' ?>">
     <?= Helpers::csrfField() ?>
     <input type="hidden" name="aktion" value="speichern">
     <?php if (!$istNeu): ?><input type="hidden" name="id" value="<?= (int) $profil['id'] ?>"><?php endif; ?>
@@ -214,6 +218,16 @@ $feldKeys = $istNeu ? $standardFelder : ExportProfile::felderAusProfil($profil);
             <select id="profil-layout" name="layout">
                 <option value="einzelblatt" <?= ($profil['layout'] ?? 'einzelblatt') === 'einzelblatt' ? 'selected' : '' ?>><?= Helpers::e(t('profil.layout_einzelblatt')) ?></option>
                 <option value="liste" <?= ($profil['layout'] ?? '') === 'liste' ? 'selected' : '' ?>><?= Helpers::e(t('profil.layout_liste')) ?></option>
+                <option value="kachel" <?= ($profil['layout'] ?? '') === 'kachel' ? 'selected' : '' ?>><?= Helpers::e(t('profil.layout_kachel')) ?></option>
+            </select>
+        </div>
+        <?php $raster = ExportProfile::kachelRaster($profil['kachel_raster'] ?? ''); ?>
+        <div class="feld" id="profil-kachel-raster-feld" <?= ($profil['layout'] ?? '') === 'kachel' ? '' : 'hidden' ?>>
+            <label for="profil-kachel-raster"><?= Helpers::e(t('pdf.kachel_raster')) ?></label>
+            <select id="profil-kachel-raster" name="kachel_raster">
+                <?php foreach (ExportProfile::KACHEL_RASTER as $r): ?>
+                    <option value="<?= $r ?>" <?= $raster === $r ? 'selected' : '' ?>><?= Helpers::e(t('pdf.kachel_' . $r)) ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div class="feld">
@@ -248,3 +262,4 @@ $feldKeys = $istNeu ? $standardFelder : ExportProfile::felderAusProfil($profil);
         <a href="/export_profile.php" class="btn"><?= Helpers::e(t('allg.abbrechen')) ?></a>
     </div>
 </form>
+<script src="<?= Helpers::asset('/assets/profil-formular.js') ?>"></script>

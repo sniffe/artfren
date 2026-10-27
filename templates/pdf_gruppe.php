@@ -6,7 +6,8 @@
 /** @var bool $zeigeTitelblock */
 /** @var bool $leerAusblenden */
 /** @var bool $zeigeSumme */
-/** @var string $layout  'einzelblatt'|'liste' */
+/** @var string $layout  'einzelblatt'|'liste'|'kachel' */
+/** @var string $kachelRaster '2x2'|'3x2' (nur bei 'kachel') */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -51,6 +52,7 @@ $geldFelder     = array_values(array_filter($pdfFelder, static fn(array $f): boo
     .num { text-align: right; }
     table.werkliste td.num { white-space: nowrap; }
 </style>
+<?php if ($layout === 'kachel') { require __DIR__ . '/_pdf_kachel_stil.php'; } ?>
 </head>
 <body>
 <?php if ($layout === 'liste'): ?>
@@ -158,6 +160,8 @@ $prozent = static fn(float $g): string => number_format($g / $summeGewichte * 10
     </tfoot>
     <?php endif; ?>
 </table>
+<?php elseif ($layout === 'kachel'): ?>
+<?php require __DIR__ . '/_pdf_kachel.php'; ?>
 <?php else: ?>
 <?php
 // ── Einzelblatt-Layout ────────────────────────────────────────────────────────

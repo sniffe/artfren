@@ -314,6 +314,7 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
                         data-leer="<?= (int) $p['leer_ausblenden'] ?>"
                         data-summe="<?= (int) $p['summe'] ?>"
                         data-layout="<?= Helpers::e((string) $p['layout']) ?>"
+                        data-kachel-raster="<?= Helpers::e((string) ($p['kachel_raster'] ?? '2x2')) ?>"
                 ><?= Helpers::e($p['name']) ?><?= $p['ist_standard'] ? ' (' . Helpers::e(t('profil.standard')) . ')' : '' ?></option>
             <?php endforeach; ?>
         </select>
@@ -353,6 +354,14 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
         <select id="pdf-layout">
             <option value="einzelblatt"><?= Helpers::e(t('pdf.layout_einzelblatt')) ?></option>
             <option value="liste"><?= Helpers::e(t('pdf.layout_liste')) ?></option>
+            <option value="kachel"><?= Helpers::e(t('pdf.layout_kachel')) ?></option>
+        </select>
+    </div>
+    <div class="feld" id="pdf-kachel-raster-feld" style="max-width:260px; margin-bottom:var(--abstand-m);" hidden>
+        <label for="pdf-kachel-raster"><?= Helpers::e(t('pdf.kachel_raster')) ?></label>
+        <select id="pdf-kachel-raster">
+            <option value="2x2"><?= Helpers::e(t('pdf.kachel_2x2')) ?></option>
+            <option value="3x2"><?= Helpers::e(t('pdf.kachel_3x2')) ?></option>
         </select>
     </div>
 
