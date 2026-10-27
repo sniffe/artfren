@@ -1,7 +1,7 @@
 # Release-Checkliste Version 1.2
 
 Für Stefan. Zuerst auf Staging durchführen, dann nach erfolgreicher Prüfung auf Live. Zum Abhaken von oben nach unten.
-Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf 1.1.0 (Schema 8).
+Zielversion **1.2.7** (Schema 11). Gilt für alle Ausgangslagen: Live läuft noch auf V1 (Schema 5), auf 1.1.0 (Schema 8) oder schon auf 1.2.x (Schema 9 oder 10).
 
 ---
 
@@ -11,7 +11,7 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 - [ ] Auf GitHub liegt der fertige Stand im Branch `v1.2`.
 - [ ] Die **Codeprüfung ist grün**: Auf GitHub steht beim neuesten Commit von `v1.2` ein grüner Haken (Details unter **Actions**). Bei rotem Kreuz nicht weitermachen, sondern Claude Code die Meldungen beheben lassen. Alternativ lokal: `php scripts/code_pruefung.php` endet mit „OK“.
 - [ ] Ein ruhiger Zeitpunkt ist eingeplant (rund 1 Stunde für Staging, 20 Minuten für Live).
-- [ ] Die eingeschränkten Benutzer sind informiert: Nach dem Update sind Excel-Export, Bilder-ZIP und Originalbilder für sie gesperrt, bis du sie freischaltest.
+- [ ] Nur beim Update von V1 oder 1.1: Die eingeschränkten Benutzer sind informiert, dass Bilder-ZIP und Originalbilder für sie gesperrt sind, bis du sie freischaltest.
 - [ ] Notiert: Welche Version läuft derzeit live (Fußzeile bzw. **System**)?
 
 ---
@@ -32,9 +32,9 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 - [ ] Alles hochladen und vorhandene Dateien überschreiben. `data/`, `bilder/`, `backups/` bringen nur ihre Schutzdatei mit, deine Daten bleiben.
 - [ ] Eine Seite im Browser aufrufen. Die Migrationen laufen automatisch.
 - [ ] Unter **System** prüfen:
-  - Anwendungsversion `1.2.6`
-  - Schema-Version `10 / 10`
-  - In `data/` liegt eine Datei `pre-migration-*-to-10-*.sqlite` (Snapshot vor der Migration)
+  - Anwendungsversion `1.2.7`
+  - Schema-Version `11 / 11`
+  - In `data/` liegt eine Datei `pre-migration-*-to-11-*.sqlite` (Snapshot vor der Migration)
   - Vollständigkeitsprüfung ohne Befund: keine fehlenden und keine abweichenden Dateien, keine rote Warnung zu fehlenden Schutzdateien
 - [ ] Falls "Das Programm ist noch nicht vollständig hochgeladen" erscheint: die genannten Ordner erneut hochladen.
 
@@ -63,8 +63,16 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 
 **Rechte**
 - [ ] Mit einem eingeschränkten Test-Benutzer anmelden: kein Excel-, kein Bilder-ZIP-Button, kein "Originalbild öffnen".
-- [ ] Als Admin für diesen Benutzer "Excel-Export erlauben" einschalten. Als Test-Benutzer: Excel nur mit dem Profil "Käufer", nur Werke der gewählten Gruppe.
+- [ ] Als Test-Benutzer: PDF nur mit dem Profil "Käufer", nur Werke der eigenen Gruppen (Excel gibt es seit 1.2.3 nur für Admins).
 - [ ] "Bilder-Export erlauben" einschalten: ZIP enthält nur die Bilder der Gruppe, Originalbilder sind wieder abrufbar.
+
+**Neu in 1.2.7**
+- [ ] Ein vorhandenes Profil als PDF exportieren: sieht aus wie vorher (Deckblatt und Fußzeile aus).
+- [ ] Kachel-PDF in beiden Rastern (2 × 2 hoch, 3 × 2 quer): keine geteilte Kachel, Bilder nicht beschnitten.
+- [ ] Unter **Erscheinungsbild → PDF-Export** eine Copyright-Zeile eintragen; PDF mit Deckblatt und Fußzeile: Deckblatt ohne Seitenzahl, „Seite 1 von …“ ab der ersten Inhaltsseite.
+- [ ] Eine von Hand sortierte Gruppe: Reihenfolge in App, PDF, Excel und Web-Galerie gleich.
+- [ ] Für eine Gruppe Filter anbieten (z. B. Künstler, Entstehungsjahr): als Admin, als eingeschränkter Benutzer und in der Web-Galerie filtern; das PDF enthält genau die gefilterten Werke. In der Galerie erscheinen nur Filter für Felder, die dort angezeigt werden.
+- [ ] Eingeschränkter Benutzer mit einem freigegebenen Profil, das den Ankaufswert enthält: Ankaufswert erscheint nicht im PDF.
 
 **Kurzer Gegencheck der 1.1-Funktionen**
 - [ ] Papierkorb: ein Werk löschen und wiederherstellen.
@@ -79,16 +87,16 @@ Gilt für beide Ausgangslagen: Live läuft noch auf V1 (Schema 5) oder schon auf
 
 - [ ] In der Live-App **nochmals** ein Backup mit Bildern erstellen und herunterladen.
 - [ ] Dieselbe ZIP-Datei wie auf Staging verwenden, versteckte Dateien anzeigen, alles hochladen und überschreiben.
-- [ ] Unter **System**: Version 1.2.6, Schema 10 / 10, Snapshot vorhanden, keine Warnungen.
+- [ ] Unter **System**: Version 1.2.7, Schema 11 / 11, Snapshot vorhanden, keine Warnungen.
 - [ ] Kurztest: Werkliste, ein Werk, eine Gruppe, ein PDF.
 - [ ] Standardsprache unter **System** prüfen.
-- [ ] Rechte der eingeschränkten Benutzer setzen (Excel, Bilder) und Export-Profile für sie freigeben.
-- [ ] Tag `v1.2.6` setzen, und zwar erst jetzt und nur bei grüner Codeprüfung: auf GitHub unter **Releases** → **Draft a new release**, Tag `v1.2.6` neu anlegen, Target Branch `v1.2`. (Claude Code kann aus seiner Sitzung heraus keine Tags setzen.)
+- [ ] Rechte der eingeschränkten Benutzer prüfen (Bilder-ZIP) und Export-Profile für sie freigeben.
+- [ ] Tag `v1.2.7` setzen, und zwar erst jetzt und nur bei grüner Codeprüfung: auf GitHub unter **Releases** → **Draft a new release**, Tag `v1.2.7` neu anlegen, Target Branch `v1.2`. (Claude Code kann aus seiner Sitzung heraus keine Tags setzen.)
 
 ---
 
 ## 6. Notfall: zurück auf den alten Stand
 
-- [ ] Programmdateien der vorherigen Version wieder hochladen (ZIP von Tag `v1.1.0` bzw. `v1.0`).
-- [ ] Datenbank zurückholen: die Snapshot-Datei `pre-migration-*-to-10-*.sqlite` als `data/kv_*.sqlite` einsetzen, oder das heute heruntergeladene Backup wiederherstellen.
+- [ ] Programmdateien der vorherigen Version wieder hochladen (ZIP von Tag `v1.2.6`, `v1.1.0` bzw. `v1.0`).
+- [ ] Datenbank zurückholen: die Snapshot-Datei `pre-migration-*-to-11-*.sqlite` als `data/kv_*.sqlite` einsetzen, oder das heute heruntergeladene Backup wiederherstellen.
 - [ ] Bei "Es ist ein Fehler aufgetreten" mit Fehler-ID: `data/logs/php-fehler.log` per FTP holen und die Fehler-ID mitschicken.

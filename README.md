@@ -7,7 +7,7 @@
 # Kunstverwaltung
 
 Web application (PHP 8.3+, SQLite) for managing artworks with freely definable
-groups, two user roles, export and backup functions. Version 1.2.6.
+groups, two user roles, export and backup functions. Version 1.2.7.
 
 The application name displayed in the UI is configurable: change it as an admin
 under **System → Settings** (affects page title, header and login page). The value
@@ -119,8 +119,8 @@ The full checklist for staging and live deployment is in `RELEASE_CHECKLIST_V1_1
 3. **Upload files** – upload all version 1.2 files via FTP and overwrite everything.
    Enable **hidden files** in your FTP client.
 4. **Open any page** – database migrations run automatically. A snapshot of the old
-   database is saved beforehand (`pre-migration-*-to-10-*.sqlite`).
-5. **Verify** – under **System**: application version `1.2.6`, schema version `10 / 10`,
+   database is saved beforehand (`pre-migration-*-to-11-*.sqlite`).
+5. **Verify** – under **System**: application version `1.2.7`, schema version `11 / 11`,
    snapshot file present, completeness check clear.
 6. **Restore export permissions** for restricted users under **Administration → Users**
    (two new checkboxes per user: "Allow Excel export", "Allow image export (ZIP and originals)").
@@ -204,6 +204,35 @@ work by its old name (no duplicate).
 - `migrations/` – numbered schema migrations.
 - `data/` – database, image cache (`cache/`), error log (`logs/`).
 - `bilder/` – original images, `backups/` – backup archives.
+
+## New in version 1.2.7
+
+Tile layout, cover page and footer for PDFs, sort order and filters per group;
+schema 11 (the database is updated automatically, with a snapshot beforehand).
+
+- **Tile layout:** a third PDF layout next to single sheet and list – 2 × 2 tiles
+  on A4 portrait or 3 × 2 tiles on A4 landscape. Images are never cropped; each
+  tile shows the title in bold, the artist and the selected fields. Long texts are
+  shortened; if not all fields fit, the tile ends with "+ n more fields".
+  Switching to the tile layout preselects image, title block and format.
+- **Cover page and footer** for all three layouts, separately selectable in the PDF
+  dialog and in export profiles (both off by default). Cover page: logo, group
+  name, creation date, number of works. Footer: copyright line, date and
+  "Page n of m"; the cover page is not numbered. The copyright line is set under
+  **Appearance → PDF export**.
+- **Sort order per group** (group view, admins): manual order or by one or two
+  fields. Hand-sorted groups now appear in the same order everywhere – in the app,
+  PDF and Excel just like in the web gallery.
+- **Filters:** per group, admins choose which filters are offered (artist,
+  technique, provenance, location, type, format, year of creation, price, title
+  search). Admins, restricted users and gallery visitors then filter on their own;
+  PDF, Excel and images ZIP contain exactly the current selection. In the web
+  gallery a filter only appears if its field is shown there. The purchase value
+  is never offered as a filter.
+- **Fixes:** restricted users no longer see the purchase value in a PDF, even if a
+  profile released for them contains it. "Update profile" in the PDF dialog no
+  longer resets "released for restricted users", "default profile" and the fixed
+  language.
 
 ## New in version 1.2.6
 
@@ -328,10 +357,11 @@ shows both sums; the selection bar sums the ticked works.
 ### PDF export profiles
 
 Before a PDF is generated, a dialog lets you select fields, layout (single sheet per
-work or list with total row) and switches (show image, show title block, hide empty
-fields, show total). The selection can be saved as a named **export profile** under
-**Administration → Export → Profiles**. Profiles store fields, switches, layout and
-optionally a fixed language for the PDF labels. Restricted users see only profiles
+work, list with total row, or tiles with 2 × 2 on A4 portrait or 3 × 2 on A4
+landscape) and switches (show image, show title block, hide empty fields, show
+total, cover page, footer). The selection can be saved as a named **export
+profile** under **Administration → Export → Profiles**. Profiles store fields,
+switches, layout, tile grid and optionally a fixed language for the PDF labels. Restricted users see only profiles
 explicitly released for them.
 
 ### Export permissions per user
@@ -410,7 +440,7 @@ unassigned files in the images folder.
 
 Web-Anwendung (PHP 8.3+, SQLite) zur Verwaltung von Kunstwerken mit frei
 definierbaren Gruppen, zwei Nutzerrollen, Export- und Backup-Funktionen.
-Version 1.2.6.
+Version 1.2.7.
 
 Der angezeigte Name der Anwendung ist frei wählbar: als Administrator unter
 **System → Einstellungen** ändern (wirkt sich auf Seitentitel, Kopfzeile und
@@ -533,8 +563,8 @@ Die vollständige Checkliste für Staging- und Live-Deployment liegt in
 3. **Dateien hochladen** – alle Dateien der Version 1.2 per FTP hochladen und
    alles überschreiben. Im FTP-Programm **versteckte Dateien anzeigen**.
 4. **Erste Seite aufrufen** – Datenbank-Migrationen laufen automatisch. Vorher
-   wird ein Snapshot gespeichert (`pre-migration-*-to-10-*.sqlite`).
-5. **Prüfen** – unter **System**: Anwendungsversion `1.2.6`, Schema-Version `10 / 10`,
+   wird ein Snapshot gespeichert (`pre-migration-*-to-11-*.sqlite`).
+5. **Prüfen** – unter **System**: Anwendungsversion `1.2.7`, Schema-Version `11 / 11`,
    Snapshot vorhanden, Vollständigkeitsprüfung ohne Befund.
 6. **Export-Rechte** der eingeschränkten Benutzer unter **Verwaltung → Benutzer**
    setzen (zwei neue Häkchen je Benutzer: „Excel-Export erlauben",
@@ -556,9 +586,10 @@ nur über die Kommandozeile ausführbar.
 - **Administrator:** alles – Werke, Import, Export, Gruppen, Benutzer,
   Backup und System.
 - **Eingeschränkt:** sieht nur die Gruppen, die ihm zugewiesen sind, samt
-  deren Werken. Export-Rechte (Excel, Bilder-ZIP) werden einzeln vom Admin
-  vergeben; das PDF steht immer zur Verfügung (eingeschränkt auf freigegebene
-  Profile). Keine Bearbeitung.
+  deren Werken, ohne Ankaufswert. Das PDF steht immer zur Verfügung
+  (eingeschränkt auf freigegebene Profile); den Bilder-ZIP-Export gibt der Admin
+  einzeln frei. Excel-Export gibt es nur für Admins (seit 1.2.3). Keine
+  Bearbeitung.
 
 ## Import
 
@@ -587,9 +618,11 @@ zusammengehören:
 
 Beides lässt sich unverändert wieder einspielen: ZIP unter „Bilder hochladen"
 (oder per FTP nach `bilder/`), Excel unter „Tabelle importieren" – in
-beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro Seite oder als Liste);
-ein Dialog erlaubt Feldauswahl und Layout, optional aus einem gespeicherten
-Export-Profil. Gruppen, Benutzer und Einstellungen enthält nur das Backup.
+beliebiger Reihenfolge. Pro Gruppe gibt es zusätzlich das PDF (ein Werk pro Seite,
+als Liste oder als Kacheln); ein Dialog erlaubt Feldauswahl und Layout, optional
+aus einem gespeicherten Export-Profil. Exporte einer Gruppe folgen ihrer
+Sortierung und der aktuellen Filterauswahl. Gruppen, Benutzer und Einstellungen
+enthält nur das Backup.
 
 ## Backup und Wiederherstellen
 
@@ -666,6 +699,36 @@ Import das Werk über den alten Namen trotzdem wieder (kein Duplikat).
 - `bilder/` – Original-Bilder, `backups/` – Backup-Archive.
 - `scripts/` – Kommandozeilen-Werkzeuge (Migration, Admin anlegen,
   Dateiliste erzeugen); von außen gesperrt.
+
+## Neu in Version 1.2.7
+
+Kachellayout, Deckblatt und Fußzeile für PDFs, Sortierung und Filter je Gruppe;
+Schema 11 (die Datenbank wird automatisch aktualisiert, vorher mit Snapshot).
+
+- **Kachellayout:** drittes PDF-Layout neben Einzelblatt und Liste – 2 × 2
+  Kacheln auf A4 hoch oder 3 × 2 Kacheln auf A4 quer. Bilder werden nie
+  beschnitten; jede Kachel zeigt den Titel fett, den Künstler und die gewählten
+  Felder. Lange Texte werden gekürzt; passen nicht alle Felder, endet die Kachel
+  mit „+ n weitere Angaben“. Beim Wechsel zum Kachellayout sind Bild, Titelblock
+  und Format vorgewählt.
+- **Deckblatt und Fußzeile** für alle drei Layouts, einzeln wählbar im PDF-Dialog
+  und in Export-Profilen (beide standardmäßig aus). Deckblatt: Logo, Gruppenname,
+  Erstellungsdatum, Anzahl der Werke. Fußzeile: Copyright-Zeile, Datum und
+  „Seite n von m“; das Deckblatt wird nicht mitgezählt. Die Copyright-Zeile wird
+  unter **Erscheinungsbild → PDF-Export** eingetragen.
+- **Sortierung je Gruppe** (Gruppenansicht, Admins): Reihenfolge von Hand oder
+  nach einem oder zwei Feldern. Von Hand sortierte Gruppen erscheinen jetzt
+  überall gleich – in App, PDF und Excel wie in der Web-Galerie.
+- **Filter:** Je Gruppe wählen Admins, welche Filter angeboten werden (Künstler,
+  Technik, Herkunft, Ort, Werktyp, Format, Entstehungsjahr, Preis, Titelsuche).
+  Admins, eingeschränkte Benutzer und Gäste der Web-Galerie filtern damit selbst;
+  PDF, Excel und Bilder-ZIP enthalten genau die aktuelle Auswahl. In der
+  Web-Galerie erscheint ein Filter nur, wenn das Feld dort angezeigt wird. Der
+  Ankaufswert wird nie als Filter angeboten.
+- **Korrekturen:** Eingeschränkte Benutzer sehen den Ankaufswert im PDF nicht
+  mehr, auch wenn ein für sie freigegebenes Profil ihn enthält. „Profil
+  aktualisieren“ im PDF-Dialog setzt „für eingeschränkte Benutzer freigegeben“,
+  „Standard-Profil“ und die feste Sprache nicht mehr zurück.
 
 ## Neu in Version 1.2.6
 
@@ -801,10 +864,11 @@ summiert die angehakten Werke.
 ### PDF-Export-Profile
 
 Vor der PDF-Erstellung öffnet ein Dialog, in dem Felder, Layout (ein Werk pro
-Seite oder Liste mit Summenzeile) und Schalter (Bild anzeigen, Titelblock,
-Leere Felder ausblenden, Summe anzeigen) gewählt werden können. Die Auswahl
-lässt sich als benanntes **Export-Profil** unter **Verwaltung → Export → Profile**
-speichern. Profile speichern Felder, Schalter, Layout und optional eine feste
+Seite, Liste mit Summenzeile oder Kacheln mit 2 × 2 auf A4 hoch bzw. 3 × 2 auf
+A4 quer) und Schalter (Bild anzeigen, Titelblock, Leere Felder ausblenden, Summe
+anzeigen, Deckblatt, Fußzeile) gewählt werden können. Die Auswahl lässt sich als
+benanntes **Export-Profil** unter **Verwaltung → Export → Profile** speichern.
+Profile speichern Felder, Schalter, Layout, Kachelraster und optional eine feste
 Sprache für die PDF-Beschriftungen. Eingeschränkte Benutzer sehen nur Profile,
 die explizit für sie freigegeben wurden.
 
