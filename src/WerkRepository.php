@@ -63,13 +63,21 @@ final class WerkRepository
         return $werk === false ? null : $werk;
     }
 
+    /** Sichtbare Werke einer Gruppe nach ihren Sortier- und Filterregeln (GruppenRegeln). */
     public function fuerGruppe(int $gruppeId): array
     {
+        return $this->gruppenAbfrage(self::basis(), $gruppeId);
+    }
+
+    /** Gemeinsame Abfrage aller Gruppenlisten, damit Bedingungen und Reihenfolge nicht auseinanderlaufen. */
+    private function gruppenAbfrage(string $select, int $gruppeId): array
+    {
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
         $stmt = $this->pdo->prepare(
-            self::basis() . ' JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL ORDER BY k.ort, k.maler, k.titel'
+            $select . " JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+             WHERE {$teile['where']} ORDER BY {$teile['order']}"
         );
-        $stmt->execute(['id' => $gruppeId]);
+        $stmt->execute($teile['params']);
         return $stmt->fetchAll();
     }
 
@@ -191,18 +199,19 @@ final class WerkRepository
         return (array) $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    /** Summen für alle Werke einer Gruppe (für Gruppenansicht). */
+    /** Summen für die sichtbaren Werke einer Gruppe (für Gruppenansicht; Filter wie die Liste). */
     public function summeFuerGruppe(int $gruppeId): array
     {
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId);
         $stmt = $this->pdo->prepare(
             "SELECT COALESCE(SUM(k.ankaufswert), 0) AS ankaufswert,
                     COALESCE(SUM(k.wert), 0) AS wert,
                     COUNT(CASE WHEN k.wert IS NULL THEN 1 END) AS ohne_wert
              FROM kunstwerke k
              JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL"
+             WHERE {$teile['where']}"
         );
-        $stmt->execute(['id' => $gruppeId]);
+        $stmt->execute($teile['params']);
         return (array) $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -396,15 +405,10 @@ final class WerkRepository
         }
     }
 
-    /** Export für eine Gruppe mit bild_dateiname_2..8. */
+    /** Export für eine Gruppe mit bild_dateiname_2..8 (Regeln wie fuerGruppe). */
     public function fuerGruppeExport(int $gruppeId): array
     {
-        $stmt = $this->pdo->prepare(
-            self::basis(true) . ' JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-             WHERE gk.gruppe_id = :id AND k.geloescht_am IS NULL ORDER BY k.ort, k.maler, k.titel'
-        );
-        $stmt->execute(['id' => $gruppeId]);
-        return $stmt->fetchAll();
+        return $this->gruppenAbfrage(self::basis(true), $gruppeId);
     }
 
     /** Verschiebt ein Werk in den Papierkorb (Soft-Delete). */

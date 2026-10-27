@@ -9,7 +9,6 @@ require __DIR__ . '/upload_pruefung.php';
 require __DIR__ . '/src/bootstrap_public.php';
 
 use App\Bilder;
-use App\Database;
 use App\GruppeRepository;
 use App\WebGruppe;
 
@@ -51,22 +50,15 @@ if (WebGruppe::brauchPasswort($gruppe) && !WebGruppe::hatCookieZugang($gruppe) &
     exit;
 }
 
-// Bild muss zu einem öffentlichen Werk in dieser Gruppe gehören
-$stmt = Database::get()->prepare(
-    'SELECT b.dateiname FROM bilder b
-     JOIN kunstwerke k ON k.id = b.kunstwerk_id
-     JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id AND gk.gruppe_id = :gid
-     WHERE b.id = :bid AND k.web_freigabe = 1 AND k.geloescht_am IS NULL'
-);
-$stmt->execute(['gid' => (int) $gruppe['id'], 'bid' => $bildId]);
-$bild = $stmt->fetch();
+// Bild muss zu einem öffentlichen, nicht herausgefilterten Werk dieser Gruppe gehören
+$dateiname = GruppeRepository::neu()->bildOeffentlich((int) $gruppe['id'], $bildId);
 
-if ($bild === false) {
+if ($dateiname === null) {
     http_response_code(404);
     exit;
 }
 
-$pfad = Bilder::pfad($bild['dateiname'], $groesse);
+$pfad = Bilder::pfad($dateiname, $groesse);
 if ($pfad === null) {
     http_response_code(404);
     exit;
