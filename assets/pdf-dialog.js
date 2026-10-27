@@ -148,6 +148,8 @@
         body.set('csrf_token', dialog.dataset.csrf);
         body.set('aktion', 'speichern');
         if (id) { body.set('id', String(id)); }
+        // Standard, Freigabe und Sprache bleiben beim Aktualisieren erhalten (siehe export_profile.php).
+        body.set('aus_dialog', '1');
         body.set('name', name);
         dialog.querySelectorAll('input[name="felder[]"]:checked').forEach(function (cb) {
             body.append('felder[]', cb.value);

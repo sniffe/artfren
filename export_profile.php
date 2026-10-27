@@ -26,7 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Helpers::flashSet('fehler', $fehler);
             Helpers::redirect('/export_profile.php?' . ($id ? "aktion=bearbeiten&id={$id}" : 'aktion=neu'));
         }
-        $neueId = ExportProfile::speichern($pdo, $_POST + ['erstellt_von' => (int) $admin['id']], $id);
+        $daten = $_POST + ['erstellt_von' => (int) $admin['id']];
+        // Der PDF-Dialog kennt Standard, Freigabe und Sprache nicht: beim Aktualisieren
+        // aus dem Dialog bleiben diese Einstellungen, statt zurückgesetzt zu werden.
+        if ($id !== null && ($_POST['aus_dialog'] ?? '') === '1') {
+            $bestehend = ExportProfile::finde($pdo, $id);
+            if ($bestehend !== null) {
+                foreach (['ist_standard', 'fuer_eingeschraenkte', 'sprache'] as $schluessel) {
+                    $daten[$schluessel] = $bestehend[$schluessel];
+                }
+            }
+        }
+        $neueId = ExportProfile::speichern($pdo, $daten, $id);
         $name = mb_substr(trim((string) ($_POST['name'] ?? '')), 0, 80);
         if ($id === null) {
             Protokoll::schreibe('exportprofil_angelegt', "„{$name}“");
