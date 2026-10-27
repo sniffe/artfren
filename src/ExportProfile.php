@@ -12,6 +12,24 @@ use PDO;
  */
 final class ExportProfile
 {
+    /** Erlaubte PDF-Layouts; das erste ist der Rückfallwert. */
+    public const LAYOUTS = ['einzelblatt', 'liste', 'kachel'];
+
+    /** Erlaubte Kachelraster: '2x2' = A4 hoch, '3x2' = A4 quer; das erste ist der Rückfallwert. */
+    public const KACHEL_RASTER = ['2x2', '3x2'];
+
+    /** Layout prüfen; Unbekanntes wird zu 'einzelblatt'. */
+    public static function layout(mixed $wert): string
+    {
+        return in_array($wert, self::LAYOUTS, true) ? $wert : self::LAYOUTS[0];
+    }
+
+    /** Kachelraster prüfen; Unbekanntes wird zu '2x2'. */
+    public static function kachelRaster(mixed $wert): string
+    {
+        return in_array($wert, self::KACHEL_RASTER, true) ? $wert : self::KACHEL_RASTER[0];
+    }
+
     // ---------------------------------------------------------------- Lesen
 
     /** Alle Profile, neueste zuerst. */
@@ -106,7 +124,10 @@ final class ExportProfile
         $bild    = (int) !empty($daten['bild']);
         $titel   = (int) !empty($daten['titelblock']);
         $leer    = (int) !empty($daten['leer_ausblenden']);
-        $layout  = in_array($daten['layout'] ?? '', ['liste'], true) ? 'liste' : 'einzelblatt';
+        $layout  = self::layout($daten['layout'] ?? '');
+        $raster  = self::kachelRaster($daten['kachel_raster'] ?? '');
+        $deckbl  = (int) !empty($daten['deckblatt']);
+        $fuss    = (int) !empty($daten['fusszeile']);
         $summe   = (int) !empty($daten['summe']);
         $sprache = in_array($daten['sprache'] ?? '', array_keys(I18n::SPRACHEN), true)
             ? $daten['sprache'] : null;
@@ -122,12 +143,14 @@ final class ExportProfile
         if ($id === null) {
             $pdo->prepare(
                 'INSERT INTO export_profile
-                 (name, felder, bild, titelblock, leer_ausblenden, layout, summe, sprache,
+                 (name, felder, bild, titelblock, leer_ausblenden, layout, kachel_raster,
+                  deckblatt, fusszeile, summe, sprache,
                   ist_standard, fuer_eingeschraenkte, erstellt_von, erstellt_am, geaendert_am)
-                 VALUES (:n,:f,:b,:t,:l,:la,:s,:sp,:std,:ein,:von,datetime(\'now\'),datetime(\'now\'))'
+                 VALUES (:n,:f,:b,:t,:l,:la,:kr,:db,:fz,:s,:sp,:std,:ein,:von,datetime(\'now\'),datetime(\'now\'))'
             )->execute([
                 'n' => $name, 'f' => $felder, 'b' => $bild, 't' => $titel, 'l' => $leer,
-                'la' => $layout, 's' => $summe, 'sp' => $sprache,
+                'la' => $layout, 'kr' => $raster, 'db' => $deckbl, 'fz' => $fuss,
+                's' => $summe, 'sp' => $sprache,
                 'std' => $istStd, 'ein' => $fuerEin, 'von' => $von,
             ]);
             return (int) $pdo->lastInsertId();
@@ -136,12 +159,14 @@ final class ExportProfile
         $pdo->prepare(
             'UPDATE export_profile SET
              name = :n, felder = :f, bild = :b, titelblock = :t, leer_ausblenden = :l,
-             layout = :la, summe = :s, sprache = :sp,
+             layout = :la, kachel_raster = :kr, deckblatt = :db, fusszeile = :fz,
+             summe = :s, sprache = :sp,
              ist_standard = :std, fuer_eingeschraenkte = :ein, geaendert_am = datetime(\'now\')
              WHERE id = :id'
         )->execute([
             'n' => $name, 'f' => $felder, 'b' => $bild, 't' => $titel, 'l' => $leer,
-            'la' => $layout, 's' => $summe, 'sp' => $sprache,
+            'la' => $layout, 'kr' => $raster, 'db' => $deckbl, 'fz' => $fuss,
+            's' => $summe, 'sp' => $sprache,
             'std' => $istStd, 'ein' => $fuerEin, 'id' => $id,
         ]);
         return $id;
@@ -161,6 +186,9 @@ final class ExportProfile
             'titelblock'         => $profil['titelblock'],
             'leer_ausblenden'    => $profil['leer_ausblenden'],
             'layout'             => $profil['layout'],
+            'kachel_raster'      => $profil['kachel_raster'] ?? null,
+            'deckblatt'          => $profil['deckblatt'] ?? 0,
+            'fusszeile'          => $profil['fusszeile'] ?? 0,
             'summe'              => $profil['summe'],
             'sprache'            => $profil['sprache'],
             'ist_standard'       => 0,

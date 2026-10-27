@@ -61,7 +61,7 @@ if ($getFelder !== null) {
     $zeigeTitelblock = ($_GET['titelblock']        ?? '1') !== '0';
     $leerAusblenden  = ($_GET['leer_ausblenden']   ?? '1') !== '0';
     $zeigeSumme      = ($_GET['summe']             ?? '1') !== '0';
-    $layout          = in_array($_GET['layout'] ?? '', ['liste', 'einzelblatt'], true) ? (string) $_GET['layout'] : 'einzelblatt';
+    $layout          = ExportProfile::layout($_GET['layout'] ?? '');
     $spracheQuelle   = $profil; // Sprachpräferenz aus explizit gewähltem Profil
 } elseif ($profil !== null) {
     $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool => in_array($f['key'], ExportProfile::felderAusProfil($profil), true)));
@@ -69,7 +69,7 @@ if ($getFelder !== null) {
     $zeigeTitelblock = (bool) $profil['titelblock'];
     $leerAusblenden  = (bool) $profil['leer_ausblenden'];
     $zeigeSumme      = (bool) $profil['summe'];
-    $layout          = (string) $profil['layout'];
+    $layout          = ExportProfile::layout($profil['layout']);
     $spracheQuelle   = $profil;
 } else {
     // Fallback: Standard-Profil. Eingeschränkte Benutzer bekommen es nur, wenn es
@@ -88,7 +88,7 @@ if ($getFelder !== null) {
         $zeigeTitelblock = (bool) $standardProfil['titelblock'];
         $leerAusblenden  = (bool) $standardProfil['leer_ausblenden'];
         $zeigeSumme      = (bool) $standardProfil['summe'];
-        $layout          = (string) $standardProfil['layout'];
+        $layout          = ExportProfile::layout($standardProfil['layout']);
         $spracheQuelle   = $standardProfil;
     } else {
         // Letzter Fallback: in_pdf-Felder, alle Schalter an. Den Ankaufswert
@@ -99,7 +99,7 @@ if ($getFelder !== null) {
         $zeigeTitelblock = true;
         $leerAusblenden  = true;
         $zeigeSumme      = true;
-        $layout          = 'einzelblatt';
+        $layout          = ExportProfile::LAYOUTS[0];
     }
 }
 
