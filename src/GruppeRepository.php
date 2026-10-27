@@ -52,6 +52,32 @@ final class GruppeRepository
         return $gruppen;
     }
 
+    /**
+     * Vorkommende Werte der Filterlisten (Maler, Technik, Herkunft) unter den
+     * Mitgliedern der Gruppe, alphabetisch, mit Anzahl Werke. Ungefiltert, damit
+     * der Admin auch gerade ausgeblendete Werte wählen kann.
+     *
+     * @return array<string, array<int, array{wert: string, anzahl: int}>>
+     */
+    public function filterWerte(int $gruppeId): array
+    {
+        $werte = [];
+        foreach (GruppenRegeln::FILTER_LISTEN as $feld) {   // Spaltenname aus der Whitelist
+            $stmt = $this->pdo->prepare(
+                "SELECT k.{$feld} AS wert, COUNT(*) AS anzahl
+                 FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
+                 WHERE gk.gruppe_id = :g AND k.geloescht_am IS NULL AND k.{$feld} IS NOT NULL AND k.{$feld} <> ''
+                 GROUP BY k.{$feld} ORDER BY kv_lower(k.{$feld})"
+            );
+            $stmt->execute(['g' => $gruppeId]);
+            $werte[$feld] = array_map(
+                static fn(array $z): array => ['wert' => (string) $z['wert'], 'anzahl' => (int) $z['anzahl']],
+                $stmt->fetchAll(PDO::FETCH_ASSOC)
+            );
+        }
+        return $werte;
+    }
+
     /** Anzahl der sichtbaren (nicht gelöschten, nicht herausgefilterten) Werke. */
     public function anzahlSichtbar(int $gruppeId): int
     {

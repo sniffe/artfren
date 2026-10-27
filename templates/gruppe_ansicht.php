@@ -12,10 +12,14 @@
 /** @var string[] $erlaubteFelder */
 /** @var string $baseUrl */
 /** @var array[] $pdfProfile */
+/** @var array $regeln  ['sortierung' => ?array, 'filter' => ?array] aus GruppenRegeln */
+/** @var array $filterWerte  vorkommende Werte je Filterliste (nur Admin) */
+/** @var int $mitgliederAnzahl */
 declare(strict_types=1);
 
 use App\ExportProfile;
 use App\Felder;
+use App\GruppenRegeln;
 use App\Helpers;
 
 $gruppeId = (int) $gruppe['id'];
@@ -40,6 +44,9 @@ $gruppeId = (int) $gruppe['id'];
                 <?php endif; ?>
             <?php endif; ?>
         </p>
+        <?php if ($istAdmin && $regeln['filter'] !== null): ?>
+            <p class="gruppe-filter-hinweis text-klein"><?= Helpers::e(t('gruppe.filter_aktiv', ['n' => count($werke), 'm' => $mitgliederAnzahl])) ?> · <a href="#regeln"><?= Helpers::e(t('gruppe.filter_ansehen')) ?></a></p>
+        <?php endif; ?>
     </div>
     <?php
     $darfExcel  = $istAdmin; // Excel nur für Admins, eingeschränkte Benutzer erhalten PDF
@@ -231,10 +238,103 @@ $gruppeId = (int) $gruppe['id'];
     </form>
 </div>
 
+<!-- ── Sortierung und Filter ─────────────────────────────────────── -->
+<?php
+$sortNachFeldern = ($regeln['sortierung']['modus'] ?? '') === 'felder';
+$sortFelder = $regeln['sortierung']['felder'] ?? [];
+$filter = $regeln['filter'] ?? [];
+$richtungen = ['asc' => t('gruppe.richtung_auf'), 'desc' => t('gruppe.richtung_ab')];
+?>
+<div class="karte" id="regeln" style="max-width:900px;">
+    <h3><?= Helpers::e(t('gruppe.regeln_titel')) ?></h3>
+    <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.regeln_hinweis')) ?></p>
+    <form method="post" action="/gruppe.php">
+        <?= Helpers::csrfField() ?>
+        <input type="hidden" name="aktion" value="ansicht_regeln_speichern">
+        <input type="hidden" name="gruppe_id" value="<?= $gruppeId ?>">
+
+        <fieldset style="border:1px solid var(--farbe-linie); padding:var(--abstand-s) var(--abstand-m); margin-bottom:var(--abstand-m);">
+            <legend style="font-weight:600; padding:0 var(--abstand-xs);"><?= Helpers::e(t('gruppe.sortierung')) ?></legend>
+            <div class="checkliste">
+                <label><input type="radio" name="sortierung_modus" value="hand" <?= $sortNachFeldern ? '' : 'checked' ?>> <?= Helpers::e(t('gruppe.sortierung_hand')) ?></label>
+                <label><input type="radio" name="sortierung_modus" value="felder" <?= $sortNachFeldern ? 'checked' : '' ?>> <?= Helpers::e(t('gruppe.sortierung_felder')) ?></label>
+            </div>
+            <div class="feldreihe">
+                <?php foreach ([1, 2] as $nr): $gewaehlt = $sortFelder[$nr - 1] ?? null; ?>
+                <div class="feld">
+                    <label for="sortierung-feld-<?= $nr ?>"><?= Helpers::e(t('gruppe.sortierung_feld_' . $nr)) ?></label>
+                    <select id="sortierung-feld-<?= $nr ?>" name="sortierung_feld_<?= $nr ?>">
+                        <?php if ($nr === 2): ?><option value=""><?= Helpers::e(t('gruppe.kein_feld')) ?></option><?php endif; ?>
+                        <?php foreach (GruppenRegeln::SORTIER_FELDER as $f): ?>
+                            <option value="<?= Helpers::e($f) ?>" <?= ($gewaehlt['feld'] ?? '') === $f ? 'selected' : '' ?>><?= Helpers::e(Felder::label($f)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="sortierung_richtung_<?= $nr ?>" aria-label="<?= Helpers::e(t('gruppe.sortierung_feld_' . $nr)) ?>" style="margin-top:var(--abstand-xs);">
+                        <?php foreach ($richtungen as $r => $text): ?>
+                            <option value="<?= $r ?>" <?= ($gewaehlt['richtung'] ?? 'asc') === $r ? 'selected' : '' ?>><?= Helpers::e($text) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </fieldset>
+
+        <fieldset style="border:1px solid var(--farbe-linie); padding:var(--abstand-s) var(--abstand-m); margin-bottom:var(--abstand-m);">
+            <legend style="font-weight:600; padding:0 var(--abstand-xs);"><?= Helpers::e(t('gruppe.filter')) ?></legend>
+            <div class="feldreihe">
+                <?php foreach (GruppenRegeln::FILTER_LISTEN as $f): $aktiv = $filter[$f] ?? []; ?>
+                <div class="feld">
+                    <span class="label" style="display:block; font-weight:600;"><?= Helpers::e(Felder::label($f)) ?></span>
+                    <?php if ($filterWerte[$f] ?? []): ?>
+                    <div class="checkliste" style="max-height:200px; overflow-y:auto; border:1px solid var(--farbe-linie); padding:var(--abstand-xs) var(--abstand-s);">
+                        <?php foreach ($filterWerte[$f] as $w): ?>
+                            <label><input type="checkbox" name="filter_<?= $f ?>[]" value="<?= Helpers::e($w['wert']) ?>" <?= in_array($w['wert'], $aktiv, true) ? 'checked' : '' ?>>
+                                <?= Helpers::e($w['wert']) ?> <span class="text-sekundaer text-klein">(<?= (int) $w['anzahl'] ?>)</span></label>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                        <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.filter_keine_werte')) ?></p>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="feldreihe">
+                <?php foreach (GruppenRegeln::FILTER_BEREICHE as $f): $schritt = $f === 'entstehungsjahr' ? '1' : '0.01'; ?>
+                <div class="feld">
+                    <label for="filter-<?= $f ?>-von"><?= Helpers::e(Felder::label($f)) ?> <?= Helpers::e(t('gruppe.filter_von')) ?></label>
+                    <input type="number" id="filter-<?= $f ?>-von" name="filter_<?= $f ?>_von" step="<?= $schritt ?>" value="<?= Helpers::e((string) ($filter[$f]['von'] ?? '')) ?>">
+                </div>
+                <div class="feld">
+                    <label for="filter-<?= $f ?>-bis"><?= Helpers::e(Felder::label($f)) ?> <?= Helpers::e(t('gruppe.filter_bis')) ?></label>
+                    <input type="number" id="filter-<?= $f ?>-bis" name="filter_<?= $f ?>_bis" step="<?= $schritt ?>" value="<?= Helpers::e((string) ($filter[$f]['bis'] ?? '')) ?>">
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="feld" style="max-width:400px;">
+                <label for="filter-titel"><?= Helpers::e(t('gruppe.filter_titel_enthaelt')) ?></label>
+                <input type="text" id="filter-titel" name="filter_titel_enthaelt" maxlength="100" value="<?= Helpers::e((string) ($filter['titel_enthaelt'] ?? '')) ?>">
+            </div>
+        </fieldset>
+
+        <div class="toolbar-aktionen">
+            <button type="submit" class="btn btn--primaer"><?= Helpers::e(t('gruppe.regeln_speichern')) ?></button>
+            <?php if ($regeln['filter'] !== null): ?>
+                <button type="submit" name="filter_entfernen" value="1" class="btn"><?= Helpers::e(t('gruppe.filter_entfernen')) ?></button>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
 <!-- ── Werk-Reihenfolge ───────────────────────────────────────────── -->
 <?php if (count($werkeSortiert) > 1): ?>
+<?php if ($sortNachFeldern): ?>
+<details class="karte" style="max-width:900px;">
+    <summary><strong><?= Helpers::e(t('gruppe.reihenfolge_inaktiv_titel')) ?></strong></summary>
+    <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.reihenfolge_inaktiv')) ?></p>
+<?php else: ?>
 <div class="karte" style="max-width:900px;">
     <h3><?= Helpers::e(t('gruppe.reihenfolge')) ?></h3>
+<?php endif; ?>
     <p class="text-klein text-sekundaer"><?= Helpers::e(t('gruppe.reihenfolge_hinweis')) ?></p>
     <ul class="bild-liste" style="list-style:none; padding:0; margin:0 0 var(--abstand-m);">
         <?php $werkAnzahl = count($werkeSortiert); foreach ($werkeSortiert as $i => $w): $wid = (int) $w['id']; ?>
@@ -280,7 +380,7 @@ $gruppeId = (int) $gruppe['id'];
         <?php endforeach; ?>
         <button type="submit" class="btn"><?= Helpers::e(t('gruppe.reihenfolge_speichern')) ?></button>
     </form>
-</div>
+<?= $sortNachFeldern ? '</details>' : '</div>' ?>
 <?php endif; ?>
 
 <?php endif; // $istAdmin ?>

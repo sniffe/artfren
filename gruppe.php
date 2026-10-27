@@ -8,6 +8,7 @@ use App\Auth;
 use App\Database;
 use App\ExportProfile;
 use App\GruppeRepository;
+use App\GruppenRegeln;
 use App\Helpers;
 use App\Protokoll;
 use App\WebGruppe;
@@ -55,6 +56,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
         $repo->werkNachUnten((int) $gruppe['id'], (int) ($_POST['werk_id'] ?? 0));
         Helpers::redirect('/gruppe.php?id=' . $gruppe['id']);
+    }
+
+    // ── Sortierung und Filter ─────────────────────────────────────────────
+    if ($aktion === 'ansicht_regeln_speichern') {
+        $gruppe = $repo->finde($aktionGruppeId);
+        if ($gruppe === null) { Helpers::abbrechen(404, t('gruppe.nicht_gefunden')); }
+        $sortierung = ($_POST['sortierung_modus'] ?? '') === 'felder'
+            ? ['modus' => 'felder', 'felder' => [
+                ['feld' => (string) ($_POST['sortierung_feld_1'] ?? ''), 'richtung' => (string) ($_POST['sortierung_richtung_1'] ?? '')],
+                ['feld' => (string) ($_POST['sortierung_feld_2'] ?? ''), 'richtung' => (string) ($_POST['sortierung_richtung_2'] ?? '')],
+              ]]
+            : null;
+        $filter = null;
+        if (!isset($_POST['filter_entfernen'])) {
+            $filter = [];
+            foreach (GruppenRegeln::FILTER_LISTEN as $feld) {
+                $filter[$feld] = (array) ($_POST['filter_' . $feld] ?? []);
+            }
+            foreach (GruppenRegeln::FILTER_BEREICHE as $feld) {
+                $filter[$feld] = ['von' => $_POST['filter_' . $feld . '_von'] ?? '', 'bis' => $_POST['filter_' . $feld . '_bis'] ?? ''];
+            }
+            $filter['titel_enthaelt'] = (string) ($_POST['filter_titel_enthaelt'] ?? '');
+        }
+        GruppenRegeln::speichern(Database::get(), (int) $gruppe['id'], $sortierung, $filter);
+        $regeln = GruppenRegeln::fuerGruppe(Database::get(), (int) $gruppe['id']);
+        Protokoll::schreibe('gruppe_regeln', "„{$gruppe['name']}“: " . json_encode($regeln, JSON_UNESCAPED_UNICODE));
+        Helpers::flashSet('erfolg', t('gruppe.regeln_gespeichert'));
+        Helpers::redirect('/gruppe.php?id=' . $gruppe['id'] . '#regeln');
     }
 
     // ── Web-Veröffentlichung ──────────────────────────────────────────────
@@ -185,6 +214,9 @@ render('gruppe_ansicht', [
     'baseUrl' => $baseUrl,
     'freigegebenFuer' => $istAdmin ? $repo->freigegebenFuer($id) : [],
     'pdfProfile' => $pdfProfile,
+    'regeln' => GruppenRegeln::fuerGruppe($pdo, $id) ?? ['sortierung' => null, 'filter' => null],
+    'filterWerte' => $istAdmin ? $repo->filterWerte($id) : [],
+    'mitgliederAnzahl' => $istAdmin ? count($werkRepo->mitgliedIds($id)) : count($werke),
     'auswahlVerwerfen' => array_filter([
         isset($_GET['neu']) ? 'auswahl_neu' : null,
         isset($_GET['mitglieder_gespeichert']) ? 'auswahl_gruppe_' . $id : null,
