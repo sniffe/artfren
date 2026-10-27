@@ -107,6 +107,12 @@ if ($getFelder !== null) {
     }
 }
 
+// Den Ankaufswert sehen eingeschränkte Benutzer nie, auch nicht über ein für sie
+// freigegebenes Profil, das ihn enthält (bis 1.2.6 möglich).
+if (!$istAdmin) {
+    $pdfFelder = array_values(array_filter($pdfFelder, static fn(array $f): bool => $f['key'] !== 'ankaufswert'));
+}
+
 // Sprache aus Profil übernehmen (vor t()-Aufrufen im Template)
 if ($spracheQuelle !== null && !empty($spracheQuelle['sprache'])) {
     I18n::setze((string) $spracheQuelle['sprache']);
