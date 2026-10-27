@@ -231,7 +231,8 @@ final class GruppeRepository
      */
     public function werkeOeffentlich(int $gruppeId, ?array $filter = null): array
     {
-        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter);
+        $gruppe = $this->finde($gruppeId);
+        $teile = GruppenRegeln::teile($this->pdo, $gruppeId, $filter, $gruppe !== null ? WebGruppe::erlaubteFelder($gruppe) : []);
         $stmt = $this->pdo->prepare(
             self::OEFFENTLICH_SELECT . " WHERE {$teile['where']} AND k.web_freigabe = 1 ORDER BY {$teile['order']}"
         );

@@ -193,7 +193,7 @@ if ($fusszeile) {
         $platz = ($breite - $wMitte) / 2 - $rand - 12.0;
         $links = $copyright;
         while ($links !== '' && $links !== '…' && $fontMetrics->getTextWidth($links, $schrift, $groesse) > $platz) {
-            $links = rtrim(mb_substr(rtrim($links, '…'), 0, -1)) . '…';
+            $links = rtrim(mb_substr((string) preg_replace('/…$/u', '', $links), 0, -1)) . '…';
         }
         if ($links !== '' && $links !== '…') {
             $canvas->text($rand, $y, $links, $schrift, $groesse, $farbe);

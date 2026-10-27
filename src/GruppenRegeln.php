@@ -190,6 +190,21 @@ final class GruppenRegeln
             || (($oeffentlich[$k] ?? 'never') === 'waehlbar' && in_array($k, $sichtbareFelder, true))));
     }
 
+    /**
+     * Sortierung für die Galerie: Sortiert die Gruppe nach einem Feld, das die Galerie nicht
+     * zeigt, verriete die Reihenfolge eine Rangfolge verborgener Angaben (z. B. Preis).
+     * Dann gilt dort die Handsortierung.
+     * @param string[] $sichtbareFelder (WebGruppe::erlaubteFelder)
+     */
+    public static function sortierungFuerGalerie(?array $sortierung, array $sichtbareFelder): ?array
+    {
+        if ($sortierung === null) {
+            return null;
+        }
+        $erlaubt = self::angebotFuerGalerie(array_column($sortierung['felder'], 'feld'), $sichtbareFelder);
+        return count($erlaubt) === count($sortierung['felder']) ? $sortierung : null;
+    }
+
     // ------------------------------------------------------------ Lesen und Speichern
 
     /**
@@ -332,18 +347,21 @@ final class GruppenRegeln
      * Gemeinsame Bausteine für jede Abfrage der Werke einer Gruppe. Die Abfrage muss
      * „FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id“ enthalten.
      * where: Mitgliedschaft, nicht gelöscht, optional die Filterauswahl des Betrachters.
+     * Mit $galerieFelder (Galerie) gilt eine Sortierung nach verborgenen Feldern nicht.
      *
+     * @param string[]|null $galerieFelder
      * @return array{where: string, params: array<string, mixed>, order: string, regeln: array}
      */
-    public static function teile(PDO $pdo, int $gruppeId, ?array $filter = null): array
+    public static function teile(PDO $pdo, int $gruppeId, ?array $filter = null, ?array $galerieFelder = null): array
     {
         $regeln = self::fuerGruppe($pdo, $gruppeId);
+        $sortierung = $galerieFelder === null ? $regeln['sortierung'] : self::sortierungFuerGalerie($regeln['sortierung'], $galerieFelder);
         [$filterSql, $params] = self::sqlWhere($filter);
         $params['gr_gid'] = $gruppeId;
         return [
             'where'  => 'gk.gruppe_id = :gr_gid AND k.geloescht_am IS NULL' . $filterSql,
             'params' => $params,
-            'order'  => self::sqlOrder($regeln['sortierung']),
+            'order'  => self::sqlOrder($sortierung),
             'regeln' => $regeln,
         ];
     }
