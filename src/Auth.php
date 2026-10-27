@@ -239,21 +239,11 @@ final class Auth
         if ($sichtbar === []) {
             return false;
         }
-        // Das Werk muss in einer zugewiesenen Gruppe sichtbar sein: Ein Gruppenfilter
-        // sperrt herausgefilterte Werke für eingeschränkte Benutzer auch per direkter URL.
-        $pdo = Database::get();
-        foreach ($sichtbar as $gruppeId) {
-            $teile = GruppenRegeln::teile($pdo, (int) $gruppeId);
-            $stmt = $pdo->prepare(
-                "SELECT 1 FROM kunstwerke k JOIN gruppe_kunstwerk gk ON gk.kunstwerk_id = k.id
-                 WHERE {$teile['where']} AND k.id = :gr_kid LIMIT 1"
-            );
-            $stmt->execute($teile['params'] + ['gr_kid' => $werkId]);
-            if ($stmt->fetchColumn() !== false) {
-                return true;
-            }
-        }
-        return false;
+        $stmt = Database::get()->prepare(
+            'SELECT 1 FROM gruppe_kunstwerk WHERE kunstwerk_id = ? AND gruppe_id IN (' . Helpers::platzhalter($sichtbar) . ') LIMIT 1'
+        );
+        $stmt->execute(array_merge([$werkId], $sichtbar));
+        return $stmt->fetchColumn() !== false;
     }
 
     /** Liefert den Bild-Datensatz, wenn der Benutzer ihn sehen darf, sonst null. */
