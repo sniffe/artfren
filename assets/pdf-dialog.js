@@ -45,6 +45,8 @@
             setSwitch('pdf-titelblock', opt.dataset.titelblock  !== '0');
             setSwitch('pdf-leer',       opt.dataset.leer        !== '0');
             setSwitch('pdf-summe',      opt.dataset.summe       !== '0');
+            setSwitch('pdf-deckblatt',  opt.dataset.deckblatt   === '1');
+            setSwitch('pdf-fusszeile',  opt.dataset.fusszeile   === '1');
             var layout = document.getElementById('pdf-layout');
             if (layout) { layout.value = opt.dataset.layout || 'einzelblatt'; }
             var raster = document.getElementById('pdf-kachel-raster');
@@ -91,7 +93,7 @@
     }
 
     // ── Jede Änderung → Link neu bauen ────────────────────────────────────────
-    dialog.querySelectorAll('input[name="felder[]"], #pdf-bild, #pdf-titelblock, #pdf-leer, #pdf-summe, #pdf-kachel-raster').forEach(function (el) {
+    dialog.querySelectorAll('input[name="felder[]"], #pdf-bild, #pdf-titelblock, #pdf-leer, #pdf-summe, #pdf-deckblatt, #pdf-fusszeile, #pdf-kachel-raster').forEach(function (el) {
         el.addEventListener('change', aktualisiereLink);
     });
 
@@ -106,6 +108,8 @@
         params.set('summe',           el('pdf-summe')      ? (el('pdf-summe').checked       ? '1' : '0') : '1');
         params.set('layout',          el('pdf-layout')     ? (el('pdf-layout').value || 'einzelblatt') : 'einzelblatt');
         params.set('kachel_raster',   el('pdf-kachel-raster') ? (el('pdf-kachel-raster').value || '2x2') : '2x2');
+        params.set('deckblatt',       el('pdf-deckblatt')  && el('pdf-deckblatt').checked  ? '1' : '0');
+        params.set('fusszeile',       el('pdf-fusszeile')  && el('pdf-fusszeile').checked  ? '1' : '0');
         // felder[] mit wörtlichen Klammern – PHP parst %5B%5D NICHT als Array
         var felderParts = [];
         dialog.querySelectorAll('input[name="felder[]"]:checked').forEach(function (cb) {
@@ -160,6 +164,8 @@
         body.set('summe',           el('pdf-summe')      && el('pdf-summe').checked       ? '1' : '');
         body.set('layout',          el('pdf-layout') ? (el('pdf-layout').value || 'einzelblatt') : 'einzelblatt');
         body.set('kachel_raster',   el('pdf-kachel-raster') ? (el('pdf-kachel-raster').value || '2x2') : '2x2');
+        body.set('deckblatt',       el('pdf-deckblatt')  && el('pdf-deckblatt').checked  ? '1' : '');
+        body.set('fusszeile',       el('pdf-fusszeile')  && el('pdf-fusszeile').checked  ? '1' : '');
         fetch('/export_profile.php', { method: 'POST', body: body })
             .then(function () { window.location.reload(); });
     }

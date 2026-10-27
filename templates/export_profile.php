@@ -127,6 +127,10 @@ if ($getAktion === 'ansehen' && $profil !== null):
         <dd><?= $profil['leer_ausblenden'] ? t('allg.ja') : t('allg.nein') ?></dd>
         <dt class="text-sekundaer text-klein"><?= Helpers::e(t('profil.layout_label')) ?></dt>
         <dd><?= Helpers::e(t('profil.layout_' . $profil['layout'])) ?></dd>
+        <dt class="text-sekundaer text-klein"><?= Helpers::e(t('pdf.deckblatt_zeigen')) ?></dt>
+        <dd><?= !empty($profil['deckblatt']) ? t('allg.ja') : t('allg.nein') ?></dd>
+        <dt class="text-sekundaer text-klein"><?= Helpers::e(t('pdf.fusszeile_zeigen')) ?></dt>
+        <dd><?= !empty($profil['fusszeile']) ? t('allg.ja') : t('allg.nein') ?></dd>
         <?php if ($profil['layout'] === 'kachel'): ?>
         <dt class="text-sekundaer text-klein"><?= Helpers::e(t('pdf.kachel_raster')) ?></dt>
         <dd><?= Helpers::e(t('pdf.kachel_' . ExportProfile::kachelRaster($profil['kachel_raster'] ?? ''))) ?></dd>
@@ -208,6 +212,16 @@ $feldKeys = $istNeu ? $standardFelder : ExportProfile::felderAusProfil($profil);
                 <input type="checkbox" name="summe" value="1"
                        <?= ($profil['summe'] ?? 1) ? 'checked' : '' ?>>
                 <?= Helpers::e(t('profil.summe_anzeigen')) ?>
+            </label>
+            <label>
+                <input type="checkbox" name="deckblatt" value="1"
+                       <?= !empty($profil['deckblatt']) ? 'checked' : '' ?>>
+                <?= Helpers::e(t('pdf.deckblatt_zeigen')) ?>
+            </label>
+            <label>
+                <input type="checkbox" name="fusszeile" value="1"
+                       <?= !empty($profil['fusszeile']) ? 'checked' : '' ?>>
+                <?= Helpers::e(t('pdf.fusszeile_zeigen')) ?>
             </label>
         </div>
     </div>

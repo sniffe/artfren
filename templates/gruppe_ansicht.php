@@ -315,6 +315,8 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
                         data-summe="<?= (int) $p['summe'] ?>"
                         data-layout="<?= Helpers::e((string) $p['layout']) ?>"
                         data-kachel-raster="<?= Helpers::e((string) ($p['kachel_raster'] ?? '2x2')) ?>"
+                        data-deckblatt="<?= (int) ($p['deckblatt'] ?? 0) ?>"
+                        data-fusszeile="<?= (int) ($p['fusszeile'] ?? 0) ?>"
                 ><?= Helpers::e($p['name']) ?><?= $p['ist_standard'] ? ' (' . Helpers::e(t('profil.standard')) . ')' : '' ?></option>
             <?php endforeach; ?>
         </select>
@@ -347,6 +349,8 @@ $pdfGruppen        = array_unique(array_column($pdfAlleFelder, 'gruppe'));
         <label><input type="checkbox" id="pdf-titelblock" checked> <?= Helpers::e(t('pdf.titelblock_zeigen')) ?></label>
         <label><input type="checkbox" id="pdf-leer" checked> <?= Helpers::e(t('pdf.leer_ausblenden')) ?></label>
         <label><input type="checkbox" id="pdf-summe" checked> <?= Helpers::e(t('pdf.summe_zeigen')) ?></label>
+        <label><input type="checkbox" id="pdf-deckblatt"> <?= Helpers::e(t('pdf.deckblatt_zeigen')) ?></label>
+        <label><input type="checkbox" id="pdf-fusszeile"> <?= Helpers::e(t('pdf.fusszeile_zeigen')) ?></label>
     </div>
 
     <div class="feld" style="max-width:200px; margin-bottom:var(--abstand-m);">

@@ -45,6 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Einstellungen::setze('akzentfarbe', $akzentfarbe);
         Einstellungen::setze('schrift', $schrift);
         Einstellungen::setze('icon_staerke', $iconStaerke);
+        // Copyright-Zeile für PDF-Fußzeilen: nur Text, eine Zeile, höchstens 120 Zeichen.
+        $pdfCopyright = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', (string) ($_POST['pdf_copyright'] ?? '')) ?? '';
+        Einstellungen::setze('pdf_copyright', mb_substr(trim($pdfCopyright), 0, 120));
         Protokoll::schreibe('erscheinungsbild', "look_intern={$lookIntern}, look_web={$lookWeb}, schrift={$schrift}");
         Helpers::flashSet('erfolg', t('erscheint.gespeichert'));
         Helpers::redirect('/erscheinungsbild.php');
@@ -130,4 +133,5 @@ render('erscheinungsbild', [
     'schrift'       => Einstellungen::schrift(),
     'iconStaerke'   => Einstellungen::iconStaerke(),
     'hatLogo'       => Einstellungen::logoPfad() !== null,
+    'pdfCopyright'  => Einstellungen::hol('pdf_copyright'),
 ]);

@@ -1,4 +1,5 @@
 <?php
+/** @var string $pdfCopyright */
 /** @var string $lookIntern */
 /** @var string $lookWeb */
 /** @var string $akzentfarbe */
@@ -93,6 +94,17 @@ $looks = [
                        placeholder="#7A2A38" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
                        style="font-family:monospace;">
             </div>
+        </div>
+    </div>
+
+    <!-- ── PDF-Export ─────────────────────────────────────────────────── -->
+    <div class="karte" style="max-width:820px;">
+        <h3><?= Helpers::e(t('erscheint.pdf_titel')) ?></h3>
+        <div class="feld">
+            <label for="pdf_copyright"><?= Helpers::e(t('erscheint.pdf_copyright')) ?></label>
+            <input type="text" id="pdf_copyright" name="pdf_copyright" maxlength="120"
+                   value="<?= Helpers::e($pdfCopyright) ?>" placeholder="© Sammlung Muster">
+            <p class="text-klein text-sekundaer"><?= Helpers::e(t('erscheint.pdf_copyright_beschr')) ?></p>
         </div>
     </div>
 

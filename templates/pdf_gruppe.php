@@ -8,6 +8,9 @@
 /** @var bool $zeigeSumme */
 /** @var string $layout  'einzelblatt'|'liste'|'kachel' */
 /** @var string $kachelRaster '2x2'|'3x2' (nur bei 'kachel') */
+/** @var bool $deckblatt   Deckblatt vor dem Inhalt */
+/** @var bool $fusszeile   Fußzeile (wird nach dem Rendern gezeichnet; hier nur Platz am Seitenende) */
+/** @var bool $querformat */
 declare(strict_types=1);
 
 use App\Helpers;
@@ -53,8 +56,10 @@ $geldFelder     = array_values(array_filter($pdfFelder, static fn(array $f): boo
     table.werkliste td.num { white-space: nowrap; }
 </style>
 <?php if ($layout === 'kachel') { require __DIR__ . '/_pdf_kachel_stil.php'; } ?>
+<?php if ($fusszeile) { ?><style>@page { margin-bottom: 18mm; }</style><?php } ?>
 </head>
 <body>
+<?php if ($deckblatt) { require __DIR__ . '/_pdf_deckblatt.php'; } ?>
 <?php if ($layout === 'liste'): ?>
 <?php
 // ── Listen-Layout ─────────────────────────────────────────────────────────────
@@ -65,8 +70,9 @@ $zeilenZahl = 0;
 <div class="liste-kopf">
     <h1><?= Helpers::e($gruppe['name']) ?></h1>
     <div class="liste-meta">
+<?php if (!$fusszeile): // Mit Fußzeile steht das Datum dort, nicht doppelt. ?>
         <?= Helpers::e(t('pdf.liste_datum')) ?> <?= date('d.m.Y') ?>
-        · <?= Helpers::e(I18n::plural(count($werke), 'pdf.liste_werke', ['n' => count($werke)])) ?>
+        · <?php endif; ?><?= Helpers::e(I18n::plural(count($werke), 'pdf.liste_werke', ['n' => count($werke)])) ?>
     </div>
 </div>
 <?php

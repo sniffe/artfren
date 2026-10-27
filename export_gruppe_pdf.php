@@ -7,6 +7,7 @@ require __DIR__ . '/src/bootstrap.php';
 use App\Auth;
 use App\Bilder;
 use App\Database;
+use App\Einstellungen;
 use App\Export;
 use App\ExportProfile;
 use App\Felder;
@@ -63,6 +64,8 @@ if ($getFelder !== null) {
     $zeigeSumme      = ($_GET['summe']             ?? '1') !== '0';
     $layout          = ExportProfile::layout($_GET['layout'] ?? '');
     $kachelRaster    = ExportProfile::kachelRaster($_GET['kachel_raster'] ?? '');
+    $deckblatt       = ($_GET['deckblatt'] ?? '0') === '1';
+    $fusszeile       = ($_GET['fusszeile'] ?? '0') === '1';
     $spracheQuelle   = $profil; // Sprachpräferenz aus explizit gewähltem Profil
 } elseif ($profil !== null) {
     $pdfFelder       = array_values(array_filter($alleFelder, static fn(array $f): bool => in_array($f['key'], ExportProfile::felderAusProfil($profil), true)));
@@ -72,6 +75,8 @@ if ($getFelder !== null) {
     $zeigeSumme      = (bool) $profil['summe'];
     $layout          = ExportProfile::layout($profil['layout']);
     $kachelRaster    = ExportProfile::kachelRaster($profil['kachel_raster'] ?? '');
+    $deckblatt       = (bool) ($profil['deckblatt'] ?? 0);
+    $fusszeile       = (bool) ($profil['fusszeile'] ?? 0);
     $spracheQuelle   = $profil;
 } else {
     // Fallback: Standard-Profil. Eingeschränkte Benutzer bekommen es nur, wenn es
@@ -92,6 +97,8 @@ if ($getFelder !== null) {
         $zeigeSumme      = (bool) $standardProfil['summe'];
         $layout          = ExportProfile::layout($standardProfil['layout']);
         $kachelRaster    = ExportProfile::kachelRaster($standardProfil['kachel_raster'] ?? '');
+        $deckblatt       = (bool) ($standardProfil['deckblatt'] ?? 0);
+        $fusszeile       = (bool) ($standardProfil['fusszeile'] ?? 0);
         $spracheQuelle   = $standardProfil;
     } else {
         // Letzter Fallback: in_pdf-Felder, alle Schalter an. Den Ankaufswert
@@ -104,6 +111,8 @@ if ($getFelder !== null) {
         $zeigeSumme      = true;
         $layout          = ExportProfile::LAYOUTS[0];
         $kachelRaster    = ExportProfile::KACHEL_RASTER[0];
+        $deckblatt       = false;
+        $fusszeile       = false;
     }
 }
 
@@ -130,6 +139,12 @@ foreach ($werke as &$werk) {
 }
 unset($werk);
 
+// Liste mit vielen Spalten im Querformat, damit nichts abgeschnitten wird;
+// Kacheln 3x2 immer quer, 2x2 hoch.
+$querformat = $layout === 'kachel'
+    ? $kachelRaster === '3x2'
+    : ($layout === 'liste' && count($pdfFelder) > 6);
+
 ob_start();
 require APP_ROOT . '/templates/pdf_gruppe.php';
 $html = (string) ob_get_clean();
@@ -142,11 +157,44 @@ $optionen->set('chroot', APP_ROOT . '/vendor/dompdf/dompdf');
 
 $dompdf = new Dompdf($optionen);
 $dompdf->loadHtml($html);
-// Liste mit vielen Spalten im Querformat, damit nichts abgeschnitten wird;
-// Kacheln 3x2 immer quer, 2x2 hoch.
-$querformat = $layout === 'kachel'
-    ? $kachelRaster === '3x2'
-    : ($layout === 'liste' && count($pdfFelder) > 6);
 $dompdf->setPaper('A4', $querformat ? 'landscape' : 'portrait');
 $dompdf->render();
+
+// Fußzeile nach dem Rendern über die Canvas-API (ohne isPhpEnabled): links Copyright,
+// Mitte Datum, rechts "Seite n von m". Das Deckblatt bleibt ohne Fußzeile und zählt nicht mit.
+if ($fusszeile) {
+    $copyright  = Einstellungen::hol('pdf_copyright');
+    $datum      = date('d.m.Y');
+    $seiteVorl  = t('pdf.seite_n_von_m', ['n' => '{n}', 'm' => '{m}']);
+    $mitDeckbl  = $deckblatt;
+    $dompdf->getCanvas()->page_script(static function (int $seite, int $seiten, $canvas, $fontMetrics) use ($copyright, $datum, $seiteVorl, $mitDeckbl): void {
+        if ($mitDeckbl && $seite === 1) {
+            return;
+        }
+        $n = $mitDeckbl ? $seite - 1 : $seite;
+        $m = $mitDeckbl ? $seiten - 1 : $seiten;
+        $schrift = $fontMetrics->getFont('DejaVu Sans');
+        $groesse = 7.5;
+        $farbe   = [0.42, 0.41, 0.38];
+        $rand    = 34.0;                          // 12 mm, wie der Seitenrand
+        $y       = $canvas->get_height() - 30.0;  // gut 1 cm über der Unterkante
+        $breite  = $canvas->get_width();
+
+        $rechts = str_replace(['{n}', '{m}'], [(string) $n, (string) $m], $seiteVorl);
+        $wRechts = $fontMetrics->getTextWidth($rechts, $schrift, $groesse);
+        $wMitte  = $fontMetrics->getTextWidth($datum, $schrift, $groesse);
+        $canvas->text(($breite - $wMitte) / 2, $y, $datum, $schrift, $groesse, $farbe);
+        $canvas->text($breite - $rand - $wRechts, $y, $rechts, $schrift, $groesse, $farbe);
+
+        // Copyright kürzen, bis es links vor dem Datum Platz hat.
+        $platz = ($breite - $wMitte) / 2 - $rand - 12.0;
+        $links = $copyright;
+        while ($links !== '' && $links !== '…' && $fontMetrics->getTextWidth($links, $schrift, $groesse) > $platz) {
+            $links = rtrim(mb_substr(rtrim($links, '…'), 0, -1)) . '…';
+        }
+        if ($links !== '' && $links !== '…') {
+            $canvas->text($rand, $y, $links, $schrift, $groesse, $farbe);
+        }
+    });
+}
 $dompdf->stream(Export::dateiname($gruppe['name'], 'pdf'), ['Attachment' => true]);
