@@ -358,6 +358,15 @@ code { font-size: .9em; background: color-mix(in srgb, var(--farbe-text) 7%, tra
 .bild-karte__meta { flex: 1; min-width: 0; }
 .bild-karte__reihenfolge { display: flex; flex-direction: column; gap: var(--abstand-xs); flex-shrink: 0; }
 
+/* Alle Dialoge folgen dem Erscheinungsbild (hell/dunkel, Look), auch ohne Klasse .dialog;
+   sonst gilt der weiße Browser-Standard, während der Text die helle Schrift erbt. */
+dialog {
+    background: var(--farbe-flaeche);
+    color: var(--farbe-text);
+    border-color: var(--farbe-linie);
+}
+dialog::backdrop { background: rgb(0 0 0 / .35); }
+
 .dialog {
     border: 1px solid var(--farbe-linie);
     border-radius: var(--radius);
